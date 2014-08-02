@@ -113,14 +113,30 @@ typedef enum {
   #define PIN_SR_CLOCK      22    // shift register clock pin
   #define PIN_SR_OE          1    // shift register output enable pin
   */
-  #define PIN_STN_S1        46      // use these when switching relays
-  #define PIN_STN_S2        44      // without shift register i.e.
-  #define PIN_STN_S3        42      // control signal is directly from
-  #define PIN_STN_S4        40      // arduino digital output pins
-  #define PIN_STN_S5        47      
-  #define PIN_STN_S6        45
-  #define PIN_STN_S7        43
-  #define PIN_STN_S8        41
+  #define PIN_EXT_BOARDS      2   // this defines the total number of discrete
+                                  // digital IO pins used to control watering stations.
+                                  // There are 8 stations per extender board, that MUST have 
+                                  // PIN_EXT_BOARDS x 8  pins defined below (otherwise you'll 
+                                  // get out of range issues with the array of pins defined
+                                  // in OpenSprinklerGen2.cpp)
+                                  
+  #define PIN_STN_S01        22   // Use these pins when switching relays
+  #define PIN_STN_S02        23   // without shift register i.e.
+  #define PIN_STN_S03        24   // control signal is driven directly from
+  #define PIN_STN_S04        25   // the arduino digital output pins
+  #define PIN_STN_S05        26      
+  #define PIN_STN_S06        27
+  #define PIN_STN_S07        28
+  #define PIN_STN_S08        29
+  #define PIN_STN_S09        30      
+  #define PIN_STN_S10        31     
+  #define PIN_STN_S11        32     
+  #define PIN_STN_S12        33   
+  #define PIN_STN_S13        34      
+  #define PIN_STN_S14        35
+  #define PIN_STN_S15        36
+  #define PIN_STN_S16        37  
+  
   // </MOD> ===== Swap between Shift Register and Digital IO
   
   // <MOD> ====== Added for Freetronics LCD Shield =====

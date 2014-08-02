@@ -11,7 +11,7 @@
  */
 
 /* ==========================================================================================================
-   This is a modified version of Rays OpenSprinkler code thats amended to use alternative hardware:
+   This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
     - Arduino Mega 2560 http://arduino.cc/en/Main/arduinoBoardMega2560 
     - Wiznet W5100 Ethernet with onboard SD Card (this is a fairly common Arduino shield)
     - Freetronics LCD Keypad Shield http://www.freetronics.com/collections/shields/products/lcd-keypad-shield
@@ -23,9 +23,10 @@
 
    Version:     Opensprinkler 2.0.7 
    Date:        July 5, 2014
-   Repository:
+   Repository:  https://github.com/Dave1001/OpenSprinkler-Arduino
+   License:     Creative Commons Attribution-ShareAlike 3.0 license
 
-   Refer to the AAA_RELEASE_NOTES file for more information
+   Refer to the A_RELEASE_NOTES file for more information
    
    ========================================================================================================== */
 
@@ -57,7 +58,7 @@
 // Interval for checking network connection (in seconds)
 #define CHECK_NETWORK_INTERVAL  15     // 1 minute default
 // LCD backlight autodimming timeout
-#define LCD_DIMMING_TIMEOUT   30     // 30 seconds default
+#define LCD_DIMMING_TIMEOUT     30     // 30 seconds default
 // Ping test time out (in milliseconds)
 #define PING_TIMEOUT            200     // 0.2 second default
 

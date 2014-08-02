@@ -1,34 +1,29 @@
 OpenSprinkler-Arduino
 =====================
 
-   This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
-    - Arduino Mega 2560 
-    - Wiznet W5100 Ethernet with onboard SD Card 
-    - Freetronics LCD Keypad Shield
-    - Discrete IO outputs instead of using a shift register (as the Mega2560 has heaps of discretes)
-   
-   All blocks of code that have been amended for the alternative hardware are marked with:
-     <MOD>  at the start of the amended code block and 
-     </MOD> at the end of the amended code block
+This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
 
-   Version:     Opensprinkler 2.0.7 
-   Date:        July 5, 2014
-   Repository:  https://github.com/Dave1001/OpenSprinkler-Arduino
-   License:     Creative Commons Attribution-ShareAlike 3.0 license
-   
-   ==========================================================================================================
+(1) Arduino Mega 2560 
+(2) Wiznet W5100 Ethernet with onboard SD Card 
+(3) Freetronics LCD Keypad Shield
+(4) Discrete IO outputs instead of using a shift register 
 
-   The code implements a minimal set of functionality to replace the EtherCard class libraries and all underlying
-   ENC28J60 code files used by Ray in the OpenSprinkler2 library.
+Version:     Opensprinkler 2.0.7 
+Date:        July 5, 2014
+Repository:  https://github.com/Dave1001/OpenSprinkler-Arduino
+License:     Creative Commons Attribution-ShareAlike 3.0 license
    
-   All blocks of code that have been amended for the alternative hardware are marked with:
-     <MOD>  at the start of the amended code block and 
-     </MOD> at the end of the amended code block
+==================================================================
+
+The code implements a minimal set of functionality to replace the EtherCard class libraries and all underlying ENC28J60 code files used by Ray in the OpenSprinkler2 library.
+   
+All blocks of code that have been amended for the alternative hardware are marked with:
+  "<MOD>"  at the start of the amended code block and 
+  "</MOD>" at the end of the amended code block
      
-   If you need to reverse out changes to go back to the normal Opensprinkler config, just search for "MOD" in
-   each file and undo the comments to go back to Rays code.
+If you need to reverse out changes to go back to the normal Opensprinkler config, just search for "MOD" in each file and undo the comments to go back to Rays code.
 
-   ==========================================================================================================
+==================================================================
 
    Hardware:
    

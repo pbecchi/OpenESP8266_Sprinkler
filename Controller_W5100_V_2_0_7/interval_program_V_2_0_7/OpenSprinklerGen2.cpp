@@ -25,8 +25,9 @@ unsigned long OpenSprinkler::button_lasttime;
 extern char tmp_buffer[];
 
 //===== MOD - Digital Outputs =====// 
-int OpenSprinkler::station_pins[8] = {
-  PIN_STN_S1, PIN_STN_S2, PIN_STN_S3, PIN_STN_S4, PIN_STN_S5, PIN_STN_S6, PIN_STN_S7, PIN_STN_S8};
+int OpenSprinkler::station_pins[16] = {
+  PIN_STN_S01, PIN_STN_S02, PIN_STN_S03, PIN_STN_S04, PIN_STN_S05, PIN_STN_S06, PIN_STN_S07, PIN_STN_S08,
+  PIN_STN_S09, PIN_STN_S10, PIN_STN_S11, PIN_STN_S12, PIN_STN_S13, PIN_STN_S14, PIN_STN_S15, PIN_STN_S16};
 //===== MOD - Digital Outputs =====// 
 
 // Option json names
@@ -288,14 +289,10 @@ void OpenSprinkler::begin() {
    */
 
   // initialize the Digital IO pins as outputs:
-  pinMode(PIN_STN_S1, OUTPUT); 
-  pinMode(PIN_STN_S2, OUTPUT);
-  pinMode(PIN_STN_S3, OUTPUT); 
-  pinMode(PIN_STN_S4, OUTPUT); 
-  pinMode(PIN_STN_S5, OUTPUT); 
-  pinMode(PIN_STN_S6, OUTPUT); 
-  pinMode(PIN_STN_S7, OUTPUT); 
-  pinMode(PIN_STN_S8, OUTPUT);  
+  for (int i = 0; i < (PIN_EXT_BOARDS * 8); i++)
+  {
+    pinMode(station_pins[i], OUTPUT); 
+  } 
 
   //===== MOD - Swap between Shift Register and Digital IO =====//
 
@@ -569,12 +566,19 @@ void OpenSprinkler::apply_all_station_bits() {
 
   // Shift out all station bit values
   // from the highest bit to the lowest
-  for(bid=0;bid<=MAX_EXT_BOARDS;bid++) {
+  for(bid = 0; bid <= MAX_EXT_BOARDS; bid++) 
+  {
     bitvalue = 0;
     if (status.enabled && (!status.rain_delayed) && !(options[OPTION_USE_RAINSENSOR].value && status.rain_sensed))
       bitvalue = station_bits[MAX_EXT_BOARDS-bid];
-    for(s=0;s<8;s++) {
-      digitalWrite(station_pins[s], (bitvalue & ((byte)1<<(7-s))) ? HIGH : LOW );         
+    
+    // Check that we're switching discretes within the range defined
+    if( bid < PIN_EXT_BOARDS)
+    {  
+      for(s = 0; s < 8; s++) 
+      {
+        digitalWrite(station_pins[(bid*8)+s], (bitvalue & ((byte)1<<(7-s))) ? HIGH : LOW );         
+      }
     }
   }  
   //===== MOD - Swap between Shift Register and Digital IO =====//    
