@@ -26,8 +26,8 @@ Code Mods
 The code implements a minimal set of functionality to replace the EtherCard class libraries and all underlying ENC28J60 code files used by Ray in the OpenSprinkler2 library.
    
 All blocks of code that have been amended for the alternative hardware are marked with:
-- "<MOD>"  at the start of the amended code block and 
-- "</MOD>" at the end of the amended code block
+- "MOD"  at the start of the amended code block and 
+- "/MOD" at the end of the amended code block
 
 If you need to reverse out changes to go back to the normal Opensprinkler config, just search for "MOD" in each file and undo the comments to go back to Rays code.
 
@@ -74,17 +74,17 @@ To install and compile this code you need:
 
    Or download them from:
 
-- <Wire.h>          Standard Arduino Library
-- <LiquidCrystal.h> Standard Arduino Library
-- <SPI.h>           Standard Arduino Library
-- <Ethernet.h>      Standard Arduino Library
-- <EthernetUdp.h>   Standard Arduino Library
-- <ICMPPing.h>      https://github.com/BlakeFoster/Arduino-Ping
-- <Time.h>          http://www.pjrc.com/teensy/td_libs_Time.html 
-- <TimeAlarms.h>    http://www.pjrc.com/teensy/td_libs_TimeAlarms.html 
-- <DS1307RTC.h>     http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
-- <tinyFAT.h>       http://www.henningkarlsen.com/electronics/library.php?id=37
-- <MemoryFree.h>    http://playground.arduino.cc/Code/AvailableMemory which links to https://dl.dropbox.com/u/56421988/MemoryFree.zip
+- "Wire.h"          Standard Arduino Library
+- "LiquidCrystal.h" Standard Arduino Library
+- "SPI.h"           Standard Arduino Library
+- "Ethernet.h"      Standard Arduino Library
+- "EthernetUdp.h"   Standard Arduino Library
+- "ICMPPing.h"      https://github.com/BlakeFoster/Arduino-Ping
+- "Time.h"          http://www.pjrc.com/teensy/td_libs_Time.html 
+- "TimeAlarms.h"    http://www.pjrc.com/teensy/td_libs_TimeAlarms.html 
+- "DS1307RTC.h"     http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
+- "tinyFAT.h"       http://www.henningkarlsen.com/electronics/library.php?id=37
+- "MemoryFree.h"    http://playground.arduino.cc/Code/AvailableMemory which links to https://dl.dropbox.com/u/56421988/MemoryFree.zip
 
   NOTE - unless you're careful, you may have some issues with the libraries above co-existing with OpenSprinklerGen2 library. The easiest way to fix it is to remove OpenSprinklerGen2 from your Arduino library folder. 
 
