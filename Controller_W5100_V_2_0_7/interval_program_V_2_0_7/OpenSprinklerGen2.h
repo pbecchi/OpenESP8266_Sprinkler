@@ -14,7 +14,7 @@
 #include "WProgram.h"
 #endif
 
-// ===== MOD - Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
+// <MOD> ====== Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
 /*
 #include <avr/eeprom.h>
 #include "../Wire/Wire.h"
@@ -36,7 +36,7 @@
 #include <avr/pgmspace.h>
 #include "EtherCard_W5100.h"
 #include "defines.h"
-// ===== MOD - Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
+// </MOD> ===== Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
 
 
 // Option Data Structure
@@ -88,9 +88,9 @@ public:
   static unsigned long button_lasttime;
 
 
-  //===== MOD - Digital Outputs =====// 
+  //<MOD> ====== Digital Outputs =====// 
   static int station_pins[];
-  //===== MOD - Digital Outputs =====// 
+  //</MOD> ===== Digital Outputs =====// 
 
   // ====== Member Functions ======
   // -- Setup --
@@ -138,6 +138,10 @@ public:
   static void lcd_print_time(byte line);                  // print current time
   static void lcd_print_ip(const byte *ip, int http_port);// print ip and port number
   static void lcd_print_station(byte line, char c);       // print station bits of the board selected by display_board
+
+  // <MOD> ====== Added for debugging =====
+  static void lcd_print_memory(byte line);                // print current free memory and an animated character to show activity
+  // </MOD> ===== Added for debugging =====
  
   // -- Button and UI functions --
   static byte button_read(byte waitmode); // Read button value. options for 'waitmodes' are:
@@ -153,9 +157,9 @@ private:
   static void lcd_print_2digit(int v);  // print a integer in 2 digits
   static byte button_read_busy(byte pin_butt, byte waitmode, byte butt, byte is_holding);
 
-  // ===== MOD - Added for Freetronics LCD Shield =====
+  // <MOD> ====== Added for Freetronics LCD Shield =====
   static byte button_sample();          // new function to sample analog button input
-  // ===== MOD - Added for Freetronics LCD Shield =====
+  // </MOD> ===== Added for Freetronics LCD Shield =====
 };
 
 #endif

@@ -5,10 +5,10 @@
    Dec 2013 @ Rayshobby.net
 */
 
-// ===== MOD - Added for W5100 =====
+// <MOD> ====== Added for W5100 =====
 // #include <OpenSprinklerGen2.h> // Commented out for W5100
 #include "OpenSprinklerGen2.h"
-// ===== MOD - Added for W5100 =====
+// </MOD> ===== Added for W5100 =====
 
 // External variables defined in main pde file
 extern uint8_t ntpclientportL;
@@ -1098,9 +1098,9 @@ URLStruct urls[] = {
 // analyze the current url
 void analyze_get_url(char *p)
 {
-  // ===== MOD - for W5100 Ethernet =====
+  // <MOD> ====== for W5100 Ethernet =====
   // ether.httpServerReplyAck();
-  // ===== MOD - for W5100 Ethernet =====
+  // </MOD> ===== for W5100 Ethernet =====
 
   bfill = ether.tcpOffset();
 
@@ -1152,10 +1152,10 @@ byte streamfile (char* name , byte lastflag) { //send a file to the buffer
     for(int i=0;i<car;i++) {
       cur++;
       
-      // ====== MOD - Added for WS5100 =====
+      // =<MOD> ====== Added for WS5100 =====
       // Ethernet::buffer[cur+53]=file.buffer[i];
       EtherCard::buffer[cur+53]=file.buffer[i];
-      // ====== MOD - Added for WS5100 =====
+      // =</MOD> ===== Added for WS5100 =====
     }
     if (cur>=512) {
       ether.httpServerReply_with_flags(cur,TCP_FLAGS_ACK_V, 4);

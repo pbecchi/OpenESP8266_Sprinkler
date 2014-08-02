@@ -8,12 +8,12 @@
 #define _Defines_h
 
 // Firmware version
-#define SVC_FW_VERSION  208
+#define SVC_FW_VERSION  207
 // firmware version (206 means 2.0.6 etc)
                             // if this number is different from stored in EEPROM,
                             // an EEPROM reset will be automatically triggered
 
-#define MAX_EXT_BOARDS   4 // maximum number of ext. boards (each expands 8 stations)
+#define MAX_EXT_BOARDS   2 // maximum number of ext. boards (each expands 8 stations)
                             // total number of stations: (1+MAX_EXT_BOARDS) * 8
 
 #define MAX_NUM_STATIONS  ((1+MAX_EXT_BOARDS)*8)
@@ -103,7 +103,6 @@ typedef enum {
 
 #if SVC_HW_VERSION == 20 || SVC_HW_VERSION == 21
 
-
   #define PIN_RF_DATA       28    // RF data pin 
   
   // <MOD> ====== Swap between Shift Register and Digital IO
@@ -161,7 +160,7 @@ typedef enum {
   #define PIN_LCD_RS         8    // LCD rs pin - default = 19
   #define PIN_LCD_EN         9    // LCD enable pin - default = 18
   #define PIN_LCD_D4         2    // LCD D4 pin - default = 20
-                                  // Note - D4 on the Freetronics LCD shield clashes with chipselect pin for the SD card on some W5100 shields.
+                                  // Note - D4 on the Freetronics LCD shield clashes with chipselect pin for the SD card that is also D4 on some W5100 shields.
                                   //        You may need to jumper it to D2 as described at http://forum.freetronics.com/viewtopic.php?t=770
   #define PIN_LCD_D5         5    // LCD D5 pin - default = 21
   #define PIN_LCD_D6         6    // LCD D6 pin - default = 22
@@ -187,6 +186,7 @@ typedef enum {
 
   // </MOD> =====  Added for Freetronics LCD Shield =====  
 
+  #define USE_TINYFAT             // This definition is required if you are using a non standard CS pin for the SD card
   #define PIN_ETHER_CS      10    // Ethernet controller chip select pin - default = 4
   #define PIN_SD_CS          4    // SD card chip select pin - default = 0
   #define PIN_RAINSENSOR    39    // rain sensor is connected to pin D3 - default = 11
@@ -223,8 +223,7 @@ typedef enum {
 
 // <MOD> ====== Added for W5100 and Auto-Reboot ===== 
 /*
-#define ETHER_BUFFER_SIZE   900  // if buffer size is increased, you must check the total RAM consumption
-                                  // otherwise it may cause the program to crash
+#define ETHER_BUFFER_SIZE   900  // if buffer size is increased, you must check the total RAM consumption otherwise it may cause the program to crash
 #define TMP_BUFFER_SIZE       48  // scratch buffer size
 */
 
@@ -239,6 +238,11 @@ typedef enum {
 
 #define SHOW_MEMORY  false           // flag for testing - displays free memory instead of station info
 
+// Remember you have to reset the EEPROM before changes to any of the below will take effect - 
+// To reset the EEPROM just set a different value for SVC_FW_VERSION above e.g. 208 instead of 207
+
+#define USE_DHCP     1              // 0: use static ip, 1: use dhcp
+
 #define STATIC_IP_1  192            // Default IP to be stored in eeprom on first run
 #define STATIC_IP_2  168
 #define STATIC_IP_3  0
@@ -249,11 +253,21 @@ typedef enum {
 #define STATIC_GW_3  0
 #define STATIC_GW_4  1
 
-#define STATIC_PORT0  80            // Default Port to be stored in eeprom on first run
+#define STATIC_PORT0  80            // Default port to be stored in eeprom on first run
 #define STATIC_PORT1  0
 
+// wwv.nist.gov 24.56.178.140
+#define USE_NTP        1            // 0: don't get NTP update, 1: use NTP to update time
+#define NTP_IP_1      24            // NTP IP to be stored in eeprom on first run
+#define NTP_IP_2      56     
+#define NTP_IP_3     178
+#define NTP_IP_4     140
+
+// Define the chipselect pins for all SPI devices attached to the arduino
+// Unused pins needs to be pulled high otherwise SPI doesn't work properly
+#define SPI_DEVICES   4                        // number of SPI devices
+const uint8_t spi_ss_pin[] = { 4, 10, 42 };    // SS pin for each device
+
 // </MOD> ===== Added for W5100 and Auto-Reboot ===== 
-
 #endif
-
 

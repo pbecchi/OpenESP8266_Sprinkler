@@ -1,16 +1,18 @@
-/*
-   This is a modified version of OpenSprinkler Generation 2 that
- has been adapted to run on a standard Arduino W5100 Ethernet Shield, 
- and a Freetronics LCD Shield.
- 
- The code implements a minimal set of functionality to
- replace the EtherCard class libraries and all underlying
- ENC28J60 code files used by Ray in the OpenSprinkler2 library.
- 
- Creative Commons Attribution-ShareAlike 3.0 license
- 
- Dave Skinner - Aug 2013
- */
+/* ==========================================================================================================
+   This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
+  
+   EtherCard.h and EtherCard.cpp implement a minimal set of functionality to
+   replace the EtherCard class libraries and all underlying ENC28J60 library
+   files used by Ray in the OpenSprinkler2 library.
+
+   Version:     Opensprinkler 2.0.7 
+   Date:        July 5, 2014
+   Repository:  https://github.com/Dave1001/OpenSprinkler-Arduino
+   License:     Creative Commons Attribution-ShareAlike 3.0 license
+
+   Refer to the A_RELEASE_NOTES file for more information
+   
+   ========================================================================================================== */
 
 #include "EtherCard_W5100.h"
 #include "ICMPPing.h"
@@ -97,12 +99,17 @@ uint8_t csPin) {
   return 1; //0 means fail
 }
 
-bool EtherCard::staticSetup (const uint8_t* my_ip,
-const uint8_t* gw_ip,
-const uint8_t* dns_ip) {
+bool EtherCard::staticSetup (const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip) 
+{  
+  //return dhcpSetup(); 
+  //IPAddress ip(STATIC_IP_1,STATIC_IP_2,STATIC_IP_3,STATIC_IP_4);
+  //IPAddress gw(STATIC_GW_1,STATIC_GW_2,STATIC_GW_3,STATIC_GW_4);
+  IPAddress ip(my_ip[0],my_ip[1],my_ip[2],my_ip[3]);
+  IPAddress gw(gw_ip[0],gw_ip[1],gw_ip[2],gw_ip[3]);
+  IPAddress subnet(255, 255, 255, 0);
 
   // initialize the ethernet device
-  Ethernet.begin(mymac, my_ip, dns_ip, gw_ip);
+  Ethernet.begin(mymac, ip, gw, subnet);
 
   // start listening for clients
   server.begin();
@@ -119,6 +126,8 @@ const uint8_t* dns_ip) {
 // Initialise DHCP with a particular name.
 bool EtherCard::dhcpSetup (const char *name) 
 {
+  // Ignore the name for now - this is a feature of 
+  // the standard Arduino ethernet library thats unclear how to implement
   return dhcpSetup (); 
 }
 

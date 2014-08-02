@@ -1,16 +1,18 @@
-/*
-   This is a modified version of OpenSprinkler Generation 2 that
- has been adapted to run on a standard Arduino W5100 Ethernet Shield, 
- and a Freetronics LCD Shield.
- 
- The code implements a BARE MINIMUM set of functionality to
- replace the EtherCard class libraries and all underlying
- ENC28J60 code files used by Ray in the OpenSprinkler2 library.
- 
- Creative Commons Attribution-ShareAlike 3.0 license
- 
- Dave Skinner - Aug 2013
- */
+/* ==========================================================================================================
+   This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
+  
+   EtherCard.h and EtherCard.cpp implement a minimal set of functionality to
+   replace the EtherCard class libraries and all underlying ENC28J60 library
+   files used by Ray in the OpenSprinkler2 library.
+
+   Version:     Opensprinkler 2.0.7 
+   Date:        July 5, 2014
+   Repository:  https://github.com/Dave1001/OpenSprinkler-Arduino
+   License:     Creative Commons Attribution-ShareAlike 3.0 license
+
+   Refer to the A_RELEASE_NOTES file for more information
+   
+   ========================================================================================================== */
 
 // ==================
 // Class Definitions
@@ -38,7 +40,7 @@
 #include "net.h"
 
 #define MAX_SOCK_NUM        4
-//#define ETHER_BUFFER_SIZE   1100   // if buffer size is increased, you must check the total RAM consumption
+//#define ETHER_BUFFER_SIZE   1100     // if buffer size is increased, you must check the total RAM consumption
 // otherwise it may cause the program to crash
 //#define WEBPREFIX           ""      //By specifying a prefix of "", all pages will be at the root of the server.
 #define NTP_PACKET_SIZE     48        // NTP time stamp is in the first 48 bytes of the message

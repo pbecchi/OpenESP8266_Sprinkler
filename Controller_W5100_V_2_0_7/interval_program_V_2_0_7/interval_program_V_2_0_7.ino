@@ -1,15 +1,3 @@
-// Example code for OpenSprinkler Generation 2
-
-/* This is a program-based sprinkler schedule algorithm.
- Programs are set similar to calendar schedule.
- Each program specifies the days, stations,
- start time, end time, interval and duration.
- The number of programs you can create are subject to EEPROM size.
- 
- Creative Commons Attribution-ShareAlike 3.0 license
- Dec 2013 @ Rayshobby.net
- */
-
 /* ==========================================================================================================
    This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
     - Arduino Mega 2560 http://arduino.cc/en/Main/arduinoBoardMega2560 
@@ -29,6 +17,18 @@
    Refer to the A_RELEASE_NOTES file for more information
    
    ========================================================================================================== */
+
+// Example code for OpenSprinkler Generation 2
+
+/* This is a program-based sprinkler schedule algorithm.
+ Programs are set similar to calendar schedule.
+ Each program specifies the days, stations,
+ start time, end time, interval and duration.
+ The number of programs you can create are subject to EEPROM size.
+ 
+ Creative Commons Attribution-ShareAlike 3.0 license
+ Dec 2013 @ Rayshobby.net
+ */
 
 // <MOD> ====== Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
 #include <Wire.h> 
@@ -64,7 +64,7 @@
 
 
 // ====== Ethernet defines ======
-byte mymac[] = { 0x00,0x69,0x69,0x2D,0x31,0x00 }; // mac address
+byte mymac[] = { 0xDE,0x69,0x69,0x2D,0x31,0x00 }; // mac address
 uint8_t ntpclientportL = 123; // Default NTP client port
 int myport;
 
@@ -145,10 +145,20 @@ void button_poll() {
 void setup() { 
   //Serial.begin(9600);
   //Serial.println("start");
+
+  // <MOD> ====== Added to handle multiple SPI devices =====       
+  // Pull any other SPI devices high (ethernet, SD, RF24 etc)
+  for (int i = 0; i < SPI_DEVICES; i++)
+  {
+    pinMode(spi_ss_pin[i], OUTPUT); 
+    digitalWrite(spi_ss_pin[i], HIGH); 
+  }
+  // </MOD> ===== Added to handle multiple SPI devices ===== 
+  
   svc.begin();          // OpenSprinkler init
   svc.options_setup();  // Setup options
- 
   pd.init();            // ProgramData init
+  
   // calculate http port number
   myport = (int)(svc.options[OPTION_HTTPPORT_1].value<<8) + (int)svc.options[OPTION_HTTPPORT_0].value;
 
@@ -400,9 +410,17 @@ void loop()
           
     // activate/deactivate valves
     svc.apply_all_station_bits();
-    
+
+    // <MOD> ====== Added to show free memory for debugging =====    
     // process LCD display
-    svc.lcd_print_station(1, ui_anim_chars[curr_time%3]);
+    //svc.lcd_print_station(1, ui_anim_chars[curr_time%3]);
+
+    // process LCD display
+    if(SHOW_MEMORY)
+      svc.lcd_print_memory(1);
+    else
+      svc.lcd_print_station(1, ui_anim_chars[curr_time%3]);
+    // </MOD> ===== Added to show free memory for debugging =====    
     
     // check network connection
     check_network(curr_time);

@@ -8,10 +8,10 @@
 #ifndef PROGRAM_STRUCT_H
 #define PROGRAM_STRUCT_H
 
-// ===== MOD - Added for W5100 =====
+// <MOD> ====== Added for W5100 =====
 // #include <OpenSprinklerGen2.h> // Commented out for W5100
 #include "OpenSprinklerGen2.h"
-// ===== MOD - Added for W5100 =====
+// </MOD> ===== Added for W5100 =====
 
 // Program data structure
 class ProgramStruct {

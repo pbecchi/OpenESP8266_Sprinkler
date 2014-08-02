@@ -9,10 +9,10 @@
 
 // Declare static data members
 
-// ===== MOD - Freetronics LCD Shield =====
+// <MOD> ====== Freetronics LCD Shield =====
 // LiquidCrystal OpenSprinkler::lcd;
    LiquidCrystal OpenSprinkler::lcd(PIN_LCD_RS, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
-// ===== MOD - Freetronics LCD Shield =====
+// </MOD> ===== Freetronics LCD Shield =====
 
 StatusBits OpenSprinkler::status;
 byte OpenSprinkler::nboards;
@@ -24,11 +24,11 @@ unsigned long OpenSprinkler::raindelay_stop_time;
 unsigned long OpenSprinkler::button_lasttime;
 extern char tmp_buffer[];
 
-//===== MOD - Digital Outputs =====// 
+//<MOD> ====== Digital Outputs =====// 
 int OpenSprinkler::station_pins[16] = {
   PIN_STN_S01, PIN_STN_S02, PIN_STN_S03, PIN_STN_S04, PIN_STN_S05, PIN_STN_S06, PIN_STN_S07, PIN_STN_S08,
   PIN_STN_S09, PIN_STN_S10, PIN_STN_S11, PIN_STN_S12, PIN_STN_S13, PIN_STN_S14, PIN_STN_S15, PIN_STN_S16};
-//===== MOD - Digital Outputs =====// 
+//</MOD> ===== Digital Outputs =====// 
 
 // Option json names
 prog_char _json_fwv [] PROGMEM = "fwv";
@@ -106,110 +106,46 @@ prog_char _str_reset[] PROGMEM = "Reset all?";
 
 
 OptionStruct OpenSprinkler::options[NUM_OPTIONS] = {
-  {
-    SVC_FW_VERSION, 0, _str_fwv, _json_fwv, OPFLAG_NONE    }
-  , // firmware version
-  {
-    32,  108, _str_tz,   _json_tz, OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    }
-  ,     // default time zone: GMT-4
-  {
-    1,   1,   _str_ntp,  _json_ntp, OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    }
-  ,   // use NTP sync
-  {
-    1,   1,   _str_dhcp, _json_dhcp,OPFLAG_SETUP_EDIT    }
-  ,   // 0: use static ip, 1: use dhcp
-  {
-    192, 255, _str_ip1,  _json_ip1, OPFLAG_SETUP_EDIT    }
-  ,   // this and next 3 bytes define static ip
-  {
-    168, 255, _str_ip2,  _json_ip2, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    1,   255, _str_ip3,  _json_ip3, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    22,  255, _str_ip4,  _json_ip4, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    192, 255, _str_gw1,  _json_gw1, OPFLAG_SETUP_EDIT    }
-  ,   // this and next 3 bytes define static gateway ip
-  {
-    168, 255, _str_gw2,  _json_gw2, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    1,   255, _str_gw3,  _json_gw3, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    1,   255, _str_gw4,  _json_gw4, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    80,  255, _str_hp0,  _json_hp0, OPFLAG_WEB_EDIT    }
-  ,     // this and next byte define http port number
-  {
-    0,   255, _str_hp1,  _json_hp1, OPFLAG_WEB_EDIT    }
-  ,
-  {
-    1,   1,   _str_ar,   _json_ar,  OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    }
-  ,   // network auto reconnect
-  {
-    0,   MAX_EXT_BOARDS, _str_ext, _json_ext, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // number of extension board. 0: no extension boards
-  {
-    1,   1,   _str_seq,  _json_seq, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // sequential mode. 1: stations run sequentially; 0: concurrently
-  {
-    0,   240, _str_sdt,  _json_sdt, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // station delay time (0 to 240 seconds).
-  {
-    0,   8,   _str_mas,  _json_mas, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // index of master station. 0: no master station
-  {
-    0,   60,  _str_mton, _json_mton,OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // master on time [0,60] seconds
-  {
-    60,  120, _str_mtof, _json_mtof,OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // master off time [-60,60] seconds
-  {
-    0,   1,   _str_urs,  _json_urs, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // rain sensor control bit. 1: use rain sensor input; 0: ignore
-  {
-    1,   1,   _str_rso,  _json_rso, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // rain sensor type. 0: normally closed; 1: normally open.
-  {
-    100, 250, _str_wl,   _json_wl,  OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // water level (default 100%),
-  {
-    10,  240, _str_stt,  _json_stt, OPFLAG_SETUP_EDIT    }
-  ,                   // self-test time (in seconds)
-  {
-    0,   1,   _str_ipas, _json_ipas, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }
-  , // 1: ignore password; 0: use password
-  {
-    0,   255, _str_devid,_json_devid,OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    }
-  ,                   // device id
-  {
-    110, 255, _str_con,  _json_con, OPFLAG_SETUP_EDIT    }
-  ,                   // lcd contrast
-  {
-    100, 255, _str_lit,  _json_lit, OPFLAG_SETUP_EDIT    }
-  ,                   // lcd backlight
-  {
-    5,   255, _str_dim,  _json_dim, OPFLAG_SETUP_EDIT    }
-  ,                   // lcd dimming
-  {
-    204, 255, _str_ntp1, _json_ntp1, OPFLAG_SETUP_EDIT    }
-  , // this and the next three bytes define the ntp server ip
-  {
-    9,   255, _str_ntp2, _json_ntp2, OPFLAG_SETUP_EDIT    }
-  , 
-  {
-    54,  255, _str_ntp3, _json_ntp3, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    119, 255, _str_ntp4, _json_ntp4, OPFLAG_SETUP_EDIT    }
-  ,
-  {
-    0,   1,   _str_reset,_json_reset,OPFLAG_SETUP_EDIT    }
+  { SVC_FW_VERSION, 0, _str_fwv, _json_fwv, OPFLAG_NONE    } , // firmware version
+  { 32,  108, _str_tz,   _json_tz, OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    },     // default time zone: GMT-4
+//<MOD> ====== WS5100 Network Setup =====//   
+
+  { USE_NTP,   1,   _str_ntp,  _json_ntp, OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    },   // use NTP sync
+  { USE_DHCP,   1,   _str_dhcp, _json_dhcp,OPFLAG_SETUP_EDIT    },   // 0: use static ip, 1: use dhcp
+  { STATIC_IP_1, 255, _str_ip1,  _json_ip1, OPFLAG_SETUP_EDIT    },   // this and next 3 bytes define static ip
+  { STATIC_IP_2, 255, _str_ip2,  _json_ip2, OPFLAG_SETUP_EDIT    },
+  { STATIC_IP_3, 255, _str_ip3,  _json_ip3, OPFLAG_SETUP_EDIT    },
+  { STATIC_IP_4, 255, _str_ip4,  _json_ip4, OPFLAG_SETUP_EDIT    },
+  { STATIC_GW_1, 255, _str_gw1,  _json_gw1, OPFLAG_SETUP_EDIT    },   // this and next 3 bytes define static gateway ip
+  { STATIC_GW_2, 255, _str_gw2,  _json_gw2, OPFLAG_SETUP_EDIT    },
+  { STATIC_GW_3, 255, _str_gw3,  _json_gw3, OPFLAG_SETUP_EDIT    },
+  { STATIC_GW_4, 255, _str_gw4,  _json_gw4, OPFLAG_SETUP_EDIT    },
+  { STATIC_PORT0, 255, _str_hp0,  _json_hp0, OPFLAG_WEB_EDIT    },     // this and next byte define http port number
+  { STATIC_PORT1, 255, _str_hp1,  _json_hp1, OPFLAG_WEB_EDIT    },
+//</MOD> ===== WS5100 Network Setup =====//  
+  { 1,   1,   _str_ar,   _json_ar,  OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    },   // network auto reconnect
+  { 0,   MAX_EXT_BOARDS, _str_ext, _json_ext, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // number of extension board. 0: no extension boards
+  { 1,   1,   _str_seq,  _json_seq, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // sequential mode. 1: stations run sequentially; 0: concurrently
+  { 0,   240, _str_sdt,  _json_sdt, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // station delay time (0 to 240 seconds).
+  { 0,   8,   _str_mas,  _json_mas, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // index of master station. 0: no master station
+  { 0,   60,  _str_mton, _json_mton,OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // master on time [0,60] seconds
+  { 60,  120, _str_mtof, _json_mtof,OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // master off time [-60,60] seconds
+  { 0,   1,   _str_urs,  _json_urs, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // rain sensor control bit. 1: use rain sensor input; 0: ignore
+  { 1,   1,   _str_rso,  _json_rso, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // rain sensor type. 0: normally closed; 1: normally open.
+  { 100, 250, _str_wl,   _json_wl,  OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // water level (default 100%),
+  { 10,  240, _str_stt,  _json_stt, OPFLAG_SETUP_EDIT    },                   // self-test time (in seconds)
+  { 0,   1,   _str_ipas, _json_ipas, OPFLAG_SETUP_EDIT | OPFLAG_WEB_EDIT    }, // 1: ignore password; 0: use password
+  { 0,   255, _str_devid,_json_devid,OPFLAG_WEB_EDIT | OPFLAG_SETUP_EDIT    },                   // device id
+  { 110, 255, _str_con,  _json_con, OPFLAG_SETUP_EDIT    },                   // lcd contrast
+  { 100, 255, _str_lit,  _json_lit, OPFLAG_SETUP_EDIT    },                   // lcd backlight
+  { 5,   255, _str_dim,  _json_dim, OPFLAG_SETUP_EDIT    },                   // lcd dimming
+//<MOD> ====== WS5100 Network Setup =====//   
+  { NTP_IP_1, 255, _str_ntp1, _json_ntp1, OPFLAG_SETUP_EDIT    }, // this and the next three bytes define the ntp server ip
+  { NTP_IP_2, 255, _str_ntp2, _json_ntp2, OPFLAG_SETUP_EDIT    }, 
+  { NTP_IP_3, 255, _str_ntp3, _json_ntp3, OPFLAG_SETUP_EDIT    },
+  { NTP_IP_4, 255, _str_ntp4, _json_ntp4, OPFLAG_SETUP_EDIT    },
+//</MOD> ===== WS5100 Network Setup =====//  
+  { 0,   1,   _str_reset,_json_reset,OPFLAG_SETUP_EDIT    }
 };
 
 // Weekday display strings
@@ -274,7 +210,7 @@ void OpenSprinkler::reboot() {
 // OpenSprinkler init function
 void OpenSprinkler::begin() {
 
-  //===== MOD - Swap between Shift Register and Digital IO =====//
+  //<MOD> ====== Swap between Shift Register and Digital IO =====//
   /*
   
    // shift register setup
@@ -294,16 +230,16 @@ void OpenSprinkler::begin() {
     pinMode(station_pins[i], OUTPUT); 
   } 
 
-  //===== MOD - Swap between Shift Register and Digital IO =====//
+  //</MOD> ===== Swap between Shift Register and Digital IO =====//
 
   // Reset all stations
   clear_all_station_bits();
   apply_all_station_bits();
 
-  //===== MOD - Swap between Shift Register and Digital IO =====//
+  //<MOD> ====== Swap between Shift Register and Digital IO =====//
   // pull shift register OE low to enable output
   // digitalWrite(PIN_SR_OE, LOW);
-  //===== MOD - Swap between Shift Register and Digital IO =====//
+  //</MOD> ===== Swap between Shift Register and Digital IO =====//
 
   // set sd cs pin high
   pinMode(PIN_SD_CS, OUTPUT);
@@ -402,7 +338,7 @@ void OpenSprinkler::begin() {
   pinMode(PIN_RF_DATA, OUTPUT);
   digitalWrite(PIN_RF_DATA, LOW);
 
-  // ===== MOD - Freetronics LCD Shield =====
+  // <MOD> ====== Freetronics LCD Shield =====
   /*  
    // set button pins
    // enable internal pullup
@@ -413,9 +349,9 @@ void OpenSprinkler::begin() {
    digitalWrite(PIN_BUTTON_2, HIGH);
    digitalWrite(PIN_BUTTON_3, HIGH);    
    */
-  // ===== MOD - Freetronics LCD Shield =====
+  // </MOD> ===== Freetronics LCD Shield =====
 
-  // ===== MOD - DS1307 RTC =================
+  // <MOD> ====== DS1307 RTC =================
   // detect if DS1307 RTC exists
   /*
   if (RTC.detect()==0) {
@@ -425,7 +361,7 @@ void OpenSprinkler::begin() {
   if (RTC.chipPresent()==0) {
     status.has_rtc = 1;
   }
-  // ===== MOD - DS1307 RTC =================  
+  // </MOD> ===== DS1307 RTC =================  
 }
 
 // Self_test function
@@ -539,7 +475,7 @@ void OpenSprinkler::clear_all_station_bits() {
 // !!! This will activate/deactivate valves !!!
 void OpenSprinkler::apply_all_station_bits() {
 
-  //===== MOD - Swap between Shift Register and Digital IO =====//  
+  //<MOD> ====== Swap between Shift Register and Digital IO =====//  
   /*
   digitalWrite(PIN_SR_LATCH, LOW);
    byte bid, s, sbits;
@@ -581,7 +517,7 @@ void OpenSprinkler::apply_all_station_bits() {
       }
     }
   }  
-  //===== MOD - Swap between Shift Register and Digital IO =====//    
+  //</MOD> ===== Swap between Shift Register and Digital IO =====//    
 }		
 
 // =================
@@ -646,7 +582,7 @@ void OpenSprinkler::options_setup() {
     // if BUTTON_1 is pressed during startup, go to self-test
     delay(100);
 
-    // ===== MOD - Added for Freetronics LCD Shield =====
+    // <MOD> ====== Added for Freetronics LCD Shield =====
     /*
     if(digitalRead(PIN_BUTTON_3) == 0) {
      // if BUTTON_3 is pressed at the same time
@@ -661,7 +597,7 @@ void OpenSprinkler::options_setup() {
 
     self_test((unsigned long)options[OPTION_SELFTEST_TIME].value*1000);
 
-    // ===== MOD - Added for Freetronics LCD Shield =====
+    // </MOD> ===== Added for Freetronics LCD Shield =====
 
     break;
 
@@ -935,7 +871,7 @@ void OpenSprinkler::lcd_print_option(int i) {
 // Button Functions
 // ================
 
-// ===== MOD - Freetronics LCD Shield =====
+// <MOD> ====== Freetronics LCD Shield =====
 /*
 // Wait for button
  byte OpenSprinkler::button_read_busy(byte pin_butt, byte waitmode, byte butt, byte is_holding) {
@@ -1092,7 +1028,7 @@ byte OpenSprinkler::button_sample()
   else 
     return BUTTON_NONE;
 }
-// ===== MOD - Added for Freetronics LCD Shield =====
+// </MOD> ===== Added for Freetronics LCD Shield =====
 
 // user interface for setting options during startup
 void OpenSprinkler::ui_set_options(int oid)
@@ -1186,5 +1122,20 @@ byte OpenSprinkler::password_verify(char *pw) {
   return (c1==c2) ? 1 : 0;
 }
 
-
+// <MOD> ====== Added for debugging =====
+// ==================
+// Print free memory
+// ==================
+void OpenSprinkler::lcd_print_memory(byte line)
+{
+  lcd.setCursor(0, line);
+  lcd_print_pgm(PSTR("Free RAM:        "));
+  
+  lcd.setCursor(10, line);
+  lcd.print(freeMemory());
+  
+  lcd.setCursor(15, line);
+  lcd.write(status.network_fails>0?1:0); 
+}
+// </MOD> ===== Added for debugging =====
 
