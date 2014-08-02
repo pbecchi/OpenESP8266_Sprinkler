@@ -36,7 +36,7 @@ Hardware
    
 You'll need:
 
-- Arduino Mega 2560 (or any Arduino with enough progmem to handle binary sketch size of around 46Kb compiled) from [Arduino Mega]
+- Arduino Mega 2560 (or any Arduino with enough progmem to handle binary sketch size of around 65Kb compiled) from [Arduino Mega]
 
 - Wiznet W5100 Ethernet Shield (i.e. Arduino 'standard') from [Ebay W5100]
 
