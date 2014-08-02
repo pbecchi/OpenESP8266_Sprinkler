@@ -9,7 +9,7 @@
 #define _Defines_h
 
 // Firmware version
-#define SVC_FW_VERSION  200 // firmware version (e.g. 2.0.0 etc)
+#define SVC_FW_VERSION  201 // firmware version (e.g. 2.0.0 etc)
 // if this number is different from stored in EEPROM,
 // an EEPROM reset will be automatically triggered
 
@@ -196,7 +196,7 @@ OS_OPTION_t;
 #define STATIC_IP_1  192            // Default IP to be stored in eeprom on first run
 #define STATIC_IP_2  168
 #define STATIC_IP_3  0
-#define STATIC_IP_4  210
+#define STATIC_IP_4  211
 
 #define STATIC_GW_1  192            // Default Gateway to be stored in eeprom on first run
 #define STATIC_GW_2  168

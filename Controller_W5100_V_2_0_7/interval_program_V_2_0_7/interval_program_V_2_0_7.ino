@@ -10,9 +10,26 @@
  Dec 2013 @ Rayshobby.net
  */
 
-// ### Amended code for W5100 etc are marked "MOD" ###
+/* ==========================================================================================================
+   This is a modified version of Rays OpenSprinkler code thats amended to use alternative hardware:
+    - Arduino Mega 2560 http://arduino.cc/en/Main/arduinoBoardMega2560 
+    - Wiznet W5100 Ethernet with onboard SD Card (this is a fairly common Arduino shield)
+    - Freetronics LCD Keypad Shield http://www.freetronics.com/collections/shields/products/lcd-keypad-shield
+    - Discrete IO outputs instead of using a shift register (as the Mega2560 has heaps of discretes)
+   
+   All blocks of code that have been amended for the alternative hardware are marked with:
+     <MOD>  at the start of the amended code block and 
+     </MOD> at the end of the amended code block
 
-// ===== MOD - Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
+   Version:     Opensprinkler 2.0.7 
+   Date:        July 5, 2014
+   Repository:
+
+   Refer to the AAA_RELEASE_NOTES file for more information
+   
+   ========================================================================================================== */
+
+// <MOD> ====== Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
 #include <Wire.h> 
 #include <Time.h>
 #include <TimeAlarms.h>
@@ -25,7 +42,7 @@
 #include <ICMPPing.h>
 #include <tinyFAT.h>
 #include <avr/pgmspace.h>
-// ===== MOD - Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
+// </MOD> ===== Added libraries for W5100, Freetronics LCD, DS1307 RTC, SD Card =====
 
 #include <limits.h>
 #include <OpenSprinklerGen2.h>
@@ -50,14 +67,14 @@ byte mymac[] = { 0x00,0x69,0x69,0x2D,0x31,0x00 }; // mac address
 uint8_t ntpclientportL = 123; // Default NTP client port
 int myport;
 
-// ===== MOD - Added for W5100 & Auto Reboot =====
+// <MOD> ====== Added for W5100 & Auto Reboot =====
 // byte Ethernet::buffer[ETHER_BUFFER_SIZE];  // Ethernet packet buffer (commented out for W5100)
 byte EtherCard::buffer[ETHER_BUFFER_SIZE]; // Ethernet packet buffer
 EthernetServer server(STATIC_PORT0);       // Initialize the Ethernet server library
 EthernetUDP udp;                           // A UDP instance to let us send and receive packets over UDP
 SOCKET pingSocket = 0;                     // Ping socket
 ICMPPing ping(pingSocket);                 // Ping object 
-// ===== MOD - Added for W5100 & Auto Reboot =====
+// </MOD> ===== Added for W5100 & Auto Reboot =====
 
 char tmp_buffer[TMP_BUFFER_SIZE+1];       // scratch buffer
 BufferFiller bfill;                       // buffer filler
@@ -158,11 +175,11 @@ void setup() {
 
   svc.apply_all_station_bits(); // reset station bits
   
-  // ===== MOD - Added for Auto Reboot =====
+  // <MOD> ====== Added for Auto Reboot =====
   // wdt_enable(WDTO_4S);  // enabled watchdog timer    
   if(AUTO_REBOOT)
       Alarm.alarmRepeat(REBOOT_HR,REBOOT_MIN,REBOOT_SEC, svc.reboot);      
-  // ===== MOD - Added for Auto Reboot ===== 
+  // </MOD> ===== Added for Auto Reboot ===== 
   
   svc.button_lasttime = now();
 }
@@ -187,10 +204,10 @@ void loop()
   pos=ether.packetLoop(ether.packetReceive());
   if (pos>0) {  // packet received
 
-    // ===== MOD - Added for W5100 =====
+    // <MOD> ====== Added for W5100 =====
     // analyze_get_url((char*)Ethernet::buffer+pos);  // (commented out for W5100)
     analyze_get_url((char*)EtherCard::buffer+pos);
-    // ===== MOD - Added for W5100 =====
+    // </MOD> ===== Added for W5100 =====
 
   }
   // ======================================
@@ -440,7 +457,7 @@ void check_network(time_t curr_time) {
   unsigned long interval = 1 << (svc.status.network_fails);
   interval *= CHECK_NETWORK_INTERVAL;
   
-// ===== MOD - Added for W5100 =====
+// <MOD> ====== Added for W5100 =====
   
 /*  
   if (curr_time - last_check_time > interval) {
@@ -505,7 +522,7 @@ void check_network(time_t curr_time) {
         svc.status.network_fails=0;
     }
   }
-  // ===== MOD - Added for W5100 =====    
+  // </MOD> ===== Added for W5100 =====    
 }
 
 void process_dynamic_events()

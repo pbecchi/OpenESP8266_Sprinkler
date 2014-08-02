@@ -4,12 +4,12 @@
    Creative Commons Attribution-ShareAlike 3.0 license
    June 2014 @ Rayshobby.net
 */
-
 #ifndef _Defines_h
 #define _Defines_h
 
 // Firmware version
-#define SVC_FW_VERSION  207 // firmware version (206 means 2.0.6 etc)
+#define SVC_FW_VERSION  208
+// firmware version (206 means 2.0.6 etc)
                             // if this number is different from stored in EEPROM,
                             // an EEPROM reset will be automatically triggered
 
@@ -106,7 +106,7 @@ typedef enum {
 
   #define PIN_RF_DATA       28    // RF data pin 
   
-  // ====== MOD - Swap between Shift Register and Digital IO
+  // <MOD> ====== Swap between Shift Register and Digital IO
   /*
   #define PIN_SR_LATCH       3    // shift register latch pin
   #define PIN_SR_DATA       21    // shift register data pin
@@ -121,9 +121,9 @@ typedef enum {
   #define PIN_STN_S6        45
   #define PIN_STN_S7        43
   #define PIN_STN_S8        41
-  // ====== MOD - Swap between Shift Register and Digital IO
+  // </MOD> ===== Swap between Shift Register and Digital IO
   
-  // ===== MOD Added for Freetronics LCD Shield =====
+  // <MOD> ====== Added for Freetronics LCD Shield =====
   /*
   #define PIN_BUTTON_1      31    // button 1
   #define PIN_BUTTON_2      30    // button 2
@@ -144,10 +144,12 @@ typedef enum {
   */
   #define PIN_LCD_RS         8    // LCD rs pin - default = 19
   #define PIN_LCD_EN         9    // LCD enable pin - default = 18
-  #define PIN_LCD_D4         4    // LCD d4 pin - default = 20
-  #define PIN_LCD_D5         5    // LCD d5 pin - default = 21
-  #define PIN_LCD_D6         6    // LCD d6 pin - default = 22
-  #define PIN_LCD_D7         7    // LCD d7 pin - default = 23
+  #define PIN_LCD_D4         2    // LCD D4 pin - default = 20
+                                  // Note - D4 on the Freetronics LCD shield clashes with chipselect pin for the SD card on some W5100 shields.
+                                  //        You may need to jumper it to D2 as described at http://forum.freetronics.com/viewtopic.php?t=770
+  #define PIN_LCD_D5         5    // LCD D5 pin - default = 21
+  #define PIN_LCD_D6         6    // LCD D6 pin - default = 22
+  #define PIN_LCD_D7         7    // LCD D7 pin - default = 23
   #define PIN_LCD_RS         8    // LCD rs pin - default = 19
   #define PIN_LCD_BACKLIGHT  3    // LCD backlight pin - default = 12
   #define PIN_LCD_CONTRAST  36    // LCD contrast pin - default = 13
@@ -161,18 +163,18 @@ typedef enum {
   #define SELECT_10BIT_ADC 741    // select
   #define BUTTONHYSTERESIS  10    // hysteresis for valid button sensing window
   
-  #define BUTTON_RIGHT              1  // 
-  #define BUTTON_UP                 2  // 
-  #define BUTTON_DOWN               3  // 
-  #define BUTTON_LEFT               4  // 
-  #define BUTTON_SELECT             5  // 
+  #define BUTTON_RIGHT       1    // values used for detecting analog buttons
+  #define BUTTON_UP          2    // 
+  #define BUTTON_DOWN        3    // 
+  #define BUTTON_LEFT        4    // 
+  #define BUTTON_SELECT      5    // 
 
-  // ===== MOD - Added for Freetronics LCD Shield =====  
+  // </MOD> =====  Added for Freetronics LCD Shield =====  
 
-  #define PIN_ETHER_CS      37    // Ethernet controller chip select pin - default = 4
-  #define PIN_SD_CS         38    // SD card chip select pin - default = 0
+  #define PIN_ETHER_CS      10    // Ethernet controller chip select pin - default = 4
+  #define PIN_SD_CS          4    // SD card chip select pin - default = 0
   #define PIN_RAINSENSOR    39    // rain sensor is connected to pin D3 - default = 11
-  #define PIN_RELAY         36    // mini relay is connected to pin D14
+  #define PIN_RELAY         38    // mini relay is connected to pin D14
 
 #endif 
 
@@ -203,7 +205,7 @@ typedef enum {
 
 // ====== Ethernet Defines ======
 
-// ===== MOD - Added for W5100 and Auto-Reboot ===== 
+// <MOD> ====== Added for W5100 and Auto-Reboot ===== 
 /*
 #define ETHER_BUFFER_SIZE   900  // if buffer size is increased, you must check the total RAM consumption
                                   // otherwise it may cause the program to crash
@@ -224,7 +226,7 @@ typedef enum {
 #define STATIC_IP_1  192            // Default IP to be stored in eeprom on first run
 #define STATIC_IP_2  168
 #define STATIC_IP_3  0
-#define STATIC_IP_4  210
+#define STATIC_IP_4  211
 
 #define STATIC_GW_1  192            // Default Gateway to be stored in eeprom on first run
 #define STATIC_GW_2  168
@@ -234,8 +236,7 @@ typedef enum {
 #define STATIC_PORT0  80            // Default Port to be stored in eeprom on first run
 #define STATIC_PORT1  0
 
-// ===== MOD - Added for W5100 and Auto-Reboot ===== 
-
+// </MOD> ===== Added for W5100 and Auto-Reboot ===== 
 
 #endif
 
