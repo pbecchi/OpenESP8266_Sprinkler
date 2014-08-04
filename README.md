@@ -1,3 +1,10 @@
+Update In Progress - 5 Aug 2014
+-------------------------------
+Please Note - currently V2.0.7 is being updated to the latest OpenSprinkler code - expect it to be finished in the next few days. The V2.0.7 version currently uploaded in this repo has NOT been extensively tested.
+
+As an alternative - the 2.0.0 code is rock solid and workds fine (albeit with a few less features).
+
+
 OpenSprinkler-Arduino
 ---------------------
 
