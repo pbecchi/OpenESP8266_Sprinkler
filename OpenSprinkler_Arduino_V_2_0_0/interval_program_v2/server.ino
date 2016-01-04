@@ -1,5 +1,6 @@
 // Example code for OpenSprinkler Generation 2
 
+
 /* Server functions
  Creative Commons Attribution-ShareAlike 3.0 license
  Apr 2013 @ Rayshobby.net
@@ -21,31 +22,31 @@ extern ProgramData pd;
 // ==================
 // JavaScript Strings
 // ==================
-prog_uchar htmlExtJavascriptPath[] PROGMEM = JAVASCRIPT_PATH;
+ const unsigned char htmlExtJavascriptPath[] PROGMEM = JAVASCRIPT_PATH;
 
-prog_uchar htmlOkHeader[] PROGMEM = 
+ const unsigned char htmlOkHeader[] PROGMEM = 
 "HTTP/1.0 200 OK\r\n"
 "Content-Type: text/html\r\n"
 "Pragma: no-cache\r\n"
 "\r\n"
 ;
 
-prog_uchar htmlMobileHeader[] PROGMEM =
+ const unsigned char htmlMobileHeader[] PROGMEM =
 "<meta name=viewport content=\"width=640\">\r\n"
 ;
 
-prog_uchar htmlUnauthorized[] PROGMEM = 
+ const unsigned char htmlUnauthorized[] PROGMEM = 
 "HTTP/1.0 401 Unauthorized\r\n"
 "Content-Type: text/html\r\n"
 "\r\n"
 "<h1>401 Unauthorized</h1>"
 ;
 
-prog_uchar htmlReturnHome[] PROGMEM = 
+ const unsigned char htmlReturnHome[] PROGMEM = 
 "window.location=\"/\";</script>\n"
 ;
 
-/*prog_uchar htmlFavicon[] PROGMEM = 
+/* const unsigned char htmlFavicon[] PROGMEM = 
  "HTTP/1.0 301 Moved Permanently\r\nLocation: "
  "http://rayshobby.net/rayshobby.ico"
  "\r\n\r\nContent-Type: text/html\r\n\r\n"
@@ -790,27 +791,27 @@ unsigned long getNtpTime()
 }
 
 struct URLStruct{
-  PGM_P PROGMEM url;
+ /* PGM_P*/ const char * /*PROGMEM*/ url;
   boolean (*handler)(char*);
 };
 
 // Server function urls
 // !!!Important!!!: to save space, each url must be two characters long
-prog_char _url_cv [] PROGMEM = "cv";
-prog_char _url_vp [] PROGMEM = "vp";
-prog_char _url_mp [] PROGMEM = "mp";
-prog_char _url_dp [] PROGMEM = "dp";
-prog_char _url_cp [] PROGMEM = "cp";
-prog_char _url_gp [] PROGMEM = "gp";
-prog_char _url_vo [] PROGMEM = "vo";
-prog_char _url_co [] PROGMEM = "co";
-prog_char _url_sn [] PROGMEM = "sn";
-prog_char _url_ps [] PROGMEM = "ps";
-prog_char _url_vs [] PROGMEM = "vs";
-prog_char _url_cs [] PROGMEM = "cs";
-prog_char _url_vr [] PROGMEM = "vr";
-prog_char _url_cr [] PROGMEM = "cr";
-prog_char _url_pn [] PROGMEM = "pn";
+const char _url_cv [] PROGMEM = "cv";
+ const char _url_vp [] PROGMEM = "vp";
+ const char _url_mp [] PROGMEM = "mp";
+ const char _url_dp [] PROGMEM = "dp";
+ const char _url_cp [] PROGMEM = "cp";
+ const char _url_gp [] PROGMEM = "gp";
+ const char _url_vo [] PROGMEM = "vo";
+ const char _url_co [] PROGMEM = "co";
+ const char _url_sn [] PROGMEM = "sn";
+ const char _url_ps [] PROGMEM = "ps";
+ const char _url_vs [] PROGMEM = "vs";
+ const char _url_cs [] PROGMEM = "cs";
+ const char _url_vr [] PROGMEM = "vr";
+ const char _url_cr [] PROGMEM = "cr";
+ const char _url_pn [] PROGMEM = "pn";
 
 // Server function handlers
 URLStruct urls[] = {

@@ -1,3 +1,4 @@
+
 /* ==========================================================================================================
    This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
     - Arduino Mega 2560 
@@ -33,7 +34,7 @@
  Creative Commons Attribution-ShareAlike 3.0 license
  Dec 2013 @ Rayshobby.net
  */
-
+#include <Arduino.h>
   #include <stdint.h> 
   #include "defines.h"
 

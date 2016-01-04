@@ -28,12 +28,26 @@
 #define WRITE_RESULT void
 #define WRITE_RETURN
 #endif
-
+#ifndef ESP8266
 #include <avr/pgmspace.h>
+#endif
+
 #include <SPI.h>
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+#include <WiFiServer.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
+
+//#include <SSIDPASSWORD.h>
+#else
 #include <Ethernet.h>
 #include <EthernetUdp.h>
-#include <ICMPPing.h>
+#endif
+
+//#include <ICMPPing.h>
+//-----------------------------modificato senza ping
 
 #define MAX_SOCK_NUM        4
 #define ETHER_BUFFER_SIZE   1100  // if buffer size is increased, you must check the total RAM consumption
@@ -97,8 +111,8 @@ public:
   // EtherCard.cpp
   static uint8_t begin (const uint16_t size, const uint8_t* macaddr, uint8_t csPin =8); 
   static bool staticSetup (const uint8_t* my_ip =0, const uint8_t* gw_ip =0, const uint8_t* dns_ip =0);
-  static uint16_t packetLoop (uint16_t plen);
-  static void httpServerReply (uint16_t dlen);
+  static word packetLoop (word  plen);
+  static void httpServerReply (word dlen);
   static void ntpRequest (uint8_t *ntpip,uint8_t srcport);
   static uint8_t ntpProcessAnswer (uint32_t *time, uint8_t dstport_l);
   static bool dhcpSetup (const char *);
@@ -113,7 +127,7 @@ public:
   static void makeNetStr(char *rs,uint8_t *bs, uint8_t len, char sep, uint8_t base);
 
   // enc28j60.h
-  static uint16_t packetReceive ();  
+  static word packetReceive ();  
   static uint8_t* tcpOffset () { 
     return buffer + TCP_OFFSET; 
   }

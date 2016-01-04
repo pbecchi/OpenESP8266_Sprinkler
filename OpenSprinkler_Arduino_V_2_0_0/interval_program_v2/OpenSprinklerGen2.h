@@ -15,7 +15,12 @@
 #endif
 
 // ===== Added for W5100 =====
+#ifndef ESP8266
 #include <avr/eeprom.h>
+#else
+#include <eeprom_mio.h>
+#endif
+
 // #include "Wire.h"            // Commented out for W5100
 // #include "Time.h"            // Commented out for W5100
 // #include "DS1307RTC.h"       // Commented out for W5100
@@ -24,7 +29,11 @@
 #include <Wire.h>
 #include <Time.h>
 #include <DS1307RTC.h>
-#include <LiquidCrystal.h>
+#ifdef LCD
+ #include <LiquidCrystal.h>
+#else
+ #include "lcd_mio.h"
+#endif
 #include <MemoryFree.h>
 #include "EtherCard_W5100.h"
 #include "defines.h"
@@ -34,7 +43,7 @@
 struct OptionStruct{
   byte value; // each option is byte
   byte max;   // maximum value
-  char* str;  // name string
+  const char* str;  // name string
   byte flag;  // flag
 };
 
@@ -54,12 +63,16 @@ class OpenSprinkler {
 public:
 
   // ====== Data Members ======
-  static LiquidCrystal lcd;
-  static StatusBits status;
+#ifdef LCD
+	static LiquidCrystal lcd;
+#else
+	static Lcd_mioClass lcd;
+#endif
+	static StatusBits status;
   static byte nboards, nstations;
   static OptionStruct options[];  // option values, max, name, and flag
 
-  static char* days_str[];		// 3-letter name of each weekday
+  static const char* days_str[];		// 3-letter name of each weekday
   static byte station_bits[]; // station activation bits. each byte corresponds to a board (8 stations)
   // first byte-> master controller, second byte-> ext. board 1, and so on
   static byte masop_bits[];   // station master operation bits. each byte corresponds to a board (8 stations)
@@ -104,8 +117,9 @@ public:
   static void eeprom_string_get(int start_addr, char* buf);
 
   // -- LCD functions --
-  static void lcd_print_pgm(PGM_P PROGMEM str);           // print a program memory string
-  static void lcd_print_line_clear_pgm(PGM_P PROGMEM str, byte line);
+
+  static void lcd_print_pgm(PGM_P /*PROGMEM*/ str);           // print a program memory string
+  static void lcd_print_line_clear_pgm(PGM_P /*PROGMEM*/ str, byte line);
   static void lcd_print_time(byte line);                  // print current time
   static void lcd_print_memory(byte line);                // print current free memory and an animated character to show activity
   static void lcd_print_ip(const byte *ip, int http_port);// print ip and port number

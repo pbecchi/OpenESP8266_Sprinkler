@@ -4,6 +4,7 @@
    Creative Commons Attribution-ShareAlike 3.0 license
    Dec 2013 @ Rayshobby.net
 */
+#define ARDUINO 160
 
 #ifndef _OpenSprinkler_h
 #define _OpenSprinkler_h
@@ -21,8 +22,8 @@
   #include <Time.h>
   #include <DS1307RTC.h>
   #include <LiquidCrystal.h>
-  #include <MemoryFree.h>
-  #include <tinyFAT.h>
+  #include <MemoryFree.h>   
+// #include <tinyFAT.h>
   #include <avr/pgmspace.h>
   #include "EtherCard_W5100.h"
 #else

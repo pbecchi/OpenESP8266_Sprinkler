@@ -3,7 +3,7 @@
  has been adapted to run on a standard Arduino W5100 Ethernet Shield, 
  and a Freetronics LCD Shield.
  
- The code implements a minimal set of functionality to
+ The code implementsrver a minimal set of functionality to
  replace the EtherCard class libraries and all underlying
  ENC28J60 code files used by Ray in the OpenSprinkler2 library.
  
@@ -14,8 +14,21 @@
 
 #include "EtherCard_W5100.h"
 #include <stdarg.h>
+#ifndef ESP8266
 #include <avr/eeprom.h>
-
+#define ETHERNE Ethernet
+#define ETHERNES EthernetServer
+#define ETHERNEUDP EthernetUDP
+#define ETHERNEC EthernetClient
+#else
+#define ETHERNE WiFi
+#define ETHERNES WiFiServer
+#define ETHERNEUDP WiFiUDP
+#define ETHERNEC WiFiClient
+#include <eeprom_mio.h>
+const char* ssid = "Vodafone-25873015";
+const char* password = "5ph87cmmjmm8cs9";
+#endif
 //================================================================
 
 void BufferFiller::emit_p(PGM_P fmt, ...) {
@@ -52,7 +65,7 @@ void BufferFiller::emit_p(PGM_P fmt, ...) {
     case 'E': 
       {
         byte* s = va_arg(ap, byte*);
-        char d;
+		char d;
         while ((d = eeprom_read_byte(s++)) != 0)
           *ptr++ = d;
         continue;
@@ -85,9 +98,10 @@ extern uint8_t ntpclientportL;
 extern byte ntpip[];
 extern BufferFiller bfill;
 extern char tmp_buffer[];
-extern EthernetServer server;
-extern EthernetUDP udp;
-extern ICMPPing ping;
+extern ETHERNES server;
+extern ETHERNEUDP udp;
+//extern ICMPPing ping;
+//-----------------------------modificato senza ping---------------------------------
 
 uint8_t EtherCard::begin (const uint16_t size,
 const uint8_t* macaddr,
@@ -100,17 +114,35 @@ bool EtherCard::staticSetup (const uint8_t* my_ip,
 const uint8_t* gw_ip,
 const uint8_t* dns_ip) {
 
-  // initialize the ethernet device
+  // initialize the ETHERNE device
+#ifndef ESP8266
   Ethernet.begin(mymac, my_ip, dns_ip, gw_ip);
+#else
+  WiFi.begin(ssid, password);// , my_ip, dns_ip, gw_ip);
+  
+  WiFi.config(my_ip, dns_ip, gw_ip);
+  Serial.print("\nConnecting to "); Serial1.println(ssid);
+  uint8_t i = 0;
+  while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
+  if (i == 21) {
+	  Serial.print("Could not connect to"); Serial.println(ssid);
+	  while (1) delay(500);
+  }
 
+#endif
   // start listening for clients
   server.begin();
   for (int i = 0; i < 4; i++)
   {
-    myip[i] = Ethernet.localIP()[i];
-    gwip[i] = Ethernet.gatewayIP()[i];
-    dnsip[i] = Ethernet.dnsServerIP()[i];
-    mymask[i] = Ethernet.subnetMask()[i];
+    myip[i] = ETHERNE.localIP()[i];
+    gwip[i] = ETHERNE.gatewayIP()[i];
+#ifdef ESP8266
+	dnsip[i] = ETHERNE.gatewayIP()[i];
+#else
+
+	dnsip[i] = ETHERNE.dnsServerIP()[i];
+#endif
+    mymask[i] = ETHERNE.subnetMask()[i];
   }
   return true;
 }
@@ -119,17 +151,39 @@ const uint8_t* dns_ip) {
 bool EtherCard::dhcpSetup (const char *name) 
 {
   // initialize the ethernet device
-  if (Ethernet.begin(mymac) == 0)
-    return false;
+#ifndef ESP8266
+	if (Ethernet.begin(mymac) == 0) return false;
+#else
+	WiFi.begin(ssid, password);// , my_ip, dns_ip, gw_ip);
+
+	//WiFi.config(my_ip, dns_ip, gw_ip);
+	//Serial.print("\nConnecting to "); Serial1.println(ssid);
+	uint8_t i = 0;
+	while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
+	if (i == 21) {
+		Serial.print("Could not connect to"); Serial.println(ssid);
+	//	while (1) delay(500);
+		return false;
+	}
+
+#endif
+
+//	if (ETHERNE.begin(mymac) == 0)
+ //   return false;
 
   // start listening for clients
   server.begin();  
   for (int i = 0; i < 4; i++)
   {
-    myip[i] = Ethernet.localIP()[i];
-    gwip[i] = Ethernet.gatewayIP()[i];
-    dnsip[i] = Ethernet.dnsServerIP()[i];
-    mymask[i] = Ethernet.subnetMask()[i];
+    myip[i] = ETHERNE.localIP()[i];
+    gwip[i] = ETHERNE.gatewayIP()[i];
+#ifdef ESP8266
+	dnsip[i] = ETHERNE.gatewayIP()[i];
+#else
+
+    dnsip[i] = ETHERNE.dnsServerIP()[i];
+#endif
+	mymask[i] = ETHERNE.subnetMask()[i];
   }
 
   return true; 
@@ -143,7 +197,7 @@ word EtherCard::packetReceive() {
   return 0;
 }
 
-EthernetClient client;
+ETHERNEC client;
 
 word EtherCard::packetLoop (word plen) 
 {  

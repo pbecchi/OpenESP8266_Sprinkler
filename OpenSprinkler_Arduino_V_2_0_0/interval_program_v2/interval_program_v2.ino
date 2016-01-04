@@ -11,6 +11,10 @@
  */
 
 // ===== Added for W5100 =====
+
+
+#include "lcd_mio.h"
+//#include <eeprom_mio.h>
 #include <Wire.h>
 #include <Time.h>
 #include <TimeAlarms.h>
@@ -18,13 +22,31 @@
 #include <MemoryFree.h>
 #include <LiquidCrystal.h>
 #include <SPI.h>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
-#include <ICMPPing.h>
+#ifndef ESP8266
+#define ETHERNE Ethernet
+#define ETHERNES EthernetServer
+#define ETHERNEUDP EthernetUDP
+#define ETHERNEC EthernetClient
+#else
+#define ETHERNE WiFi
+#define ETHERNES WiFiServer
+#define ETHERNEUDP WiFiUDP
+#define ETHERNEC WiFiClient
+#include <WiFiUdp.h>
+#include <WiFiServer.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266WiFi.h>
+#include <eeprom_mio.h>
+//#include <SSIDPASSWORD.h>
+#endif
+//#include <ICMPPing.h>
+//-----------------------------modificato senza ping
 // ===== Added for W5100 =====
 
 #include <limits.h>
-#include <OpenSprinklerGen2.h>
+#include "OpenSprinklerGen2.h"
 #include "program.h"
 
 // ================================================================================
@@ -51,10 +73,12 @@ int myport;
 // ===== Added for W5100 & Auto Reboot =====
 // byte Ethernet::buffer[ETHER_BUFFER_SIZE];  // Ethernet packet buffer (commented out for W5100)
 byte EtherCard::buffer[ETHER_BUFFER_SIZE]; // Ethernet packet buffer
-EthernetServer server(STATIC_PORT0);       // Initialize the Ethernet server library
-EthernetUDP udp;                           // A UDP instance to let us send and receive packets over UDP
-SOCKET pingSocket = 0;                     // Ping socket
-ICMPPing ping(pingSocket);                 // Ping object 
+ETHERNES server(STATIC_PORT0);       // Initialize the Ethernet server library
+ETHERNEUDP udp;                           // A UDP instance to let us send and receive packets over UDP
+//SOCKET pingSocket = 0;                     // Ping socket
+//ICMPPing ping(pingSocket);                 // Ping object 
+//-----------------------------modificato senza ping--------------------------------
+
 // ===== Added for W5100 & Auto Reboot =====
 
 char tmp_buffer[TMP_BUFFER_SIZE+1];       // scratch buffer
@@ -168,14 +192,14 @@ void loop()
   seq = svc.options[OPTION_SEQUENTIAL].value;
   mas = svc.options[OPTION_MASTER_STATION].value;
 
-  // ====== Process Ethernet packets ======
+  // ====== Process ETHERNE packets ======
   int plen=0;
   pos=ether.packetLoop(ether.packetReceive());
   if (pos>0) {  // packet received
     bfill = ether.tcpOffset();
 
     // ===== Added for W5100 =====
-    // analyze_get_url((char*)Ethernet::buffer+pos);  // (commented out for W5100)
+    // analyze_get_url((char*)ETHERNE::buffer+pos);  // (commented out for W5100)
     analyze_get_url((char*)EtherCard::buffer+pos);
     // ===== Added for W5100 =====
 
@@ -186,7 +210,7 @@ void loop()
   button_poll();    // process button press
 
   // if 1 second has passed
-  time_t curr_time = now();      
+  unsigned long curr_time = now();      
   if (last_time != curr_time) {
 
     last_time = curr_time;
@@ -387,7 +411,7 @@ void manual_station_on(byte sid, int ontimer) {
   svc.status.program_busy = 1;
 }
 
-void perform_ntp_sync(time_t curr_time) {
+void perform_ntp_sync(unsigned long curr_time) {
   static unsigned long last_sync_time = 0;
   // do not perform sync if this option is disabled, or if network is not available
   if (svc.options[OPTION_USE_NTP].value==0 || svc.status.network_fails>0) return;   
@@ -402,7 +426,7 @@ void perform_ntp_sync(time_t curr_time) {
   }
 }
 
-void check_network(time_t curr_time) {
+void check_network(unsigned long curr_time) {
   static unsigned long last_check_time = 0;
 
   if (last_check_time == 0) {
@@ -447,8 +471,8 @@ void check_network(time_t curr_time) {
     last_check_time = curr_time;
 
     // ping gateway ip  
-    boolean result = ping(2, ether.gwip, tmp_buffer);
-
+	boolean result = true; // ping(2, ether.gwip, tmp_buffer);
+	//-------------------------------------------------------------------modificato senza ping---------------------
     if (result)
       svc.status.network_fails=0;
     else

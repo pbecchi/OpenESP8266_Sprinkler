@@ -1,5 +1,6 @@
 // Arduino library code for OpenSprinkler Generation 2
 
+
 /* OpenSprinkler Class Implementation
  Creative Commons Attribution-ShareAlike 3.0 license
  Dec 2012 @ Rayshobby.net
@@ -8,7 +9,11 @@
 #include "OpenSprinklerGen2.h"
 
 // Declare static data members
+#ifdef LCD
 LiquidCrystal OpenSprinkler::lcd(PIN_LCD_RS, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
+#else
+Lcd_mioClass OpenSprinkler::lcd;
+#endif
 StatusBits OpenSprinkler::status;
 byte OpenSprinkler::nboards;
 byte OpenSprinkler::nstations;
@@ -21,36 +26,36 @@ int OpenSprinkler::station_pins[8] = {
   PIN_STN_S1, PIN_STN_S2, PIN_STN_S3, PIN_STN_S4, PIN_STN_S5, PIN_STN_S6, PIN_STN_S7, PIN_STN_S8};
 
 // Option names
-prog_char _str_fwv [] PROGMEM = "Firmware ver.";
-prog_char _str_tz  [] PROGMEM = "Time zone:";
-prog_char _str_ntp [] PROGMEM = "NTP Sync:";
-prog_char _str_dhcp[] PROGMEM = "Use DHCP:";
-prog_char _str_ip1 [] PROGMEM = "Static.ip1:";
-prog_char _str_ip2 [] PROGMEM = "ip2:";
-prog_char _str_ip3 [] PROGMEM = "ip3:";
-prog_char _str_ip4 [] PROGMEM = "ip4:";
-prog_char _str_gw1 [] PROGMEM = "Gateway.ip1:";
-prog_char _str_gw2 [] PROGMEM = "ip2:";
-prog_char _str_gw3 [] PROGMEM = "ip3:";
-prog_char _str_gw4 [] PROGMEM = "ip4:";
-prog_char _str_hp0 [] PROGMEM = "HTTP port:";
-prog_char _str_hp1 [] PROGMEM = "";
-prog_char _str_ar  [] PROGMEM = "Auto reconnect:";
-prog_char _str_ext [] PROGMEM = "Exp. boards:";
-prog_char _str_seq [] PROGMEM = "Sequential:";
-prog_char _str_sdt [] PROGMEM = "Station delay:";
-prog_char _str_mas [] PROGMEM = "Master station:";
-prog_char _str_mton[] PROGMEM = "Mas. on adj.:";
-prog_char _str_mtof[] PROGMEM = "Mas. off adj.:";
-prog_char _str_urs [] PROGMEM = "Use rain sensor:";
-prog_char _str_rso [] PROGMEM = "Normally open:";
-prog_char _str_wl  [] PROGMEM = "Watering level:";
-prog_char _str_stt [] PROGMEM = "Selftest time:";
-prog_char _str_ipas[] PROGMEM = "Ignore password:";
-prog_char _str_devid[]PROGMEM = "Device ID:";
-prog_char _str_con [] PROGMEM = "LCD Contrast:";
-prog_char _str_lit [] PROGMEM = "LCD Backlight:";
-prog_char _str_reset[] PROGMEM = "Reset all?";
+const char _str_fwv [] PROGMEM = "Firmware ver.";
+const char _str_tz  [] PROGMEM = "Time zone:";
+const char _str_ntp [] PROGMEM = "NTP Sync:";
+const char _str_dhcp[] PROGMEM = "Use DHCP:";
+const char _str_ip1 [] PROGMEM = "Static.ip1:";
+const char _str_ip2 [] PROGMEM = "ip2:";
+const char _str_ip3 [] PROGMEM = "ip3:";
+const char _str_ip4 [] PROGMEM = "ip4:";
+const char _str_gw1 [] PROGMEM = "Gateway.ip1:";
+const char _str_gw2 [] PROGMEM = "ip2:";
+const char _str_gw3 [] PROGMEM = "ip3:";
+const char _str_gw4 [] PROGMEM = "ip4:";
+const char _str_hp0 [] PROGMEM = "HTTP port:";
+const char _str_hp1 [] PROGMEM = "";
+const char _str_ar  [] PROGMEM = "Auto reconnect:";
+const char _str_ext [] PROGMEM = "Exp. boards:";
+const char _str_seq [] PROGMEM = "Sequential:";
+const char _str_sdt [] PROGMEM = "Station delay:";
+const char _str_mas [] PROGMEM = "Master station:";
+const char _str_mton[] PROGMEM = "Mas. on adj.:";
+const char _str_mtof[] PROGMEM = "Mas. off adj.:";
+const char _str_urs [] PROGMEM = "Use rain sensor:";
+const char _str_rso [] PROGMEM = "Normally open:";
+const char _str_wl  [] PROGMEM = "Watering level:";
+const char _str_stt [] PROGMEM = "Selftest time:";
+const char _str_ipas[] PROGMEM = "Ignore password:";
+const char _str_devid[]PROGMEM = "Device ID:";
+const char _str_con [] PROGMEM = "LCD Contrast:";
+const char _str_lit [] PROGMEM = "LCD Backlight:";
+const char _str_reset[] PROGMEM = "Reset all?";
 
 
 OptionStruct OpenSprinkler::options[NUM_OPTIONS] = {
@@ -87,15 +92,15 @@ OptionStruct OpenSprinkler::options[NUM_OPTIONS] = {
 };
 
 // Weekday display strings
-prog_char str_day0[] PROGMEM = "Mon";
-prog_char str_day1[] PROGMEM = "Tue";
-prog_char str_day2[] PROGMEM = "Wed";
-prog_char str_day3[] PROGMEM = "Thu";
-prog_char str_day4[] PROGMEM = "Fri";
-prog_char str_day5[] PROGMEM = "Sat";
-prog_char str_day6[] PROGMEM = "Sun";
+const char str_day0[] PROGMEM = "Mon";
+const char str_day1[] PROGMEM = "Tue";
+const char str_day2[] PROGMEM = "Wed";
+const char str_day3[] PROGMEM = "Thu";
+const char str_day4[] PROGMEM = "Fri";
+const char str_day5[] PROGMEM = "Sat";
+const char str_day6[] PROGMEM = "Sun";
 
-char* OpenSprinkler::days_str[7] = {
+const  char* OpenSprinkler::days_str[7] = {
   str_day0,
   str_day1,
   str_day2,
@@ -182,7 +187,7 @@ void OpenSprinkler::begin() {
    // pull shift register OE low to enable output
    digitalWrite(PIN_SR_OE, LOW);
    */
-
+#ifdef LCD
   // set PWM frequency for LCD
   TCCR1B = 0x01;
   // turn on LCD backlight and contrast
@@ -193,7 +198,7 @@ void OpenSprinkler::begin() {
 
   // begin lcd
   lcd.begin(16, 2);
-
+#endif
   // Rain sensor port set up
   pinMode(PIN_RAINSENSOR, INPUT);
   digitalWrite(PIN_RAINSENSOR, HIGH); // enabled internal pullup
@@ -550,7 +555,7 @@ void OpenSprinkler::rainsensor_status() {
 // =============
 
 // Print a program memory string
-void OpenSprinkler::lcd_print_pgm(PGM_P PROGMEM str) {
+void OpenSprinkler::lcd_print_pgm(PGM_P /*PROGMEM*/ str) {
   uint8_t c;
   while((c=pgm_read_byte(str++))!= '\0') {
     lcd.print((char)c);
@@ -558,7 +563,7 @@ void OpenSprinkler::lcd_print_pgm(PGM_P PROGMEM str) {
 }
 
 // Print a program memory string to a given line with clearing
-void OpenSprinkler::lcd_print_line_clear_pgm(PGM_P PROGMEM str, byte line) {
+void OpenSprinkler::lcd_print_line_clear_pgm(PGM_P /*PROGMEM*/ str, byte line) {
   lcd.setCursor(0, line);
   uint8_t c;
   int8_t cnt = 0;

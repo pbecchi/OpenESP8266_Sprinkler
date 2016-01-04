@@ -21,7 +21,7 @@
 #ifndef EtherCard_W5100_h
 #define EtherCard_W5100_h
 
-#if ARDUINO >= 100
+#if ARDUINO >=100
 #include <Arduino.h> // Arduino 1.0
 #define WRITE_RESULT size_t
 #define WRITE_RETURN return 1;
