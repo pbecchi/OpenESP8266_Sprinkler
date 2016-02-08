@@ -400,10 +400,11 @@ void OpenSprinkler::options_setup() {
   delay(500);
 
   // check reset condition: either firmware version has changed, or reset flag is up
-  byte curr_ver = eeprom_read_byte((unsigned char*)(ADDR_EEPROM_OPTIONS+OPTION_FW_VERSION));
+  byte curr_ver = eeprom_read_byte((unsigned char*)(ADDR_EEPROM_OPTIONS + OPTION_FW_VERSION));
   if (curr_ver<100) curr_ver = curr_ver*10; // adding a default 0 if version number is the old type
+  byte by = eeprom_read_byte((unsigned char*)(ADDR_EEPROM_OPTIONS + OPTION_RESET));
   if (curr_ver != SVC_FW_VERSION || eeprom_read_byte((unsigned char*)(ADDR_EEPROM_OPTIONS+OPTION_RESET))==0xAA) {
-
+	  eeprom_write_byte( (unsigned char *)(ADDR_EEPROM_OPTIONS + OPTION_FW_VERSION),(byte) 201);
     //======== Reset EEPROM data ========
     options_save(); // write default option values
     eeprom_string_set(ADDR_EEPROM_PASSWORD, DEFAULT_PASSWORD);  // write default password
@@ -487,11 +488,13 @@ void OpenSprinkler::options_setup() {
     }
     break;
   }
+#ifdef LCD
   // turn on LCD backlight and contrast
   pinMode(PIN_LCD_BACKLIGHT, OUTPUT);
   pinMode(PIN_LCD_CONTRAST, OUTPUT);
   analogWrite(PIN_LCD_CONTRAST, options[OPTION_LCD_CONTRAST].value);
   analogWrite(PIN_LCD_BACKLIGHT, 255-options[OPTION_LCD_BACKLIGHT].value); 
+#endif
 }
 
 // Load options from internal eeprom
@@ -699,6 +702,7 @@ void OpenSprinkler::lcd_print_option(int i) {
   case OPTION_HTTPPORT_0:
     lcd.print((int)(options[i+1].value<<8)+options[i].value);
     break;
+#ifdef LCD
   case OPTION_LCD_CONTRAST:
     analogWrite(PIN_LCD_CONTRAST, options[i].value);
     lcd.print((int)options[i].value);
@@ -707,6 +711,7 @@ void OpenSprinkler::lcd_print_option(int i) {
     analogWrite(PIN_LCD_BACKLIGHT, 255-options[i].value);
     lcd.print((int)options[i].value);
     break;
+#endif
   default:
     // if this is a boolean option
     if (options[i].max==1)

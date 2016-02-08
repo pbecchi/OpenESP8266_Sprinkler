@@ -27,9 +27,8 @@
 // #include "LiquidCrystal.h"   // Commented out for W5100
 // #include "EtherCard.h"       // Commented out for W5100
 #include <Wire.h>
-#include <TimeLib.h>
+#include <Time.h>
 #include <DS1307RTC.h>
-//#include <RTClib.h>
 #ifdef LCD
  #include <LiquidCrystal.h>
 #else

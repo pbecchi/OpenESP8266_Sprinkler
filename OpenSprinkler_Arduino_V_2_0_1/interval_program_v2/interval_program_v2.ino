@@ -13,18 +13,18 @@
 // ===== Added for W5100 =====
 
 
-#include <lcd_mio.h>
-#include <eeprom_mio.h>
+#include "lcd_mio.h"
+//#include <eeprom_mio.h>
 #include <Wire.h>
-#include <TimeLib.h>
+#include <Time.h>
 #include <TimeAlarms.h>
-#include <DS1307RTC-master\DS1307RTC.h>
-//#include <RTClib.h>
+//#include <DS1307RTC.h>
+#include <RTClib.h>
 #include <MemoryFree.h>
 #include <LiquidCrystal.h>
 #include <SPI.h>
+#include <Ethernet.h>
 #ifndef ESP8266
-#include "Ethernet.h"
 #define ETHERNE Ethernet
 #define ETHERNES EthernetServer
 #define ETHERNEUDP EthernetUDP
@@ -60,14 +60,12 @@
 //"https://github.com/rayshobby/opensprinkler/raw/master/scripts/java/svc1.8"
 // ================================================================================
 
-DS1307RTC RTC = DS1307RTC();
-
 // NTP sync interval (in seconds)
 #define NTP_SYNC_INTERVAL       86400L  // RC sync interval (in seconds) - 24 hours default
 #define RTC_SYNC_INTERVAL       60      // Interval for checking network connection (in seconds) - 1 minute default
 #define CHECK_NETWORK_INTERVAL  60      // Ping test time out (in milliseconds)- 1 minute default
 #define PING_TIMEOUT            200     // 0.2 second default
-//RTC_DS1307 RTC;
+
 // ====== Ethernet defines ======
 byte mymac[] = { 0x00,0x69,0x69,0x2D,0x30,0x00 }; // mac address
 byte ntpip[] = { 204,9,54,119};            // Default NTP server ip
@@ -94,6 +92,7 @@ ProgramData pd;       // ProgramdData object
 
 // ====== UI defines ======
 static char ui_anim_chars[3] = {'.', 'o', 'O'};
+
 
 // poll button press
 void button_poll() {
@@ -146,13 +145,11 @@ void button_poll() {
 // Arduino Setup Function
 // ======================
 void setup() { 
-	Wire.begin();
-	delay(10);
-
+	
+	
+	
   svc.begin();          // OpenSprinkler init
-  
   svc.options_setup();  // Setup options
-  
   pd.init();            // ProgramData init
 
   // calculate http port number
@@ -161,24 +158,7 @@ void setup() {
   setSyncInterval(RTC_SYNC_INTERVAL);  // RTC sync interval: 15 minutes
   // if rtc exists, sets it as time sync source
   setSyncProvider(svc.status.has_rtc ? RTC.get : NULL);
-  tmElements_t tm;
-
-  if (RTC.read(tm)) {
-	  Serial.print("Ok, Time = ");
-	  Serial.print(tm.Hour);
-	  Serial.write(':');
-	  Serial.print(tm.Minute);
-	  Serial.write(':');
-	  Serial.print(tm.Second);
-	  Serial.print(", Date (D/M/Y) = ");
-	  Serial.print(tm.Day);
-	  Serial.write('/');
-	  Serial.print(tm.Month);
-	  Serial.write('/');
-	  Serial.print(tmYearToCalendar(tm.Year));
-	  Serial.println();
-	  delay(500);
-  }
+  delay(500);
   svc.lcd_print_time(0);  // display time to LCD
   svc.lcd_print_line_clear_pgm(PSTR("Connecting..."), 1);
 
@@ -447,8 +427,7 @@ void perform_ntp_sync(unsigned long curr_time) {
     unsigned long t = getNtpTime();   
     if (t>0) {    
       setTime(t);
-      if (svc.status.has_rtc)
-		  RTC.set(t); // if rtc exists, update rtc
+      if (svc.status.has_rtc) RTC.set(t); // if rtc exists, update rtc
     }
   }
 }

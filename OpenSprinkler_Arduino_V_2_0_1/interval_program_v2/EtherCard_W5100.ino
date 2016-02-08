@@ -119,12 +119,12 @@ const uint8_t* dns_ip) {
   Ethernet.begin(mymac, my_ip, dns_ip, gw_ip);
 #else
   WiFi.begin(ssid, password);// , my_ip, dns_ip, gw_ip);
-  byte netmask[4] = { 255,255,255,0 };
-  WiFi.config(my_ip, dns_ip,netmask);
-  Serial.print("\nConnecting to "); Serial.println(ssid);
+  
+  WiFi.config(my_ip, dns_ip, gw_ip);
+  Serial.print("\nConnecting to "); Serial1.println(ssid);
   uint8_t i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 100) { delay(500); Serial.write('.'); }
-  if (i == 101) {
+  while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
+  if (i == 21) {
 	  Serial.print("Could not connect to"); Serial.println(ssid);
 	  while (1) delay(500);
   }
@@ -132,10 +132,6 @@ const uint8_t* dns_ip) {
 #endif
   // start listening for clients
   server.begin();
-  Serial.println("Server started");
-
-  // Print the IP address
-  Serial.println(WiFi.localIP());
   for (int i = 0; i < 4; i++)
   {
     myip[i] = ETHERNE.localIP()[i];
@@ -160,7 +156,7 @@ bool EtherCard::dhcpSetup (const char *name)
 #else
 	WiFi.begin(ssid, password);// , my_ip, dns_ip, gw_ip);
 
-//	WiFi.config(myip, dnsip, gwip);
+	//WiFi.config(my_ip, dns_ip, gw_ip);
 	//Serial.print("\nConnecting to "); Serial1.println(ssid);
 	uint8_t i = 0;
 	while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
@@ -177,10 +173,6 @@ bool EtherCard::dhcpSetup (const char *name)
 
   // start listening for clients
   server.begin();  
-  Serial.println("Server started");
-
-  // Print the IP address
-  Serial.println(WiFi.localIP());
   for (int i = 0; i < 4; i++)
   {
     myip[i] = ETHERNE.localIP()[i];

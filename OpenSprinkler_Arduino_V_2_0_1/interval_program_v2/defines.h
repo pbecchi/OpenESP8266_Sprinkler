@@ -4,13 +4,15 @@
  Creative Commons Attribution-ShareAlike 3.0 license
  Apr 2013 @ Rayshobby.net
  */
-
+#ifndef ESP8266
+//#define ESP8266
+#endif
 
 #ifndef _Defines_h
 #define _Defines_h
 
 // Firmware version
-#define SVC_FW_VERSION  202 // firmware version (e.g. 2.0.0 etc)
+#define SVC_FW_VERSION  201 // firmware version (e.g. 2.0.0 etc)
 // if this number is different from stored in EEPROM,
 // an EEPROM reset will be automatically triggered
 
@@ -97,7 +99,7 @@ OS_OPTION_t;
 #ifndef ESP8266
 #define PIN_RF_DATA       28    // RF data pin Mega
 #else
-//#define PIN_RF_DATA       9    // RF data pin ESP8266 
+#define PIN_RF_DATA       9    // RF data pin ESP8266 
 #endif
 //===== Shift Register =====//
 //#define PIN_SR_LATCH       3    // shift register latch pin
@@ -144,7 +146,7 @@ OS_OPTION_t;
 #define PIN_STN_S6        D7      //gpio 13 
 #define PIN_STN_S7        D8      //gpio 15
 #define PIN_STN_S8        10     //gpio 10
-//#define PIN_RAINSENSOR    12    // rain sensor is connected to pin gpio9 - default = 11
+#define PIN_RAINSENSOR    9    // rain sensor is connected to pin gpio9 - default = 11
 #define PIN_ETHER_CS      9    // Ethernet controller dummy chip select pin - default = 4
 #endif
 
@@ -214,12 +216,12 @@ OS_OPTION_t;
 
 #define STATIC_IP_1  192            // Default IP to be stored in eeprom on first run
 #define STATIC_IP_2  168
-#define STATIC_IP_3  1
+#define STATIC_IP_3  0
 #define STATIC_IP_4  211
 
 #define STATIC_GW_1  192            // Default Gateway to be stored in eeprom on first run
 #define STATIC_GW_2  168
-#define STATIC_GW_3  1
+#define STATIC_GW_3  0
 #define STATIC_GW_4  1
 
 #define STATIC_PORT0  80            // Default Port to be stored in eeprom on first run
