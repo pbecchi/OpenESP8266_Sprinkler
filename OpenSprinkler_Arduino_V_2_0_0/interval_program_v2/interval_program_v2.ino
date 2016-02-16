@@ -19,6 +19,7 @@
 #include <TimeLib.h>
 #include <TimeAlarms.h>
 #include <DS1307RTC-master\DS1307RTC.h>
+//#include<DS1307RTC.h>
 //#include <RTClib.h>
 #include <MemoryFree.h>
 #include <LiquidCrystal.h>
@@ -146,15 +147,16 @@ void button_poll() {
 // Arduino Setup Function
 // ======================
 void setup() { 
-	Wire.begin();
+	
 	delay(10);
 
   svc.begin();          // OpenSprinkler init
   
   svc.options_setup();  // Setup options
   
-  pd.init();            // ProgramData init
 
+  pd.init();            // ProgramData init
+  delay(500);
   // calculate http port number
   myport = (int)(svc.options[OPTION_HTTPPORT_1].value<<8) + (int)svc.options[OPTION_HTTPPORT_0].value;
 
@@ -181,7 +183,7 @@ void setup() {
   }
   svc.lcd_print_time(0);  // display time to LCD
   svc.lcd_print_line_clear_pgm(PSTR("Connecting..."), 1);
-
+  delay(10000);
   if (svc.start_network(mymac, myport)) {  // initialize network
     svc.status.network_fails = 0;
   } 
@@ -191,6 +193,7 @@ void setup() {
   svc.apply_all_station_bits(); // reset station bits
 
   perform_ntp_sync(now());
+ // while (millis() < 100000L) ether.reconnect();
 
   svc.lcd_print_time(0);  // display time to LCD
    
@@ -220,13 +223,14 @@ void loop()
 
   // ====== Process ETHERNE packets ======
   int plen=0;
+  delay(500);
   pos=ether.packetLoop(ether.packetReceive());
   if (pos>0) {  // packet received
     bfill = ether.tcpOffset();
 
     // ===== Added for W5100 =====
     // analyze_get_url((char*)ETHERNE::buffer+pos);  // (commented out for W5100)
-    analyze_get_url((char*)EtherCard::buffer+pos);
+      analyze_get_url((char*)EtherCard::buffer+pos);
     // ===== Added for W5100 =====
 
     ether.httpServerReply(bfill.position());   

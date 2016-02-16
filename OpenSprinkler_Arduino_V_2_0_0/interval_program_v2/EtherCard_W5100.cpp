@@ -11,7 +11,6 @@
  
  Dave Skinner - Aug 2013
  */
-
 #include "EtherCard_W5100.h"
 #include <stdarg.h>
 #ifndef ESP8266
@@ -29,6 +28,24 @@
 const char* ssid = "Vodafone-25873015";
 const char* password = "5ph87cmmjmm8cs9";
 #endif
+//////////////////////////////////////////DEBUG ETHERNET
+#ifdef DEBUG_INTERNET
+#define DEBDECL  WiFiServer serverT(23);WiFiClient clientT;boolean Telnet_disc=true;
+#define DEBSTART serverT.begin();
+#define DEBRECONNECT //if (WiFi.status() != WL_CONNECTED) reConnect();
+#define DEBCHECK if(serverT.hasClient()) {clientT=serverT.available();Serial.print("cl.av.");}
+#define DEBPRINT if(clientT.connected()) { clientT.print(' ');clientT.print(__LINE__);} else if(!Telnet_disc) {Telnet_disc=true;Serial.print(__LINE__);Serial.print("cl.disc.");clientT.stop();}
+#else
+#define DEBDECL
+#define DEBSTART
+#define DEBRECONNECT
+#define DEBCHECK
+#define DEBPRINT
+#endif
+
+
+
+
 //================================================================
 
 void BufferFiller::emit_p(PGM_P fmt, ...) {
@@ -102,7 +119,30 @@ extern ETHERNES server;
 extern ETHERNEUDP udp;
 //extern ICMPPing ping;
 //-----------------------------modificato senza ping---------------------------------
+#if ESP8266
+void EtherCard::reconnect()
+{
+	if (WiFi.status() != WL_CONNECTED) {
+		WiFi.begin(ssid, password);// , my_ip, dns_ip, gw_ip);
+		byte netmask[4] = { 255,255,255,0 };
+		byte MyIp[4] = { 192,168,1,211 };
+		byte MyGate[4] = { 192,168,1,1 };
 
+		WiFi.config(MyIp, MyGate, netmask);
+		Serial.print("\nReConnecting to "); Serial.println(ssid);
+		uint8_t i = 0;
+		while (WiFi.status() != WL_CONNECTED && i++ < 100) { delay(500); Serial.write('.'); }
+		if (i == 101) {
+			Serial.print("Could not connect to"); Serial.println(ssid);
+			while (1) delay(500);
+		}
+		server.begin();
+
+		Serial.print("Server started IP="); Serial.println(WiFi.localIP());
+		DEBSTART  server.begin();
+	}
+}
+#endif
 uint8_t EtherCard::begin (const uint16_t size,
 const uint8_t* macaddr,
 uint8_t csPin) {
@@ -119,6 +159,7 @@ const uint8_t* dns_ip) {
   Ethernet.begin(mymac, my_ip, dns_ip, gw_ip);
 #else
   WiFi.begin(ssid, password);// , my_ip, dns_ip, gw_ip);
+  delay(500);
   byte netmask[4] = { 255,255,255,0 };
   WiFi.config(my_ip, dns_ip,netmask);
   Serial.print("\nConnecting to "); Serial.println(ssid);
@@ -133,9 +174,11 @@ const uint8_t* dns_ip) {
   // start listening for clients
   server.begin();
   Serial.println("Server started");
-
+  DEBSTART
   // Print the IP address
-  Serial.println(WiFi.localIP());
+#ifdef ESP8266
+	  Serial.println(WiFi.localIP());
+#endif
   for (int i = 0; i < 4; i++)
   {
     myip[i] = ETHERNE.localIP()[i];
@@ -180,7 +223,9 @@ bool EtherCard::dhcpSetup (const char *name)
   Serial.println("Server started");
 
   // Print the IP address
+#ifdef ESP8266
   Serial.println(WiFi.localIP());
+#endif
   for (int i = 0; i < 4; i++)
   {
     myip[i] = ETHERNE.localIP()[i];
@@ -208,11 +253,11 @@ word EtherCard::packetReceive() {
 ETHERNEC client;
 
 word EtherCard::packetLoop (word plen) 
-{  
+{  DEBRECONNECT
   // listen for incoming clients
   client = server.available();
   int i = 0;
-
+  DEBCHECK
   if (client) 
   {
     // set all bytes in the buffer to 0 - add a 
@@ -230,6 +275,7 @@ word EtherCard::packetLoop (word plen)
     }
     return TCP_OFFSET;
   }
+  DEBPRINT
   return 0;
 }
 
@@ -239,7 +285,7 @@ void EtherCard::httpServerReply (word dlen) {
   // to the buffer and print it out to the client
   buffer[bfill.position() + TCP_OFFSET] = '\0';
   client.print((char*) bfill.buffer());
-
+  DEBPRINT
   // close the connection:   
   delay(1);       // give the web browser time to receive the data 
   client.stop();

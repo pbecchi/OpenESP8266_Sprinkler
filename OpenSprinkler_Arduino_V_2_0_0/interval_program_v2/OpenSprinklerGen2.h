@@ -30,14 +30,20 @@
 #include <TimeLib.h>
 #include <DS1307RTC.h>
 //#include <RTClib.h>
-#ifdef LCD
+#include "defines.h"
+
+#ifdef LCDM
+ #if LCDM==2
+ #include <LiquidCrystal\LiquidCrystal_I2C.h>
+ #else
  #include <LiquidCrystal.h>
+ #endif
 #else
  #include "lcd_mio.h"
 #endif
 #include <MemoryFree.h>
 #include "EtherCard_W5100.h"
-#include "defines.h"
+
 // ===== Added for W5100 =====
 
 // Option Data Structure
@@ -64,8 +70,12 @@ class OpenSprinkler {
 public:
 
   // ====== Data Members ======
-#ifdef LCD
-	static LiquidCrystal lcd;
+#ifdef LCDM
+#if LCDM == 2
+	static LiquidCrystal_I2C lcd;
+#else
+    static LiquidCrystal lcd;
+#endif
 #else
 	static Lcd_mioClass lcd;
 #endif

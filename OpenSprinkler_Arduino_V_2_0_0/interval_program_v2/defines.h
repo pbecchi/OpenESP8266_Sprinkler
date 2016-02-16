@@ -97,13 +97,26 @@ OS_OPTION_t;
 #ifndef ESP8266
 #define PIN_RF_DATA       28    // RF data pin Mega
 #else
+//#define SHIFTREG
+#define PIN_SDA D4    // I2C data bus on MYBOARD
+#define PIN_SCL D3    //
 //#define PIN_RF_DATA       9    // RF data pin ESP8266 
 #endif
 //===== Shift Register =====//
-//#define PIN_SR_LATCH       3    // shift register latch pin
-//#define PIN_SR_DATA       21    // shift register data pin
-//#define PIN_SR_CLOCK      22    // shift register clock pin
-//#define PIN_SR_OE          1    // shift register output enable pin
+#ifdef SHIFTREG
+#ifdef ESP8266                   //ESP8266 NODEMCU
+#define PIN_SR_LATCH       10    // shift register latch pin    SHCP GPIO10
+#define PIN_SR_DATA         4    // shift register data pin     DS   GPIO04
+#define PIN_SR_CLOCK        9    // shift register clock pin    STCP GPIO09
+#define PIN_ETHER_CS      9       // dummy not used otherwise dont compile
+//#define PIN_SR_OE          1    // shift register output enable pin NOT USED!!!!(allways on)
+#else                           //mega board
+#define PIN_SR_LATCH       3    // shift register latch pin    
+#define PIN_SR_DATA       21    // shift register data pin     
+#define PIN_SR_CLOCK      22    // shift register clock pin    
+#define PIN_SR_OE          1    // shift register output enable pin
+#endif
+#else
 #ifndef ESP8266
 //===== Digital Outputs =====//Mega board  
 #define PIN_STN_S1        46      // use these when switching relays
@@ -137,8 +150,8 @@ OS_OPTION_t;
 #else
 //===== Digital Outputs =====//ESP8266 
 #define PIN_STN_S1        D0      //gpio 16   use these when switching relays
-#define PIN_STN_S2        D3      //gpio 0    without shift register i.e.
-#define PIN_STN_S3        D4      //gpio 2    control signal is directly from
+#define PIN_STN_S2        D1      //gpio 0    without shift register i.e.
+#define PIN_STN_S3        D2      //gpio 2    control signal is directly from
 #define PIN_STN_S4        D5      //gpio 14    ESP8266 digital output pins
 #define PIN_STN_S5        D6      //gpio 12
 #define PIN_STN_S6        D7      //gpio 13 
@@ -148,7 +161,7 @@ OS_OPTION_t;
 #define PIN_ETHER_CS      9    // Ethernet controller dummy chip select pin - default = 4
 #endif
 
-
+#endif
 #define BUTTON_ADC_PIN    A0    // A0 is the button ADC input
 
 /*
@@ -228,6 +241,7 @@ OS_OPTION_t;
 
 #endif
 
+//#define LCDM 2  //2004 I2C Saintsmart LCD
 
 
 

@@ -116,6 +116,7 @@ public:
   static void ntpRequest (uint8_t *ntpip,uint8_t srcport);
   static uint8_t ntpProcessAnswer (uint32_t *time, uint8_t dstport_l);
   static bool dhcpSetup (const char *);
+  static void reconnect();
 
   // webutil.cpp
   static void copyIp (uint8_t *dst, const uint8_t *src);

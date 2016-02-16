@@ -102,11 +102,13 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portInputRegister(P)
 #define portModeRegister(P)
 #include <..\interval_program_v2\interval_program_v2.ino>
+#include <..\interval_program_v2\A_RELEASE_NOTES.ino>
 #include <..\interval_program_v2\EtherCard_W5100.cpp>
 #include <..\interval_program_v2\EtherCard_W5100.h>
 #include <..\interval_program_v2\OpenSprinklerGen2.h>
 #include <..\interval_program_v2\OpenSprinklerGen2.ino>
 #include <..\interval_program_v2\defines.h>
+#include <..\interval_program_v2\eeprom_mio.h>
 #include <..\interval_program_v2\eeprom_mio.ino>
 #include <..\interval_program_v2\lcd_mio.cpp>
 #include <..\interval_program_v2\lcd_mio.h>
