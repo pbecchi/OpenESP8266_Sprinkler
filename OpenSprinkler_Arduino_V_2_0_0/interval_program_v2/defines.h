@@ -92,23 +92,27 @@ OS_OPTION_t;
 #ifndef SVC_HW_VERSION
 #error "==This error is intentional==: you must define SVC_HW_VERSION in arduino-xxxx/libraries/OpenSprinklerGen2/defines.h"
 #endif
-
 #if SVC_HW_VERSION == 20
+//////////////////////////////////////////HW BOARD CONFIGURATION////////////////////////////////
 #ifndef ESP8266
 #define PIN_RF_DATA       28    // RF data pin Mega
 #else
-//#define SHIFTREG
-#define PIN_SDA D4    // I2C data bus on MYBOARD
-#define PIN_SCL D3    //
+#define SHIFTREG
+#define PIN_SDA D5    // I2C data bus on MYBOARD
+#define PIN_SCL D2    //
 //#define PIN_RF_DATA       9    // RF data pin ESP8266 
 #endif
+#define LCDM 2  //2004 I2C Saintsmart LCD
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 //===== Shift Register =====//
 #ifdef SHIFTREG
 #ifdef ESP8266                   //ESP8266 NODEMCU
-#define PIN_SR_LATCH       10    // shift register latch pin    SHCP GPIO10
-#define PIN_SR_DATA         4    // shift register data pin     DS   GPIO04
-#define PIN_SR_CLOCK        9    // shift register clock pin    STCP GPIO09
-#define PIN_ETHER_CS      9       // dummy not used otherwise dont compile
+#define PIN_SR_LATCH        D3    // shift register latch pin    SHCP GPIO02
+#define PIN_SR_DATA         D0    // shift register data pin     DS   GPIO16
+#define PIN_SR_CLOCK        10    // shift register clock pin    STCP GPIO10
+#define PIN_ETHER_CS         9       // dummy not used otherwise dont compile
 //#define PIN_SR_OE          1    // shift register output enable pin NOT USED!!!!(allways on)
 #else                           //mega board
 #define PIN_SR_LATCH       3    // shift register latch pin    
@@ -241,7 +245,6 @@ OS_OPTION_t;
 
 #endif
 
-//#define LCDM 2  //2004 I2C Saintsmart LCD
 
 
 
