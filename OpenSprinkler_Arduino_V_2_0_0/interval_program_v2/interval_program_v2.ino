@@ -164,23 +164,7 @@ void setup() {
   // if rtc exists, sets it as time sync source
   setSyncProvider(svc.status.has_rtc ? RTC.get : NULL);
   tmElements_t tm;
-
-  if (RTC.read(tm)) {
-	  Serial.print("Ok, Time = ");
-	  Serial.print(tm.Hour);
-	  Serial.write(':');
-	  Serial.print(tm.Minute);
-	  Serial.write(':');
-	  Serial.print(tm.Second);
-	  Serial.print(", Date (D/M/Y) = ");
-	  Serial.print(tm.Day);
-	  Serial.write('/');
-	  Serial.print(tm.Month);
-	  Serial.write('/');
-	  Serial.print(tmYearToCalendar(tm.Year));
-	  Serial.println();
-	  delay(500);
-  }
+  
   svc.lcd_print_time(0);  // display time to LCD
   svc.lcd_print_line_clear_pgm(PSTR("Connecting..."), 1);
   delay(10000);

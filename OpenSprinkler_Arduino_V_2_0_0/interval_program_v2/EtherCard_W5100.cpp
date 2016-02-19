@@ -161,23 +161,25 @@ const uint8_t* dns_ip) {
   WiFi.begin(ssid, password);// , my_ip, dns_ip, gw_ip);
   delay(500);
   byte netmask[4] = { 255,255,255,0 };
-  WiFi.config(my_ip, dns_ip,netmask);
-  Serial.print("\nConnecting to "); Serial.println(ssid);
+  WiFi.config(my_ip, dns_ip,netmask);  
+  LCDpos(4, 0);
+  LCDPrint("\nConn. to "); LCDPrint((char *)ssid);
   uint8_t i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 100) { delay(500); Serial.write('.'); }
+  while (WiFi.status() != WL_CONNECTED && i++ < 100) { delay(500); LCDPrint('.'); }
   if (i == 101) {
-	  Serial.print("Could not connect to"); Serial.println(ssid);
+	  LCDpos(4, 0);
+	 LCDPrint(" Not con. to"); LCDPrint(ssid);
 	  while (1) delay(500);
   }
 
 #endif
   // start listening for clients
   server.begin();
-  Serial.println("Server started");
+  LCDPrint("Server started");
   DEBSTART
   // Print the IP address
 #ifdef ESP8266
-	  Serial.println(WiFi.localIP());
+	//  Serial.println(WiFi.localIP());
 #endif
   for (int i = 0; i < 4; i++)
   {

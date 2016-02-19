@@ -127,6 +127,27 @@ const  char* OpenSprinkler::days_str[7] = {
 // Arduino software reset function
 void(* resetFunc) (void) = 0;
 
+// PrintTime
+/*void PrintTime(){
+	
+if (RTC.read(tm)) {
+	lcd.print("Ok, Time = ");
+	lcd.print(tm.Hour);
+	lcd.write(':');
+	lcd.print(tm.Minute);
+	lcd.write(':');
+	lcd.print(tm.Second);
+	lcd.print(", Date (D/M/Y) = ");
+	lcd.print(tm.Day);
+	lcd.write('/');
+	lcd.print(tm.Month);
+	lcd.write('/');
+	lcd.print(tmYearToCalendar(tm.Year));
+	lcd.println();
+	delay(500);
+}
+}
+*/
 // Initialize network with the given mac address and http port
 byte OpenSprinkler::start_network(byte mymac[], int http_port) {
 
@@ -158,7 +179,12 @@ byte OpenSprinkler::start_network(byte mymac[], int http_port) {
 
 // Reboot controller
 void OpenSprinkler::reboot() {
-  resetFunc();
+#ifdef ESP8266
+	ESP.restart();
+#else
+	resetFunc();
+#endif
+
 }
 
 // OpenSprinkler init function
@@ -767,7 +793,10 @@ void OpenSprinkler::lcd_print_option(int i) {
     lcd_print_pgm(PSTR(" sec"));
 }
 
-
+void LCDpos(byte x, byte y) { OpenSprinkler::lcd.setCursor(x, y); }
+void LCDPrint(char c) { OpenSprinkler::lcd.print(c); }
+void LCDPrint(int i) { OpenSprinkler::lcd.print(i); }
+void LCDPrint(char const stringa[]) { OpenSprinkler::lcd.print(stringa); }
 // ================
 // Button Functions
 // ================

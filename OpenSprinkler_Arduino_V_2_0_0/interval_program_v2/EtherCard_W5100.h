@@ -45,7 +45,7 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #endif
-
+#include <OpenSprinklerGen2.h>
 //#include <ICMPPing.h>
 //-----------------------------modificato senza ping
 

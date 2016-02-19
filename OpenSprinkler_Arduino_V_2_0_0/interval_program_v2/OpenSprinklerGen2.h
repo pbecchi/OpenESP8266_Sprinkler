@@ -154,6 +154,9 @@ private:
   static byte button_sample();          // new function to sample analog button input
   // ===== Added for Freetronics LCD Shield =====
 };
-
+void LCDpos(byte x, byte y);
+void LCDPrint(char c);
+void LCDPrint(int i);
+void LCDPrint(char const v[]);
 #endif
 

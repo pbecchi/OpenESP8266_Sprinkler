@@ -92,8 +92,25 @@ OS_OPTION_t;
 #ifndef SVC_HW_VERSION
 #error "==This error is intentional==: you must define SVC_HW_VERSION in arduino-xxxx/libraries/OpenSprinklerGen2/defines.h"
 #endif
+
 #if SVC_HW_VERSION == 20
-//////////////////////////////////////////HW BOARD CONFIGURATION////////////////////////////////
+
+//////////////////////////////////////////HW SW BOARD CONFIGURATIONS////////////////////////////////////////////////////////////////////
+//                                       ESP8266 version                       MEGA version 
+//    PIN_SDA                           D5                                     def.
+//    PIN_SCL                           D2                                     def.
+//    SHIFTREG                          74HC595 on 16,2,10                     no Shifreg
+//    LCDM        2                     I2c 20*4 SaintSmart                    idem
+//    LCDM      undef(for test)			serial.printout							serial.printout
+//    LCDM        1                     N.A.									Freetronic Parallel                    idem
+//    EEPROM_ADDRESS  (eeprom_mio.h)	I2C EEPROM (RTC							I2C tynyRtc board
+//    STATIC IP							192.168.1.211							idem
+//    DHCP								TBD									
+//    PIN_RF_DATA						N.A.
+//	  Pin_rain_sensor					N.A.	
+//	  TCP IP CONNECTION TO MASTER		TBD										TBD
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef ESP8266
 #define PIN_RF_DATA       28    // RF data pin Mega
 #else
