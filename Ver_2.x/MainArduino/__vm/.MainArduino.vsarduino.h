@@ -12,6 +12,7 @@
 #define _VSARDUINO_H_
 #define __ESP8266_ESp8266__
 #define __ESP8266_ESP8266__
+#define _VMDEBUG 1
 #define __ets__
 #define ICACHE_FLASH
 #define F_CPU 80000000L
@@ -101,4 +102,36 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portInputRegister(P)
 #define portModeRegister(P)
 #include <..\MainArduino\MainArduino.ino>
+#include <..\MainArduino\DS1307RTC.cpp>
+#include <..\MainArduino\DS1307RTC.h>
+#include <..\MainArduino\EtherCard.cpp>
+#include <..\MainArduino\EtherCard.h>
+#include <..\MainArduino\LiquidCrystal.cpp>
+#include <..\MainArduino\LiquidCrystal.h>
+#include <..\MainArduino\OpenSprinkler.cpp>
+#include <..\MainArduino\OpenSprinkler.h>
+#include <..\MainArduino\Time.cpp>
+#include <..\MainArduino\Time.h>
+#include <..\MainArduino\defines.h>
+#include <..\MainArduino\dhcp.cpp>
+#include <..\MainArduino\dns.cpp>
+#include <..\MainArduino\enc28j60.cpp>
+#include <..\MainArduino\enc28j60.h>
+#include <..\MainArduino\etherport.cpp>
+#include <..\MainArduino\etherport.h>
+#include <..\MainArduino\gpio.cpp>
+#include <..\MainArduino\gpio.h>
+#include <..\MainArduino\main.cpp>
+#include <..\MainArduino\net.h>
+#include <..\MainArduino\program.cpp>
+#include <..\MainArduino\program.h>
+#include <..\MainArduino\server.cpp>
+#include <..\MainArduino\server.h>
+#include <..\MainArduino\tcpip.cpp>
+#include <..\MainArduino\udpserver.cpp>
+#include <..\MainArduino\utils.cpp>
+#include <..\MainArduino\utils.h>
+#include <..\MainArduino\weather.cpp>
+#include <..\MainArduino\weather.h>
+#include <..\MainArduino\webutil.cpp>
 #endif

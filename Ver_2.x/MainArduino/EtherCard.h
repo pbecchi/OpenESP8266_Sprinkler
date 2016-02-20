@@ -35,9 +35,10 @@
 #define WRITE_RESULT void
 #define WRITE_RETURN
 #endif
-
+#ifndef ESP8266
 #include <avr/pgmspace.h>
 #include "enc28j60.h"
+#endif
 #include "net.h"
 
 /** This type definition defines the structure of a UDP server event handler callback funtion */

@@ -26,7 +26,11 @@
 extern OpenSprinkler os;
 
 #if defined(ARDUINO)  // AVR
+#ifndef ESP8266
 #include <avr/eeprom.h>
+#else
+#include <eeprom_mio.h>
+#endif
 #include "SdFat.h"
 extern SdFat sd;
 

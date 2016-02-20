@@ -27,7 +27,11 @@
 
 #if defined(ARDUINO) // heades for AVR
   #include "Arduino.h"
+#ifndef ESP8266
   #include <avr/eeprom.h>
+#else
+  #include <eeprom_mio.h>
+#endif
   #include <Wire.h>
   #include "LiquidCrystal.h"
   #include "Time.h"

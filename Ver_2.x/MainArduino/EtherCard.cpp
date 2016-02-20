@@ -11,7 +11,11 @@
 
 #include <EtherCard.h>
 #include <stdarg.h>
+#ifndef ESP8266
 #include <avr/eeprom.h>
+#else
+#include <eeprom_mio.h>
+#endif
 
 //#define FLOATEMIT // uncomment line to enable $T in emit_P for float emitting
 
