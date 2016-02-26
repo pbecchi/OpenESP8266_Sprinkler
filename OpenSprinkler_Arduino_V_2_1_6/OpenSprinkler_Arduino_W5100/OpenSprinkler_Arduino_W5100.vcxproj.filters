@@ -83,5 +83,8 @@
     <ClCompile Include="..\eeprom_mio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\SPIFFSdFat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

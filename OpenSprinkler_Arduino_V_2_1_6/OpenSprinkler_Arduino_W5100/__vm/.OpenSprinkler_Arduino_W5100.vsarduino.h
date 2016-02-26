@@ -114,6 +114,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.h>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.cpp>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.h>
+#include <..\..\OpenSprinkler_Arduino_V_2_1_6\SPIFFSdFat.cpp>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\SPIFFSdFat.h>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\Utils.cpp>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\Utils.h>
