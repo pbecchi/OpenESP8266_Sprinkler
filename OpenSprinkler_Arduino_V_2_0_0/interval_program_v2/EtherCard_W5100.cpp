@@ -285,8 +285,12 @@ void EtherCard::httpServerReply (word dlen) {
 
   // ignore dlen - just add a null termination 
   // to the buffer and print it out to the client
+
   buffer[bfill.position() + TCP_OFFSET] = '\0';
   client.print((char*) bfill.buffer());
+  
+  for (int j = 0; j <= bfill.position() + TCP_OFFSET; j++)Serial.print((char)*(bfill.buffer() + j));
+
   DEBPRINT
   // close the connection:   
   delay(1);       // give the web browser time to receive the data 

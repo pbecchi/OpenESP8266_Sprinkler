@@ -147,7 +147,7 @@ void button_poll() {
 // Arduino Setup Function
 // ======================
 void setup() { 
-	
+	Serial.begin(115200);
 	delay(10);
 
   svc.begin();          // OpenSprinkler init
