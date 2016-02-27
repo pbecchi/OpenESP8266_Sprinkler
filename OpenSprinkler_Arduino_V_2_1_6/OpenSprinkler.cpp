@@ -23,6 +23,11 @@
 #include "Defines.h"
 #include "../OpenSprinkler.h"
 #include "../Gpio.h"
+#ifdef ESP8266
+#include <FS.h>
+#define sd SPIFFS
+#define FIL file
+#endif
 
 /** Declare static data members */
 NVConData OpenSprinkler::nvdata;
@@ -80,12 +85,14 @@ LiquidCrystal OpenSprinkler::lcd;
 #endif
 
 #ifdef ESP8266
-#include "SPIFFSdFat.h"
+#include <FS.h>
+//#include "SPIFFSdFat.h"
 #else 
 #include <SdFat.h>
+extern SdFat sd;
+
 #endif
 
-extern SdFat sd;
 
 #elif defined(OSPI)
 // todo: LCD define for OSPi
@@ -475,6 +482,7 @@ byte OpenSprinkler::start_network()
 void OpenSprinkler::reboot_dev()
 {
 #ifdef ESP8266
+	
 	ESP.restart();
 #else
 
@@ -782,7 +790,15 @@ void OpenSprinkler::begin()
     {
         status.has_sd = 1;
     }
-#endif
+#else
+	
+	if (SPIFFS.begin()) {
+		Dir dir = SPIFFS.openDir("/");
+		while (dir.next())DEBUG_PRINTLN(dir.fileName());
+		status.has_sd = 1;
+	}
+
+#endif //ESP8266
 #endif
 
 

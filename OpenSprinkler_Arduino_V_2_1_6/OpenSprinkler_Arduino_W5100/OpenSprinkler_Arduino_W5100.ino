@@ -68,7 +68,8 @@ Original Opensprinkler code commences below here
 
 	#include <Wire.h>
 #ifdef ESP8266
-#include "../SPIFFSdFat.h"
+#include <FS.h>
+//#include "../SPIFFSdFat.h"
 #else 
 #include <SdFat.h>
 #endif

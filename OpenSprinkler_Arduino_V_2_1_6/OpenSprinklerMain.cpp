@@ -35,9 +35,13 @@
 
 #if defined(ARDUINO)
 #ifdef ESP8266
-#include "SPIFFSdFat.h"
+#include <FS.h>
+//#include "SPIFFSdFat.h"
 #else 
 #include <SdFat.h>
+#ifdef SDFAT
+SdFat sd;                                 // SD card object
+#endif
 #endif
 
 #include <Wire.h>
@@ -47,9 +51,7 @@ byte EtherCardW5100::buffer[ETHER_BUFFER_SIZE]; // Ethernet packet buffer
 #else
 byte Ethernet::buffer[ETHER_BUFFER_SIZE];		// Ethernet packet buffer
 #endif
-#ifdef SDFAT
-SdFat sd;                                 // SD card object
-#endif
+
 void reset_all_stations();
 unsigned long getNtpTime();
 void manual_start_program ( byte pid );
@@ -1102,7 +1104,7 @@ char LOG_PREFIX[] = "./logs/";
  */
 void make_logfile_name ( char *name )
 {
-#if defined(ARDUINO)
+#if defined(ARDUINO) && !defined(ESP8266)
     sd.chdir ( "/" );
 #endif
     strcpy ( tmp_buffer+TMP_BUFFER_SIZE-10, name );
@@ -1135,6 +1137,7 @@ void write_log ( byte type, ulong curr_time )
 #if defined(ARDUINO) // prepare log folder for Arduino
     if ( !os.status.has_sd )  return;
 
+#ifndef ESP8266
     sd.chdir ( "/" );
     if ( sd.chdir ( LOG_PREFIX ) == false )
     {
@@ -1145,12 +1148,27 @@ void write_log ( byte type, ulong curr_time )
         }
     }
     SdFile file;
+
+	
     int ret = file.open ( tmp_buffer, O_CREAT | O_WRITE );
     file.seekEnd();
     if ( !ret )
     {
         return;
     }
+#else //ESP8266
+	DEBUG_PRINTLN(tmp_buffer);
+	memmove(tmp_buffer + 1, tmp_buffer, strlen(tmp_buffer)); tmp_buffer[0] = '/';
+	File file = SPIFFS.open(tmp_buffer, "w+");
+	int ret = (bool) file;
+	file.seek(0, SeekEnd);
+	if (!ret)
+	{
+		DEBUG_PRINTLN("NoGood");
+		return;
+	}
+#endif //ESP8266
+
 #else // prepare log folder for RPI/BBB
     struct stat st;
     if ( stat ( get_filename_fullpath ( LOG_PREFIX ), &st ) )
@@ -1217,7 +1235,12 @@ void write_log ( byte type, ulong curr_time )
     strcat_P ( tmp_buffer, PSTR ( "]\r\n" ) );
 
 #if defined(ARDUINO)
+#ifndef ESP8266
     file.write ( tmp_buffer );
+#else 
+	file.print(tmp_buffer);
+#endif
+
     file.close();
 #else
     fwrite ( tmp_buffer, 1, strlen ( tmp_buffer ), file );
@@ -1237,22 +1260,32 @@ void delete_log ( char *name )
 
     if ( strncmp ( name, "all", 3 ) == 0 )
     {
-        // delete the log folder
+#ifndef ESP8266
+		// delete the log folder
         SdFile file;
 
         if ( sd.chdir ( LOG_PREFIX ) )
         {
             // delete the whole log folder
- ///////////           sd.vwd()->rmRfStar();
+            sd.vwd()->rmRfStar();
         }
-        return;
+#else //ESP8266
+		//format SPIIFS??
+#endif
+		return;
+
     }
     else
     {
         make_logfile_name ( name );
-        if ( !sd.exists ( tmp_buffer ) )  return;
+#ifndef ESP8266
+		if ( !sd.exists ( tmp_buffer ) )  return;
         sd.remove ( tmp_buffer );
-    }
+#else  //ESP8266
+		if (!SPIFFS.exists(tmp_buffer))  return;
+		SPIFFS.remove(tmp_buffer);
+#endif //ESP8266
+	}
 #else // delete_log implementation for RPI/BBB
     if ( strncmp ( name, "all", 3 ) == 0 )
     {

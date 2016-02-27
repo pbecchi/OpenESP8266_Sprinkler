@@ -33,29 +33,44 @@ extern OpenSprinkler os;
 #endif
 
 #ifdef ESP8266
-#include "SPIFFSdFat.h"
+#include <FS.h>
+//#include "SPIFFSdFat.h"
 #else 
 #include <SdFat.h>
+extern SdFat sd;
 #endif
 
-extern SdFat sd;
+
 
 void write_to_file(const char *name, const char *data, int size, int pos, bool trunc) {
   if (!os.status.has_sd)  return;
 
   char fn[12];
   strcpy_P(fn, name);
+#ifndef ESP8266
   sd.chdir("/");
   SdFile file;
   int flag = O_CREAT | O_WRITE;
   if (trunc) flag |= O_TRUNC;
   int ret = file.open(fn, flag);
+#else //ESP8266
+  DEBUG_PRINT("fileOpen:");
+  memmove(fn + 1, fn, strlen(fn)); fn[0] = '/';
+  DEBUG_PRINTLN(fn);
+  File file = SPIFFS.open(fn, "w+");
+  int ret = (bool)file;
+#endif //ESP8266
   if(!ret) {
+	  DEBUG_PRINTLN("NoGood_w");
     return;
   }
+#ifndef ESP8266
   file.seekSet(pos);
   file.write(data, size);
+#else
+  file.seek(pos, SeekSet);
   file.close();
+#endif
 }
 
 bool read_from_file(const char *name, char *data, int maxsize, int pos) {
@@ -63,15 +78,31 @@ bool read_from_file(const char *name, char *data, int maxsize, int pos) {
 
   char fn[12];
   strcpy_P(fn, name);
+#ifndef ESP8266
   sd.chdir("/");
+
   SdFile file;
   int ret = file.open(fn, O_READ );
+#else //ESP8266
+  
+  memmove(fn + 1, fn, strlen(fn)); fn[0] = '/';
+  DEBUG_PRINT("fileOpen:"); DEBUG_PRINTLN(fn);
+  File file = SPIFFS.open(fn, "r");
+  int ret = (bool)file;
+#endif
   if(!ret) {
+	  DEBUG_PRINTLN("NoGood_r");
     data[0]=0;
     return true;  // return true but with empty string
   }
+#ifndef ESP8266
   file.seekSet(pos);
   ret = file.fgets(data, maxsize);
+#else
+  file.seek(pos, SeekSet);
+  ret = file.readBytesUntil('/n', data, maxsize);
+#endif
+
   data[maxsize-1]=0;
   file.close();
   return true;
@@ -82,9 +113,17 @@ void remove_file(const char *name) {
 
   char fn[12];
   strcpy_P(fn, name);
+#ifndef ESP8266
   sd.chdir("/");
   if (!sd.exists(fn))  return;
   sd.remove(fn);
+#else
+  DEBUG_PRINT("fileDelete:"); DEBUG_PRINTLN(fn);
+  if (!SPIFFS.exists(fn))  return;
+  SPIFFS.remove(fn);
+#endif //ESP8266
+
+
 }
 
 #else // RPI/BBB/LINUX

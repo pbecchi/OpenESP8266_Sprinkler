@@ -27,12 +27,14 @@
 // External variables defined in main ion file
 #if defined(ARDUINO)
 #ifdef ESP8266
-#include "SPIFFSdFat.h"
+#include <FS.h>
+//#include "SPIFFSdFat.h"
 #else 
 #include <SdFat.h>
+extern SdFat sd;
 #endif
 
-extern SdFat sd;
+
 static uint8_t ntpclientportL = 123; // Default NTP client port
 extern ulong flow_count;
 
@@ -1504,9 +1506,15 @@ byte server_json_log ( char *p )
         make_logfile_name ( tmp_buffer );
 
 #if defined(ARDUINO)  // prepare to open log file for Arduino
+#ifndef ESP8266
         if ( !sd.exists ( tmp_buffer ) ) continue;
         SdFile file;
         file.open ( tmp_buffer, O_READ );
+#else //ESP8266
+		memmove(tmp_buffer + 1, tmp_buffer, strlen(tmp_buffer)); tmp_buffer[0] = '/';
+		if (!SPIFFS.exists(tmp_buffer)) continue;
+		File file = SPIFFS.open(tmp_buffer, "r");
+#endif
 #else // prepare to open log file for RPI/BBB
         FILE *file;
         file = fopen ( get_filename_fullpath ( tmp_buffer ), "rb" );
@@ -1517,8 +1525,12 @@ byte server_json_log ( char *p )
         while ( true )
         {
 #if defined(ARDUINO)
+#ifndef ESP8266
             res = file.fgets ( tmp_buffer, TMP_BUFFER_SIZE );
-            if ( res <= 0 )
+#else
+			res = file.readBytesUntil('/n',tmp_buffer, TMP_BUFFER_SIZE);
+#endif
+			if ( res <= 0 )
             {
                 file.close();
                 break;

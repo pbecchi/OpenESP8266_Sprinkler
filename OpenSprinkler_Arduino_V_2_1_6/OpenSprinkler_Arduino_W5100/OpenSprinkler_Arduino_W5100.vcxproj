@@ -154,7 +154,6 @@
     <ClCompile Include="..\OpenSprinklerMain.cpp" />
     <ClCompile Include="..\OpenSprinklerProgram.cpp" />
     <ClCompile Include="..\OpenSprinklerServer.cpp" />
-    <ClCompile Include="..\SPIFFSdFat.cpp" />
     <ClCompile Include="..\Utils.cpp" />
     <ClCompile Include="..\Weather.cpp" />
   </ItemGroup>
