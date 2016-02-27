@@ -1511,7 +1511,7 @@ byte server_json_log ( char *p )
         SdFile file;
         file.open ( tmp_buffer, O_READ );
 #else //ESP8266
-		memmove(tmp_buffer + 1, tmp_buffer, strlen(tmp_buffer)); tmp_buffer[0] = '/';
+		memmove(tmp_buffer + 1, tmp_buffer, strlen(tmp_buffer)+1); tmp_buffer[0] = '/';
 		if (!SPIFFS.exists(tmp_buffer)) continue;
 		File file = SPIFFS.open(tmp_buffer, "r");
 #endif

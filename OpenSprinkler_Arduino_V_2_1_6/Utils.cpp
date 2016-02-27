@@ -55,7 +55,7 @@ void write_to_file(const char *name, const char *data, int size, int pos, bool t
   int ret = file.open(fn, flag);
 #else //ESP8266
   DEBUG_PRINT("fileOpen:");
-  memmove(fn + 1, fn, strlen(fn)); fn[0] = '/';
+  memmove(fn + 1, fn, strlen(fn)+1); fn[0] = '/';
   DEBUG_PRINTLN(fn);
   File file = SPIFFS.open(fn, "w+");
   int ret = (bool)file;
@@ -85,7 +85,7 @@ bool read_from_file(const char *name, char *data, int maxsize, int pos) {
   int ret = file.open(fn, O_READ );
 #else //ESP8266
   
-  memmove(fn + 1, fn, strlen(fn)); fn[0] = '/';
+  memmove(fn + 1, fn, strlen(fn)+1); fn[0] = '/';
   DEBUG_PRINT("fileOpen:"); DEBUG_PRINTLN(fn);
   File file = SPIFFS.open(fn, "r");
   int ret = (bool)file;
