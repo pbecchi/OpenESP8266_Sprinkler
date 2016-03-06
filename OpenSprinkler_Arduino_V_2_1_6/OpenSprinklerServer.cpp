@@ -1274,6 +1274,7 @@ byte server_change_options ( char *p )
         urlDecode ( tmp_buffer );
         tmp_buffer[TMP_BUFFER_SIZE]=0;
         // store weather key
+		DEBUG_PRINT("WW_URL "); DEBUG_PRINTLN(tmp_buffer);
         write_to_file ( wtopts_filename, tmp_buffer, strlen ( tmp_buffer ) );
         weather_change = true;
     }

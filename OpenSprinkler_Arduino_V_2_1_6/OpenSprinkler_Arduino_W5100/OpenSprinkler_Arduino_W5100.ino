@@ -116,6 +116,7 @@ Original Opensprinkler code commences below here
 #include <avr/wdt.h>
 #endif
 #endif
+byte DB = 0xFF;
 #ifdef ESP8266
 extern DS1307RTC RTC;
 #endif
@@ -136,7 +137,7 @@ void setup()
 
 void loop()
 {
-//	DEBUG_PRINT("-+");
+	DEBUG_COMMAND
    do_loop();
 }
 

@@ -43,34 +43,42 @@ extern SdFat sd;
 
 
 void write_to_file(const char *name, const char *data, int size, int pos, bool trunc) {
-  if (!os.status.has_sd)  return;
+	if (!os.status.has_sd)  return;
 
-  char fn[12];
-  strcpy_P(fn, name);
+	char fn[12];
+	strcpy_P(fn, name);
 #ifndef ESP8266
-  sd.chdir("/");
-  SdFile file;
-  int flag = O_CREAT | O_WRITE;
-  if (trunc) flag |= O_TRUNC;
-  int ret = file.open(fn, flag);
+	sd.chdir("/");
+	SdFile file;
+	int flag = O_CREAT | O_WRITE;
+	if (trunc) flag |= O_TRUNC;
+	int ret = file.open(fn, flag);
 #else //ESP8266
-  DEBUG_PRINT("fileOpen:");
-  memmove(fn + 1, fn, strlen(fn)+1); fn[0] = '/';
-  DEBUG_PRINTLN(fn);
-  File file = SPIFFS.open(fn, "w+");
-  int ret = (bool)file;
+	DEBUG_PRINT("fileOpen:");
+	memmove(fn + 1, fn, strlen(fn) + 1); fn[0] = '/';
+	DEBUG_PRINTLN(fn);
+	File file;
+	if (SPIFFS.exists(fn))
+		file = SPIFFS.open(fn, "r+");
+	else   file = SPIFFS.open(fn, "w");
+	int ret = (bool)file;
 #endif //ESP8266
-  if(!ret) {
-	  DEBUG_PRINTLN("NoGood_w");
-    return;
-  }
+	if (!ret) {
+		DEBUG_PRINTLN("NoGood_w");
+		return;
+	}
 #ifndef ESP8266
-  file.seekSet(pos);
-  file.write(data, size);
+	file.seekSet(pos);
+	file.write(data, size);
 #else
-  file.seek(pos, SeekSet);
-  file.close();
+	file.seek(pos, SeekSet);
+	for (int i = 0; i < size; i++)
+	{		file.print(char(data[i]));
+	        DEBUG_PRINT(char(data[i]));
+    }
+	DEBUG_PRINTLN(">record written");
 #endif
+  file.close();
 }
 
 bool read_from_file(const char *name, char *data, int maxsize, int pos) {
@@ -101,9 +109,11 @@ bool read_from_file(const char *name, char *data, int maxsize, int pos) {
 #else
   file.seek(pos, SeekSet);
   ret = file.readBytesUntil('/n', data, maxsize);
+  
 #endif
 
   data[maxsize-1]=0;
+  DEBUG_PRINTLN(data);
   file.close();
   return true;
 }
@@ -118,8 +128,10 @@ void remove_file(const char *name) {
   if (!sd.exists(fn))  return;
   sd.remove(fn);
 #else
-  DEBUG_PRINT("fileDelete:"); DEBUG_PRINTLN(fn);
+  memmove(fn + 1, fn, strlen(fn) + 1); fn[0] = '/';
+  
   if (!SPIFFS.exists(fn))  return;
+  DEBUG_PRINT("fileDelete:"); DEBUG_PRINTLN(fn);
   SPIFFS.remove(fn);
 #endif //ESP8266
 

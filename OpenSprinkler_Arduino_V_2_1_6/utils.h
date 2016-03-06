@@ -34,8 +34,10 @@
 #endif
 
 #include "Config.h"
-#include "../Defines.h"
 
+#include "../Defines.h"
+#undef DB_MASK
+#define DB_MASK 8
 void strncpy_P0(char* dest, const char* src, int n);
 byte strcmp_to_nvm(const char* src, int addr);
 byte water_time_encode(uint16_t i);

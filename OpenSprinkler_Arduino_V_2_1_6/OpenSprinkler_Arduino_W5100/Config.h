@@ -24,6 +24,7 @@ About:		This is a fork of Rays OpenSprinkler code thats amended to use alternati
 
 			As always - FULL CREDIT to Ray for all his hard work to build and maintain the Open Sprinkler project!
 */
+
 #ifndef _OS_CONFIG_H
 #define _OS_CONFIG_H
 
@@ -40,10 +41,28 @@ About:		This is a fork of Rays OpenSprinkler code thats amended to use alternati
 //#define OPENSPRINKLER_ARDUINO_WDT				// this flag turns the WDT on or off (refer to your reference documentation 
 												// for whether the firmware loaded on your Arduino mega supports a WDT)
 // =================================================================
+// HARDWARE CONFIGURATIONS								GPIO channels                        #define
+// RTC               DS1307, DS33xx						I2C channels						 
+// LCD               Standard ,							GPIO 5 channels
+//					 Freetronic,						?									def OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
+//					 I2C								I2C ch								def LCDI2C
+// Station Output	 Std.Shift registers				GPIO 3 channels
+//					 Discreete							8 channels							def OPENSPRINKLER_ARDUINO_DISCRETE
+//					 I2C								I2C ch								def I2C_SHIF_REG
+// Buttons           Std. 3 Dig.Inputs					GPIO 3 Channels
+//					 analog Input						1 anal. chan.						def BUTTON_ADC_PIN
+// SD                Std. SPI MicroSD					SPI channels +1						def SD_FAT	
+//					 SPIFFS (emulations in Flash mem)	I2C channels						def SPIFFSDFAT
+// EEPROM            Std. 2kB on board(Mega)			onboard								
+//					 I2C on RTC board	4kB				I2C channels						def MYEEPROM
+//ETHERNET			 std ENC							SPI channels
+//					 W5100 SHIELD						SPI channels						OPENSPRINKLER_ARDUINO_W5100
+//					 ESP8266 onboard					none								ESP8266
 #ifndef ESP8266
-  #define SDFAT                                   //no SD card
-  #define MY_PING                                 //no ping allway OK.
+  #define SDFAT                                   // SD card
+  #define MY_PING                                 // ping allway OK.
 #else 
+//#define SD_ON
  #define LCDI2C									  //LCD I2c
 #endif
 // removed PROGMEM from to call look at

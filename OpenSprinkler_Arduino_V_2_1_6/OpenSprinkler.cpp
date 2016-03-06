@@ -791,13 +791,13 @@ void OpenSprinkler::begin()
         status.has_sd = 1;
     }
 #else
-	
+#ifdef SD_ON	
 	if (SPIFFS.begin()) {
 		Dir dir = SPIFFS.openDir("/");
 		while (dir.next())DEBUG_PRINTLN(dir.fileName());
 		status.has_sd = 1;
 	}
-
+#endif
 #endif //ESP8266
 #endif
 
@@ -2011,7 +2011,7 @@ byte OpenSprinkler::button_read ( byte waitmode )
     old = curr;
     return ret;
 }
-#endif // OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
+#endif //BUTTON_ADC_PIN .... OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
 
 /** user interface for setting options during startup */
 void OpenSprinkler::ui_set_options ( int oid )

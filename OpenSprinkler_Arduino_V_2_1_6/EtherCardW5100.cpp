@@ -13,7 +13,10 @@
    Refer to the README file for more information
 
    =============================================================== */
+
 #include "Defines.h"
+#undef DB_MASK
+#define DB_MASK 4
 #include <stdarg.h>
 #ifndef ESP8266
 #include <avr/eeprom.h>
@@ -242,7 +245,9 @@ ICMPEchoReply EtherCardW5100::pingResult;				///< Result of ping request from IC
 ETHERNES EtherCardW5100::w5100server(80);
 ETHERNEC EtherCardW5100::w5100client;
 ETHERNEUDP EtherCardW5100::w5100udp;
-
+#ifndef ESP8266
+DNSClient EtherCardW5100::dns_client;
+#endif
 // External variables defined in main .ino file
 extern BufferFiller bfill;
 
@@ -955,8 +960,42 @@ static void set_seq()
 /// <returns>True on success. </returns>
 bool EtherCardW5100::dnsLookup ( const char* name, bool fromRam )
 {
-    // TODO
-    /*
+#ifdef ESP8266  //use WiFi.hostByName
+	IPAddress serverIP(0, 0, 0, 0);
+	DEBUG_PRINTLN("Starting LOOKUP");
+#ifndef ESP8266 //for ethernet shield
+
+	dns_client.begin(ETHERNE.gatewayIP()); //..................for dns.h
+	int result = dns_client.HostByName(name, serverIP);
+
+#endif
+	int result = ETHERNE.hostByName(name, serverIP);
+
+	DEBUG_PRINT(F("DNS lookup "));
+	DEBUG_PRINT(name);
+	DEBUG_PRINT(F(" is "));
+	DEBUG_PRINT(serverIP[0]);
+	DEBUG_PRINT(F("."));
+	DEBUG_PRINT(serverIP[1]);
+	DEBUG_PRINT(F("."));
+	DEBUG_PRINT(serverIP[2]);
+	DEBUG_PRINT(F("."));
+	DEBUG_PRINT(serverIP[3]);
+
+	for (uint8_t i = 0; i < 4; i++)
+		hisip[i] = serverIP[i];
+
+	if (result == 1)
+	{
+		DEBUG_PRINTLN(F(" (OK)"));
+		return true;
+	}
+	else
+	{
+		DEBUG_PRINTLN(F(" (failed)"));
+		return false;
+	}
+#else //original routine
     uint16_t start = millis();
 
     while (!isLinkUp())
@@ -983,7 +1022,7 @@ bool EtherCardW5100::dnsLookup ( const char* name, bool fromRam )
     		if (checkForDnsAnswer(len))
     			return false; //DNS response recieved with error
     }
-    */
+#endif
     return true;
 }
 

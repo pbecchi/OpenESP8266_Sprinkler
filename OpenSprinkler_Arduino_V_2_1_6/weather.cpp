@@ -23,6 +23,10 @@
 
 #if defined(ARDUINO)
 
+#include "Defines.h"
+#undef DB_MASK
+#define DB_MASK 16
+
 #else
 #include "etherport.h"
 #include <string.h>
@@ -153,7 +157,7 @@ void GetWeather()
     // copy string to tmp_buffer, replacing all spaces with _
     char *src=tmp_buffer+strlen ( tmp_buffer );
     char *dst=tmp_buffer+TMP_BUFFER_SIZE-12;
-
+	DEBUG_PRINTLN(tmp_buffer);
     char c;
     // url encode. convert SPACE to %20
     // copy reversely from the end because we are potentially expanding
@@ -175,6 +179,7 @@ void GetWeather()
     *dst = *src;
     uint16_t _port = ether.hisport; // save current port number
     ether.hisport = 80;
+	DEBUG_PRINTLN(dst);
     ether.browseUrl ( PSTR ( "/weather" ), dst, PSTR ( "*" ), getweather_callback );
     ether.hisport = _port;
 }

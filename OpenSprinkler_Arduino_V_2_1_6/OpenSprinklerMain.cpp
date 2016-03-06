@@ -1159,7 +1159,7 @@ void write_log ( byte type, ulong curr_time )
 #else //ESP8266
 	DEBUG_PRINTLN(tmp_buffer);
 	memmove(tmp_buffer + 1, tmp_buffer, strlen(tmp_buffer)+1); tmp_buffer[0] = '/';
-	File file = SPIFFS.open(tmp_buffer, "w+");
+	File file = SPIFFS.open(tmp_buffer, "r+");
 	int ret = (bool) file;
 	file.seek(0, SeekEnd);
 	if (!ret)

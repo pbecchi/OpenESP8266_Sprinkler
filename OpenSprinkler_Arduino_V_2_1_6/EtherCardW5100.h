@@ -48,8 +48,11 @@ Refer to the README file for more information
 #include <SPI.h>
 #include <Ethernet.h>
 #include <EthernetUdp.h>
+#include <Dns.h>
+
 #ifdef MY_PING
 #include <ICMPPing.h>
+
 #endif
 #else
 
@@ -175,8 +178,10 @@ private:
 	static ETHERNES w5100server;				///< server object
 	static ETHERNEC w5100client;				///< client object
 	static ETHERNEUDP	  w5100udp;					///< server object
-
-	// Helper functions
+#ifndef ESP8266
+	static DNSClient dns_client;                    ///DNSLookUp client
+#endif	
+													// Helper functions
 	static unsigned char h2int(char c);				///< convert a single hex digit character to its integer value
 	static void int2h(char c, char *hstr);			///< convert a single character to a 2 digit hex str
 	static void printIPConfig();					///< print the current network configuration
