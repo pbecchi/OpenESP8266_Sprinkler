@@ -52,8 +52,10 @@ void write_log ( byte type, ulong curr_time );
 
 static void getweather_callback ( byte status, uint16_t off, uint16_t len )
 {
+	DEBUG_PRINTLN("_CALL BACK_");
 #if defined(ARDUINO)
 #ifdef OPENSPRINKLER_ARDUINO_W5100
+	//DEBUG_PRINTLN((byte)EtherCardW5100::buffer + off);
     char *p = ( char* ) EtherCardW5100::buffer + off;
 #else
     char *p = ( char* ) Ethernet::buffer + off;
@@ -61,6 +63,7 @@ static void getweather_callback ( byte status, uint16_t off, uint16_t len )
 #else
     char *p = ether_buffer;
 #endif
+
     DEBUG_PRINTLN ( p );
     /* scan the buffer until the first & symbol */
     while ( *p && *p!='&' )
@@ -141,9 +144,10 @@ static void getweather_callback ( byte status, uint16_t off, uint16_t len )
 void GetWeather()
 {
     // perform DNS lookup for every query
-    nvm_read_block ( tmp_buffer, ( void* ) ADDR_NVM_WEATHERURL, MAX_WEATHERURL );
-    ether.dnsLookup ( tmp_buffer, true );
-
+	char weather_Url[15];
+    nvm_read_block ( weather_Url, ( void* ) ADDR_NVM_WEATHERURL, MAX_WEATHERURL );
+    ether.dnsLookup ( weather_Url, true );
+	
     //bfill=ether.tcpOffset();
     char tmp[30];
     read_from_file ( wtopts_filename, tmp, 30 );
@@ -180,7 +184,7 @@ void GetWeather()
     uint16_t _port = ether.hisport; // save current port number
     ether.hisport = 80;
 	DEBUG_PRINTLN(dst);
-    ether.browseUrl ( PSTR ( "/weather" ), dst, PSTR ( "*" ), getweather_callback );
+    ether.browseUrl ( PSTR ( "/weather" ), dst, weather_Url, getweather_callback );
     ether.hisport = _port;
 }
 

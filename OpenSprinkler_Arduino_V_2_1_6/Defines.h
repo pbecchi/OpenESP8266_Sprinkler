@@ -442,9 +442,11 @@ extern byte DB;
 #define DB_MASK 0xFF
 #define DEBUG_COMMAND  if(Serial.available()){DB=Serial.read()-'0';DB=DB*10+Serial.read()-'0';Serial.print("->");Serial.println(DB);}
 #define DEBUG_BEGIN(x)   Serial.begin(x)
+#define DEBUG_PRINTF(x,y)   if(DB&DB_MASK) Serial.print(x,y)
 #define DEBUG_PRINT(x)  if(DB&DB_MASK) Serial.print(x)
 #define DEBUG_PRINTLN(x)if(DB&DB_MASK) Serial.println(x)//;Serial.print(DB,DEC);Serial.println(DB_MASK,DEC);
 #else
+#define DEBUG_PRINTF {}
 #define DEBUG_COMMAND {}
 #define DEBUG_BEGIN(x)   {}
 #define DEBUG_PRINT(x)   {}

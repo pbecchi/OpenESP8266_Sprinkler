@@ -2,12 +2,15 @@
 This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
 
 EtherCardW5100.h and EtherCardW5100.cpp implements a minimal set of functions
-as a wrapper to replace the EtherCard class libraries with the standard Arduino
-Wiznet5100 Ethernet library.
+as a wrapper to replace the ENC28J60 EtherCard class libraries with the standard
+Arduino Wiznet5100 Ethernet library.
 
 Version:     Opensprinkler 2.1.6
+
 Date:        January 2016
+
 Repository:  https://github.com/Dave1001/OpenSprinkler-Arduino
+
 License:     Creative Commons Attribution-ShareAlike 3.0 license
 
 Refer to the README file for more information
@@ -16,21 +19,7 @@ Refer to the README file for more information
 
 #ifndef EtherCard_W5100_h
 #define EtherCard_W5100_h
-//-----------------------------------------defines foe WiFi esp8266
-#ifndef ESP8266
-#define ETHERNE Ethernet
-#define ETHERNES EthernetServer
-#define ETHERNEUDP EthernetUDP
-#define ETHERNEC EthernetClient
-#else
 
-
-#define ETHERNE WiFi
-#define ETHERNES WiFiServer
-#define ETHERNEUDP WiFiUDP
-#define ETHERNEC WiFiClient
-
-#endif
 #define TCP_FLAGS_FIN_V			1
 #define TCP_FLAGS_ACK_V			0x10
 #define WRITE_RESULT			size_t
@@ -39,32 +28,36 @@ Refer to the README file for more information
 #define READBUF					1
 #define MAX_SOCK_NUM			4
 #define NTP_PACKET_SIZE			48	// NTP time stamp is in the first 48 bytes of the message
+#define NTP_CLIENT_PORT			123 // port for NTP client and server
 #define TCP_OFFSET				1	// offset to simulate the TCP header used in the normal EtherCard library (normally TCP_HEADER_LEN_P = 20 bytes)
+//#define HTTP_REQUEST_TIMEOUT	
 
 #include <Arduino.h>
 #ifndef ESP8266
 #include <avr/pgmspace.h>
-
 #include <SPI.h>
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #include <Dns.h>
-
-#ifdef MY_PING
 #include <ICMPPing.h>
-
-#endif
+#define ETHERNE Ethernet
+#define ETHERNES EthernetServer
+#define ETHERNEUDP EthernetUDP
+#define ETHERNEC EthernetClient
 #else
-
+#define ETHERNE WiFi
+#define ETHERNES WiFiServer
+#define ETHERNEUDP WiFiUDP
+#define ETHERNEC WiFiClient
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <WiFiServer.h>
 #include <WiFiClientSecure.h>
 #include <WiFiClient.h>
-#endif
+#include <Dns.h>
 #include "Config.h"
-#include "../Defines.h"
-
+#include "Defines.h"
+#endif
 //=================================================================================
 
 /** This class populates network send and receive buffers.
@@ -110,54 +103,84 @@ Refer to the README file for more information
 *   ~~~~~~~~~~~~~
 *
 */
-class BufferFiller : public Print 
+class BufferFiller : public Print
 {
 private:
-	static char* wtoa(uint16_t value, char* ptr);
-	uint8_t *start; //!< Pointer to start of buffer
-	uint8_t *ptr; //!< Pointer to cursor position
+    static char* wtoa ( uint16_t value, char* ptr );
+    uint8_t *start; //!< Pointer to start of buffer
+    uint8_t *ptr; //!< Pointer to cursor position
 public:
-	/** @brief  Empty constructor
-	*/
-	BufferFiller() {}
+    /** @brief  Empty constructor
+    */
+    BufferFiller() {}
 
-	/** @brief  Constructor
-	*   @param  buf Pointer to the ethernet data buffer
-	*/
-	BufferFiller(uint8_t* buf) : start(buf), ptr(buf) {}
+    /** @brief  Constructor
+    *   @param  buf Pointer to the ethernet data buffer
+    */
+    BufferFiller ( uint8_t* buf ) : start ( buf ), ptr ( buf ) {}
 
-	/** @brief  Add formatted text to buffer
-	*   @param  fmt Format string (see Class description)
-	*   @param  ... parameters for format string
-	*/
-	void emit_p(PGM_P fmt, ...);
+    /** @brief  Add formatted text to buffer
+    *   @param  fmt Format string (see Class description)
+    *   @param  ... parameters for format string
+    */
+    void emit_p ( PGM_P fmt, ... );
 
-	/** @brief  Add data to buffer from main memory
-	*   @param  s Pointer to data
-	*   @param  n Number of characters to copy
-	*/
-	void emit_raw(const char* s, uint16_t n) { memcpy(ptr, s, n); ptr += n; }
+    /** @brief  Add data to buffer from main memory
+    *   @param  s Pointer to data
+    *   @param  n Number of characters to copy
+    */
+    void emit_raw ( const char* s, uint16_t n )
+    {
+        memcpy ( ptr, s, n );
+        ptr += n;
+    }
 
-	/** @brief  Add data to buffer from program space string
-	*   @param  p Program space string pointer
-	*   @param  n Number of characters to copy
-	*/
-	void emit_raw_p(PGM_P p, uint16_t n) { memcpy_P(ptr, p, n); ptr += n; }
+    /** @brief  Add data to buffer from program space string
+    *   @param  p Program space string pointer
+    *   @param  n Number of characters to copy
+    */
+    void emit_raw_p ( PGM_P p, uint16_t n )
+    {
+        memcpy_P ( ptr, p, n );
+        ptr += n;
+    }
 
-	/** @brief  Get pointer to start of buffer
-	*   @return <i>uint8_t*</i> Pointer to start of buffer
-	*/
-	uint8_t* buffer() const { return start; }
+    /** @brief  Get pointer to start of buffer
+    *   @return <i>uint8_t*</i> Pointer to start of buffer
+    */
+    uint8_t* buffer() const
+    {
+        return start;
+    }
 
-	/** @brief  Get cursor position
-	*   @return <i>uint16_t</i> Cursor postion
-	*/
-	uint16_t position() const { return ptr - start; }
+    /** @brief  Get cursor position
+    *   @return <i>uint16_t</i> Cursor postion
+    */
+    uint16_t position() const
+    {
+        return ptr - start;
+    }
 
-	/** @brief  Write one byte to buffer
-	*   @param  v Byte to add to buffer
-	*/
-	virtual WRITE_RESULT write(uint8_t v) { *ptr++ = v; WRITE_RETURN }
+    /** @brief  Write one byte to buffer
+    *   @param  v Byte to add to buffer
+    */
+    virtual WRITE_RESULT write ( uint8_t v )
+    {
+        *ptr++ = v;
+        WRITE_RETURN
+    }
+};
+
+//=================================================================================
+// Enum used by tcp_client_state
+enum tcpstate_t
+{
+	TCP_SEND = 1,
+	TCP_SENT,
+	TCP_ESTABLISHED,
+	TCP_NOT_USED,
+	TCP_CLOSING,
+	TCP_CLOSED
 };
 
 //=================================================================================
@@ -168,50 +191,49 @@ public:
 class EtherCardW5100
 {
 private:
-	// Definitions specific to this wrapper class
-	static IPAddress ntpip;							///< ntp time server ip
+    // Definitions specific to this wrapper class
+    static IPAddress ntpip;							// ntp time server ip
 #ifdef MY_PING
-	static SOCKET pingSocket;						///< socket object used by ICMPPing
-	static ICMPPing ping;							///< ping object used by ICMPPing
-	static ICMPEchoReply pingResult;				///< result of ping request from ICMPPing 
+    static SOCKET ping_socket;						// socket object used by ICMPPing
+    static ICMPPing ping;							// ping object used by ICMPPing
+    static ICMPEchoReply ping_result;				// result of ping request from ICMPPing
 #endif
-	static ETHERNES w5100server;				///< server object
-	static ETHERNEC w5100client;				///< client object
-	static ETHERNEUDP	  w5100udp;					///< server object
-#ifndef ESP8266
-	static DNSClient dns_client;                    ///DNSLookUp client
-#endif	
-													// Helper functions
-	static unsigned char h2int(char c);				///< convert a single hex digit character to its integer value
-	static void int2h(char c, char *hstr);			///< convert a single character to a 2 digit hex str
-	static void printIPConfig();					///< print the current network configuration
+	static ETHERNES incoming_server;			// server used for incoming connections
+    static ETHERNEC incoming_client;			// client used for incoming www requests (only)
+	static ETHERNEC outgoing_client;			// client used for outgoing browse_url requests (only)
+    static ETHERNEUDP udp_client;					// udp object used for NTP requests
+
+    static DNSClient dns_client;					// client used for dns lookups
+	
+    // Helper functions
+    static unsigned char h2int ( char c );			// convert a single hex digit character to its integer value
+    static void int2h ( char c, char *hstr );		// convert a single character to a 2 digit hex str
+    static void printIPConfig();					// print the current network configuration
 
 public:
-	// Definitions from ethercard.h
-    static uint8_t mymac[6];			///< MAC address
-    static uint8_t myip[4];				///< IP address
-    static uint8_t netmask[4];			///< Netmask
-    static uint8_t gwip[4];				///< Gateway
-    static uint8_t dhcpip[4];			///< DHCP server IP address
-    static uint8_t dnsip[4];			///< DNS server IP address
-    static uint8_t hisip[4];			///< DNS lookup 
+    // Definitions from ethercard.h
+    static uint8_t mymac[6];						// MAC address
+    static uint8_t myip[4];							// IP address
+    static uint8_t netmask[4];						// Netmask
+    static uint8_t gwip[4];							// Gateway
+    static uint8_t dhcpip[4];						// DHCP server IP address
+    static uint8_t dnsip[4];						// DNS server IP address
+    static uint8_t hisip[4];						// DNS lookup result
+    static uint16_t hisport;						// TCP port to connect to (default 80)
+    static bool using_dhcp;							// True if using DHCP
+    // NOT IMPLEMENTED			
+    // static uint8_t broadcastip[4];				// Subnet broadcast address
+    // static bool persist_tcp_connection;			// False to break connections on first packet received
+    static uint16_t delaycnt;						// Counts number of cycles of packetLoop when no packet received - used to trigger periodic gateway ARP request
 
-    static uint16_t hisport;			///< TCP port to connect to (default 80)
-    static bool using_dhcp;				///< True if using DHCP
-	// NOT IMPLEMENTED
-	// static uint8_t broadcastip[4];		///< Subnet broadcast address
-	// static bool persist_tcp_connection;	///< False to break connections on first packet received
-	// static uint16_t delaycnt;				///< Counts number of cycles of packetLoop when no packet received - used to trigger periodic gateway ARP request
-
-	// Definitions from enc28j60.h
-	static uint8_t buffer[];				///< Data buffer (shared by recieve and transmit)
-	static uint16_t bufferSize;				///< Size of data buffer
-	//
-	// ESP8266-------------------------------------------------------------------------
-	//
+    // Definitions from enc28j60.h
+    static uint8_t buffer[];						// Data buffer (shared by recieve and transmit)
+    static uint16_t bufferSize;						// Size of data buffer
+													//
+// ESP8266-------------------------------------------------------------------------
+//
 	static  bool WiFiconnect(bool is);          // Connect ESP8266 to network and start server
-	//
-
+//
     // EtherCard.cpp
     /**   @brief  Initialise the network interface
     *     @param  size Size of data buffer
@@ -240,7 +262,7 @@ public:
     *     @param  port Source IP port
     */
     // NOT IMPLEMENTED
-	// static void makeUdpReply ( const char *data, uint8_t len, uint16_t port );
+    // static void makeUdpReply ( const char *data, uint8_t len, uint16_t port );
 
     /**   @brief  Parse received data
     *     @param  plen Size of data to parse (e.g. return value of packetReceive()).
@@ -255,13 +277,13 @@ public:
     *     @param  plen Number of bytes in packet
     *     @return <i>uint16_t</i> Offset within packet of TCP payload. Zero for no data.
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint16_t accept ( uint16_t port, uint16_t plen );
 
     /**   @brief  Send a response to a HTTP request
     *     @param  dlen Size of the HTTP (TCP) payload
     */
-    static void httpServerReply ( uint16_t dlen );
+    static void httpServerReply ( word dlen );
 
     /**   @brief  Send a response to a HTTP request
     *     @param  dlen Size of the HTTP (TCP) payload
@@ -281,19 +303,19 @@ public:
 
     /**   @brief  Updates the broadcast address based on current IP address and subnet mask
     */
-	// NOT IMPLEMENTED
-	// static void updateBroadcastAddress();
+    // NOT IMPLEMENTED
+    // static void updateBroadcastAddress();
 
     /**   @brief  Check if got gateway hardware address (ARP lookup)
     *     @return <i>unit8_t</i> True if gateway found
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint8_t clientWaitingGw();
 
     /**   @brief  Check if got gateway DNS address (ARP lookup)
     *     @return <i>unit8_t</i> True if DNS found
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint8_t clientWaitingDns();
 
     /**   @brief  Prepare a TCP request
@@ -304,7 +326,7 @@ public:
     *     @note   Return value provides id of the request to allow up to 7 concurrent requests
     */
 	// NOT IMPLEMENTED
-    // static uint8_t clientTcpReq ( uint8_t ( *result_cb ) ( uint8_t, uint8_t, uint16_t, uint16_t ), uint16_t ( *datafill_cb ) ( uint8_t ), uint16_t port );
+	// static uint8_t clientTcpReq ( uint8_t ( *result_cb ) ( uint8_t, uint8_t, uint16_t, uint16_t ), uint16_t ( *datafill_cb ) ( uint8_t ), uint16_t port );
 
     /**   @brief  Prepare HTTP request
     *     @param  urlbuf Pointer to c-string URL folder
@@ -312,7 +334,6 @@ public:
     *     @param  hoststr Pointer to c-string hostname
     *     @param  additionalheaderline Pointer to c-string with additional HTTP header info
     *     @param  callback Pointer to callback function to handle response
-    *     @note   Request sent in main packetloop
     */
     static void browseUrl ( const char *urlbuf, const char *urlbuf_varpart, const char *hoststr, const char *additionalheaderline, void ( *callback ) ( uint8_t, uint16_t, uint16_t ) );
 
@@ -321,7 +342,6 @@ public:
     *     @param  urlbuf_varpart Pointer to c-string URL file
     *     @param  hoststr Pointer to c-string hostname
     *     @param  callback Pointer to callback function to handle response
-    *     @note   Request sent in main packetloop
     */
     static void browseUrl ( const char *urlbuf, const char *urlbuf_varpart, const char *hoststr, void ( *callback ) ( uint8_t, uint16_t, uint16_t ) );
 
@@ -333,14 +353,14 @@ public:
     *     @param  callback Pointer to callback function to handle response
     *     @note   Request sent in main packetloop
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void httpPost ( const char *urlbuf, const char *hoststr, const char *additionalheaderline, const char *postval, void ( *callback ) ( uint8_t, uint16_t, uint16_t ) );
 
     /**   @brief  Send NTP request
     *     @param  ntpip IP address of NTP server
     *     @param  srcport IP port to send from
     */
-    static void ntpRequest ( uint8_t *ntpip, uint8_t srcport );
+    static void ntpRequest ( uint8_t *ntp_ip, uint8_t srcport );
 
     /**   @brief  Process network time protocol response
     *     @param  time Pointer to integer to hold result
@@ -354,13 +374,13 @@ public:
     *     @param  dip Pointer to 4 byte destination IP address
     *     @param  dport Destination port
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void udpPrepare ( uint16_t sport, const uint8_t *dip, uint16_t dport );
 
     /**   @brief  Transmit UDP packet
     *     @param  len Size of payload
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void udpTransmit ( uint16_t len );
 
     /**   @brief  Sends a UDP packet
@@ -370,14 +390,14 @@ public:
     *     @param  dip Pointer to 4 byte destination IP address
     *     @param  dport Destination port
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void sendUdp ( const char *data, uint8_t len, uint16_t sport, const uint8_t *dip, uint16_t dport );
 
     /**   @brief  Resister the function to handle ping events
     *     @param  cb Pointer to function
     */
-	// NOT IMPLEMENTED
-	// static void registerPingCallback ( void ( *cb ) ( uint8_t* ) );
+    // NOT IMPLEMENTED
+    // static void registerPingCallback ( void ( *cb ) ( uint8_t* ) );
 
     /**   @brief  Send ping
     *     @param  destip Ponter to 4 byte destination IP address
@@ -393,25 +413,25 @@ public:
     /**   @brief  Send a wake on lan message
     *     @param  wolmac Pointer to 6 byte hardware (MAC) address of host to send message to
     */
-	// NOT IMPLEMENTED
-	// static void sendWol ( uint8_t *wolmac );
+    // NOT IMPLEMENTED
+    // static void sendWol ( uint8_t *wolmac );
 
     // new stash-based API
     /**   @brief  Send TCP request
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint8_t tcpSend();
 
     /**   @brief  Get TCP reply
     *     @return <i>char*</i> Pointer to TCP reply payload. NULL if no data.
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static const char* tcpReply ( uint8_t fd );
 
     /**   @brief  Configure TCP connections to be persistent or not
     *     @param  persist True to maintain TCP connection. False to finish TCP connection after first packet.
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void persistTcpConnection ( bool persist );
 
     //udpserver.cpp
@@ -420,56 +440,56 @@ public:
     *     @param  port Port to listen on
     */
     // NOT IMPLEMENTED
-	// static void udpServerListenOnPort ( UdpServerCallback callback, uint16_t port );
+    // static void udpServerListenOnPort ( UdpServerCallback callback, uint16_t port );
 
     /**   @brief  Pause listing on UDP port
     *     @brief  port Port to pause
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void udpServerPauseListenOnPort ( uint16_t port );
 
     /**   @brief  Resume listing on UDP port
     *     @brief  port Port to pause
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void udpServerResumeListenOnPort ( uint16_t port );
 
     /**   @brief  Check if UDP server is listening on any ports
     *     @return <i>bool</i> True if listening on any ports
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static bool udpServerListening();                        //called by tcpip, in packetLoop
 
     /**   @brief  Passes packet to UDP Server
     *     @param  len Not used
     *     @return <i>bool</i> True if packet processed
     */
-	// NOT IMPLEMENTED
-	// static bool udpServerHasProcessedPacket ( uint16_t len ); //called by tcpip, in packetLoop
+    // NOT IMPLEMENTED
+    // static bool udpServerHasProcessedPacket ( uint16_t len ); //called by tcpip, in packetLoop
 
     // dhcp.cpp
     /**   @brief  Update DHCP state
     *     @param  len Length of received data packet
     */
-	// NOT IMPLEMENTED
-	// static void DhcpStateMachine ( uint16_t len );
+    // NOT IMPLEMENTED
+    // static void DhcpStateMachine ( uint16_t len );
 
     /**   @brief Not implemented
     *     @todo Implement dhcpStartTime or remove declaration
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint32_t dhcpStartTime();
 
     /**   @brief Not implemented
     *     @todo Implement dhcpLeaseTime or remove declaration
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint32_t dhcpLeaseTime();
 
     /**   @brief Not implemented
     *     @todo Implement dhcpLease or remove declaration
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static bool dhcpLease();
 
     /**   @brief  Configure network interface with DHCP
@@ -482,7 +502,7 @@ public:
     *     @param  option The option number to request from the DHCP server
     *     @param  callback The function to be call when the option is received
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static void dhcpAddOptionCallback ( uint8_t option, DhcpOptionCallback callback );
 
     // dns.cpp
@@ -570,25 +590,32 @@ public:
 
     /**   @brief  Return the sequence number of the current TCP package
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint32_t getSequenceNumber();
 
     /**   @brief  Return the payload length of the current Tcp package
     */
-	// NOT IMPLEMENTED
+    // NOT IMPLEMENTED
     // static uint16_t getTcpPayloadLength();
 
-	// ==========================================
-	// Inherited from enc28j60.cpp
+    // ==========================================
+    // Inherited from enc28j60.cpp
 
-	/**   @brief  Copy recieved packets to data buffer
-	*     @return <i>uint16_t</i> Size of recieved data
-	*     @note   Data buffer is shared by recieve and transmit functions
-	*/
-	static uint16_t packetReceive();
+    /**   @brief  Copy recieved packets to data buffer
+    *     @return <i>uint16_t</i> Size of recieved data
+    *     @note   Data buffer is shared by recieve and transmit functions
+    */
+    static uint16_t packetReceive();
 
-	// static uint8_t* tcpOffset() { return buffer + 0x36; } //!< Pointer to the start of TCP payload
-	static uint8_t* tcpOffset() { return buffer + TCP_OFFSET; } //!< Pointer to the start of TCP payload
+    // static uint8_t* tcpOffset() { return buffer + TCP_OFFSET; } //!< Pointer to the start of TCP payload
+    static uint8_t* tcpOffset()
+    {
+        return buffer + TCP_OFFSET;    //!< Pointer to the start of TCP payload
+    }
+
+    // ==========================================
+    // Inherited from tcpip.cpp
+    static uint16_t www_client_internal_datafill_cb ( uint8_t fd );
 };
 
 extern EtherCardW5100 ether; //!< Global presentation of EtherCard class

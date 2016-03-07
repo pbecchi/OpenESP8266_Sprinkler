@@ -27,9 +27,6 @@
     <ClInclude Include="..\Defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\EtherCardW5100.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Gpio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -54,11 +51,11 @@
     <ClInclude Include="..\SPIFFSdFat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\EtherCardW5100.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\EtherCardW5100.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Gpio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,6 +78,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\eeprom_mio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\EtherCardW5100.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,18 +2,20 @@
    This is a fork of Rays OpenSprinkler code thats amended to use alternative hardware:
 
    EtherCardW5100.h and EtherCardW5100.cpp implements a minimal set of functions
-   as a wrapper to replace the EtherCard class libraries with the standard Arduino
-   Wiznet5100 Ethernet library.
+   as a wrapper to replace the ENC28J60 EtherCard class libraries with the standard
+   Arduino Wiznet5100 Ethernet library.
 
    Version:     Opensprinkler 2.1.6
+
    Date:        January 2016
+
    Repository:  https://github.com/Dave1001/OpenSprinkler-Arduino
+
    License:     Creative Commons Attribution-ShareAlike 3.0 license
 
    Refer to the README file for more information
 
    =============================================================== */
-
 #include "Defines.h"
 #undef DB_MASK
 #define DB_MASK 4
@@ -26,9 +28,8 @@ const char* SSID = "Vodafone-25873015";
 const char* PASSWORD = "5ph87cmmjmm8cs9";
 #endif
 
-#include "../EtherCardW5100.h"
+#include "EtherCardW5100.h"
 
-//------------------------------------------------------------------
 //================================================================
 // Utility functions
 //================================================================
@@ -120,7 +121,7 @@ void EtherCardW5100::int2h ( char c, char *hstr )
 
 /// <summary>
 /// This class populates network send and receive buffers.
-/// This class provides formatted printing into memory.Users can use it to write into send buffers.
+/// This class provides formatted printing into memory. Users can use it to write into send buffers.
 /// </summary>
 /// <param name="fmt">PGM_P : is a pointer to a string in program space(defined in the source code)</param>
 void BufferFiller::emit_p ( PGM_P fmt, ... )
@@ -188,11 +189,8 @@ void BufferFiller::emit_p ( PGM_P fmt, ... )
         {
             byte* s = va_arg ( ap, byte* );
             char d;
-			while ((d = eeprom_read_byte(s++)) != 0)
-			{
-				DEBUG_PRINT(d);
-				*ptr++ = d;
-			}
+            while ( ( d = eeprom_read_byte ( s++ ) ) != 0 )
+                *ptr++ = d;
             continue;
         }
         default:
@@ -209,45 +207,48 @@ void BufferFiller::emit_p ( PGM_P fmt, ... )
 EtherCardW5100 ether;
 
 // Declare static data members (ethercard.cpp)
-uint8_t EtherCardW5100::mymac[6];				///< MAC address
-uint8_t EtherCardW5100::myip[4];				///< IP address
-uint8_t EtherCardW5100::netmask[4];				///< Netmask
-uint8_t EtherCardW5100::gwip[4];				///< Gateway
-uint8_t EtherCardW5100::dhcpip[4];				///< DHCP server IP address
-uint8_t EtherCardW5100::dnsip[4];				///< DNS server IP address
-uint8_t EtherCardW5100::hisip[4];				///< DNS lookup result
-uint16_t EtherCardW5100::hisport = 80;			///< TCP port to connect to (default 80)
-bool EtherCardW5100::using_dhcp;				///< True if using DHCP
+uint8_t EtherCardW5100::mymac[6];				// MAC address
+uint8_t EtherCardW5100::myip[4];				// IP address
+uint8_t EtherCardW5100::netmask[4];				// Netmask
+uint8_t EtherCardW5100::gwip[4];				// Gateway
+uint8_t EtherCardW5100::dhcpip[4];				// DHCP server IP address
+uint8_t EtherCardW5100::dnsip[4];				// DNS server IP address
+uint8_t EtherCardW5100::hisip[4];				// DNS lookup result
+uint16_t EtherCardW5100::hisport = 80;			// TCP port to connect to (default 80)
+bool EtherCardW5100::using_dhcp;				// True if using DHCP
 // NOT IMPLEMENTED
-// uint8_t EtherCardW5100::broadcastip[4];		///< Subnet broadcast address
-// bool EtherCardW5100::persist_tcp_connection; ///< False to break connections on first packet received
-// uint16_t EtherCardW5100::delaycnt;			///< Counts number of cycles of packetLoop when no packet received - used to trigger periodic gateway ARP request
-
-// Declare static data (tcpip.cpp)
-static const char *client_urlbuf;					// Pointer to c-string path part of HTTP request URL
-static const char *client_urlbuf_var;				// Pointer to c-string filename part of HTTP request URL
-static const char *client_hoststr;					// Pointer to c-string hostname of current HTTP request
-static const char *client_additionalheaderline;		// Pointer to c-string additional http request header info
-static const char *client_postval;
-static void ( *client_browser_cb ) ( uint8_t, uint16_t, uint16_t ); // Pointer to callback function to handle result of current HTTP request
-static uint8_t www_fd;								// ID of current http request (only one http request at a time - one of the 8 possible concurrent TCP/IP connections)
+// uint8_t EtherCardW5100::broadcastip[4];		// Subnet broadcast address
+// bool EtherCardW5100::persist_tcp_connection; // False to break connections on first packet received
+// uint16_t EtherCardW5100::delaycnt = 0;		// Counts number of cycles of packetLoop when no packet received - used to trigger periodic gateway ARP request
 
 // Declare static data members from enc28j60.h
-uint16_t EtherCardW5100::bufferSize;				///< Size of data buffer
+uint16_t EtherCardW5100::bufferSize;
 
 // Declare static data members for this wrapper class
 IPAddress EtherCardW5100::ntpip;
 #ifdef MY_PING
-SOCKET EtherCardW5100::pingSocket = 0;
-ICMPPing EtherCardW5100::ping ( pingSocket, 1 );
-ICMPEchoReply EtherCardW5100::pingResult;				///< Result of ping request from ICMPPing library
+SOCKET EtherCardW5100::ping_socket = 0;
+ICMPPing EtherCardW5100::ping ( ping_socket, 1 );
+ICMPEchoReply EtherCardW5100::ping_result;
 #endif
-ETHERNES EtherCardW5100::w5100server(80);
-ETHERNEC EtherCardW5100::w5100client;
-ETHERNEUDP EtherCardW5100::w5100udp;
-#ifndef ESP8266
+
+ETHERNES EtherCardW5100::incoming_server ( hisport );
+//ETHERNES EtherCardW5100::incoming_server(80);
+ETHERNEC EtherCardW5100::incoming_client;
+ETHERNEC EtherCardW5100::outgoing_client;
+ETHERNEUDP EtherCardW5100::udp_client;
 DNSClient EtherCardW5100::dns_client;
-#endif
+
+// Declare static data (from tcpip.cpp)
+static uint8_t www_fd = 0;						// ID of current http request (only one http request at a time - one of the 8 possible concurrent TCP/IP connections)
+static const char *client_urlbuf;				// Pointer to c-string path part of HTTP request URL
+static const char *client_urlbuf_var;			// Pointer to c-string filename part of HTTP request URL
+static const char *client_hoststr;				// Pointer to c-string hostname of current HTTP request
+static const char *client_additionalheaderline;	// Pointer to c-string additional http request header info
+static const char *client_postval;
+static tcpstate_t outgoing_client_state;		//TCP connection state: 1=Send SYN, 2=SYN sent awaiting SYN+ACK, 3=Established, 4=Not used, 5=Closing, 6=Closed
+static void ( *client_browser_cb ) ( uint8_t, uint16_t, uint16_t );	// Pointer to callback function to handle result of current HTTP request
+
 // External variables defined in main .ino file
 extern BufferFiller bfill;
 
@@ -255,6 +256,13 @@ extern BufferFiller bfill;
 // Ethercard Wrapper Functions
 //=================================================================================
 
+/// <summary>
+/// Initialise the network interface
+/// </summary>
+/// <param name="size">Size of data buffer (not used)</param>
+/// <param name="macaddr">Hardware address to assign to the network interface (6 bytes) (not used)</param>
+/// <param name="csPin">Arduino pin number connected to chip select. Default = 8</param>
+/// <returns>Firmware version or zero on failure.</returns>
 uint8_t EtherCardW5100::begin ( const uint16_t size, const uint8_t* macaddr, uint8_t csPin )
 {
     using_dhcp = false;
@@ -262,24 +270,33 @@ uint8_t EtherCardW5100::begin ( const uint16_t size, const uint8_t* macaddr, uin
     return 1; //0 means fail
 }
 
+/// <summary>
+/// Configure network interface with static IP
+/// </summary>
+/// <param name="my_ip">IP address (4 bytes). 0 for no change.</param>
+/// <param name="gw_ip">Gateway address (4 bytes). 0 for no change. Default = 0</param>
+/// <param name="dns_ip">DNS address (4 bytes). 0 for no change. Default = 0</param>
+/// <param name="mask">Subnet mask (4 bytes). 0 for no change. Default = 0</param>
+/// <returns>Returns true on success - actually always true</returns>
 bool EtherCardW5100::staticSetup ( const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask )
 {
     using_dhcp = false;
-	DEBUG_PRINT("-_");
+
 	/*
-    // convert bytes to IPAddress
-    IPAddress ip = Byte2IP ( my_ip );
-    IPAddress gw = Byte2IP ( gw_ip );
-    IPAddress subnet = Byte2IP ( mask );*/
+	// convert bytes to IPAddress
+	IPAddress ip = Byte2IP ( my_ip );
+	IPAddress gw = Byte2IP ( gw_ip );
+	IPAddress subnet = Byte2IP ( mask );*/
 #ifdef ESP8266
-	DEBUG_PRINT("--");
+	DEBUG_PRINT("-S-");
 	WiFiconnect(true);
 #else
-    // initialize the ethernet device and start listening for clients
-    ETHERNE.begin ( mymac, ip, gw, subnet );
-    
+	// initialize the ethernet device and start listening for clients
+	ETHERNE.begin(mymac, ip, gw, subnet);
+
 #endif
-	w5100server.begin();
+    incoming_server.begin();
+    udp_client.begin ( NTP_CLIENT_PORT );
 
     // save the values
     IP2Byte ( ETHERNE.localIP(), myip );
@@ -296,16 +313,16 @@ bool EtherCardW5100::staticSetup ( const uint8_t* my_ip, const uint8_t* gw_ip, c
 bool EtherCardW5100::WiFiconnect(bool isStatic)
 {
 	//if (WiFi.status() != WL_CONNECTED)
-	{  
+	{
 		DEBUG_PRINTLN("Wait WIFI...");
-		
+
 		while (millis() < 40000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 		byte netmask[4] = { 255,255,255,0 };
 		byte MyIp[4] = { 192,168,1,211 };
 		byte MyGate[4] = { 192,168,1,1 };
-		
-		if(isStatic) WiFi.config(MyIp, MyGate, netmask);
+
+		if (isStatic) WiFi.config(MyIp, MyGate, netmask);
 		DEBUG_PRINT("\nConnecting to "); DEBUG_PRINTLN(SSID);
 		uint8_t i = 0;
 		while (WiFi.status() != WL_CONNECTED && i++ < 1000) { yield(); delay(100); DEBUG_PRINT('.'); }
@@ -313,64 +330,93 @@ bool EtherCardW5100::WiFiconnect(bool isStatic)
 			DEBUG_PRINT("Could not connect to"); DEBUG_PRINTLN(SSID);
 			return false;
 		}
-		
+
 		DEBUG_PRINT("Server started IP="); DEBUG_PRINTLN(WiFi.localIP());
 		return true;
 	}
 }
 #endif
-
+/// <summary>
+/// Configure network interface with DHCP
+/// </summary>
+/// <param name="hname">hostname (not implememted)</param>
+/// <param name="fromRam">lookup from RAM</param>
+/// <returns>True if DHCP successful</returns>
 bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 {
     using_dhcp = true;
 
+    /* Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
+    if ( hname != NULL )
+    {
+        if ( fromRam )
+        {
+            strncpy ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
+        }
+        else
+        {
+            strncpy_P ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
+        }
+    }
+    else
+    {
+        // Set a unique hostname, use Arduino-?? with last octet of mac address
+        hostname[8] = toAsciiHex ( mymac[5] >> 4 );
+        hostname[9] = toAsciiHex ( mymac[5] );
+    }
+    */
+
+    DEBUG_PRINT ( F ( "Hostname:   " ) );
+    // DEBUG_PRINT (hostname);
+    DEBUG_PRINTLN ( F ( "(not implemented)" ) );
+
     // initialize the ethernet device
-    // TODO - Ignore the name for now - need to use an extension for the standard Arduino ETHERNE library to implement this
 #ifndef ESP8266
-	if ( ETHERNE.begin ( mymac ) == 0 )
+	if (ETHERNE.begin(mymac) == 0)
 #else
-	if( WiFiconnect(false)==false)
+	if (WiFiconnect(false) == false)
 #endif
-		return false;
+        return false;
 
     // start listening for clients
-    w5100server.begin();
+    incoming_server.begin();
+    udp_client.begin ( NTP_CLIENT_PORT );
 
     // save the values
     IP2Byte ( ETHERNE.localIP(), myip );
-    IP2Byte ( ETHERNE.gatewayIP(), gwip );
-  //  IP2Byte ( ETHERNE.dnsServerIP(), dnsip );
-    IP2Byte ( ETHERNE.subnetMask(), netmask );
+    IP2Byte (ETHERNE.gatewayIP(), gwip );
+    IP2Byte (ETHERNE.gatewayIP(), dnsip );
+    IP2Byte (ETHERNE.subnetMask(), netmask );
 
     // print debug values
     printIPConfig();
 
     return true;
-    /*
-    if (hname != NULL) {
-    	if (fromRam) {
-    		strncpy(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
-    	}
-    	else {
-    		strncpy_P(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
-    	}
-    }
-    else {
-    	// Set a unique hostname, use Arduino-?? with last octet of mac address
-    	hostname[8] = toAsciiHex(mymac[5] >> 4);
-    	hostname[9] = toAsciiHex(mymac[5]);
-    }
+	/* hostname TODOOO implementation
+	if (hname != NULL) {
+	if (fromRam) {
+	strncpy(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+	}
+	else {
+	strncpy_P(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+	}
+	}
+	else {
+	// Set a unique hostname, use Arduino-?? with last octet of mac address
+	hostname[8] = toAsciiHex(mymac[5] >> 4);
+	hostname[9] = toAsciiHex(mymac[5]);
+	}
 
-    dhcpState = DHCP_STATE_INIT;
-    uint16_t start = millis();
+	dhcpState = DHCP_STATE_INIT;
+	uint16_t start = millis();
 
-    while (dhcpState != DHCP_STATE_BOUND && uint16_t(millis()) - start < 60000) {
-    	if (isLinkUp()) DhcpStateMachine(packetReceive());
-    }
-    updateBroadcastAddress();
-    delaycnt = 0;
-    return dhcpState == DHCP_STATE_BOUND;
-    */
+	while (dhcpState != DHCP_STATE_BOUND && uint16_t(millis()) - start < 60000) {
+	if (isLinkUp()) DhcpStateMachine(packetReceive());
+	}
+	updateBroadcastAddress();
+	delaycnt = 0;
+	return dhcpState == DHCP_STATE_BOUND;
+	*/
 }
 
 /// <summary>
@@ -381,49 +427,103 @@ void EtherCardW5100::printIPConfig()
 #ifdef SERIAL_DEBUG
     DEBUG_PRINT ( F ( "Config:     " ) );
     DEBUG_PRINTLN ( using_dhcp ? F ( "DHCP" ) : F ( "Static IP" ) );
-	DEBUG_PRINT(F("MAC:        "));
-	DEBUG_PRINTLN ( F("TODO") );		// TODO
+
+    DEBUG_PRINT ( F ( "MAC:        " ) );
+    DEBUG_PRINTF ( mymac[0], HEX );
+    DEBUG_PRINT ( F ( ":" ) );
+    DEBUG_PRINTF ( mymac[1], HEX );
+    DEBUG_PRINT ( F ( ":" ) );
+    DEBUG_PRINTF ( mymac[2], HEX );
+    DEBUG_PRINT ( F ( ":" ) );
+    DEBUG_PRINTF ( mymac[3], HEX );
+    DEBUG_PRINT ( F ( ":" ) );
+    DEBUG_PRINTF ( mymac[4], HEX );
+    DEBUG_PRINT ( F ( ":" ) );
+    DEBUG_PRINTF ( mymac[5], HEX );
+    DEBUG_PRINTLN();
 
     printIp ( F ( "Local IP:   " ), myip );
     printIp ( F ( "Gateway IP: " ), gwip );
     printIp ( F ( "DNS IP:     " ), dnsip );
-    printIp ( F ( "Netmask:    " ), netmask);
-
-	DEBUG_PRINT(F("Port:       "));
-
-	DEBUG_PRINTLN(F("TODO"));		// TODO
+    printIp ( F ( "Netmask:    " ), netmask );
 #endif
 }
 
+/// <summary>
+/// Parse received data
+/// Note that data buffer is shared by receive and transmit functions
+/// Only handles TCP (not UDP)
+/// </summary>
+/// <param name="plen">Size of data to parse(e.g. return value of packetReceive()).</param>
+/// <returns>Offset of TCP payload data in data buffer or zero if packet processed</returns>
 uint16_t EtherCardW5100::packetLoop ( uint16_t plen )
 {
-    // listen for incoming clients
-    /*ETHERNEC*/ w5100client = w5100server.available();
-    int i = 0;
+    uint16_t len = 0;
 
-    if ( w5100client )
-    {
-        // set all bytes in the buffer to 0 - add a
-        // byte to simulate space for the TCP header
-        memset ( buffer, 0, ETHER_BUFFER_SIZE );
-        memset ( buffer, ' ', TCP_OFFSET );
-        i = TCP_OFFSET; // add a space for TCP offset
+    // remember that plen passed in from packetReceive is data length plus
+    // a dummy TCP header (the rest of the TCP packet is stripped out)
+	//DEBUG_PRINTLN(plen);
+    // nothing received
+    if ( plen == 0 )
+    {    
+        // Receive incoming TCP data for client
+        if ( outgoing_client_state == TCP_ESTABLISHED )
+		{
+			DEBUG_PRINT('>');
+            if ( outgoing_client.available() )
+            {
+                DEBUG_PRINT ( F ( "Browse URL: client received: " ) );
 
-        while ( w5100client.connected() && ( i < ETHER_BUFFER_SIZE ) )
-        {
-            if ( w5100client.available() )
-				buffer[i] = w5100client.read();
-            i++;
-        } 
-		DEBUG_PRINTLN(i); DEBUG_PRINTLN("http req");
-    //	w5100client.print("wait....\0");
-        return TCP_OFFSET;
+                // set all bytes in the buffer to 0 - add a
+                // byte to simulate space for the TCP header
+                memset ( buffer, 0, ETHER_BUFFER_SIZE );
+                memset ( buffer, ' ', TCP_OFFSET );
+                len = TCP_OFFSET;
+
+                while ( outgoing_client.available() && ( len < ETHER_BUFFER_SIZE ) )
+                {
+                    buffer[len] = outgoing_client.read();
+                    DEBUG_PRINT ( buffer[len] );
+                    len++;
+                }
+                DEBUG_PRINTLN ( F ( "" ) );
+
+                // send data to the callback
+                if ( len > TCP_OFFSET )
+                {
+                    ( *client_browser_cb ) ( 0, TCP_OFFSET, len );
+                }
+                // if the server has disconnected, stop the client
+                if ( !outgoing_client.connected() )
+                {
+                    DEBUG_PRINTLN ( F ( "Browse URL: client disconnected" ) );
+                    outgoing_client.stop();
+                    outgoing_client_state = TCP_CLOSED;
+                }
+            }
+        }
+
+        // Check for renewal of DHCP lease
+        if ( using_dhcp )
+#ifndef ESP8266
+            ETHERNE.maintain();  
+#endif
+        return 0;
     }
     else
-        return 0;
+    {
+        //If we are here then this is a TCP/IP packet targetted at us and not
+        // related to our client connection so accept treat it as a new request
+        return TCP_OFFSET;
+    }
 }
 
-void EtherCardW5100::ntpRequest ( uint8_t *nt_pip, uint8_t srcport )
+/// <summary>
+/// Send NTP request
+/// </summary>
+/// <param name="nt_pip">IP address of NTP server</param>
+/// <param name="srcport">IP port to send from</param>
+void EtherCardW5100::ntpRequest ( uint8_t *ntp_ip, uint8_t srcport )
 {
     // set all bytes in the buffer to 0
     memset ( buffer, 0, ETHER_BUFFER_SIZE );
@@ -439,16 +539,38 @@ void EtherCardW5100::ntpRequest ( uint8_t *nt_pip, uint8_t srcport )
     buffer[14] = 49;
     buffer[15] = 52;
 
-    ntpip = IPAddress ( nt_pip[0], nt_pip[1], nt_pip[2], nt_pip[3] );
+    // If a zero IP address is set, use a pool ntp server (this is more reliable)
+    if ( ntp_ip[0] == 0 && ntp_ip[1] == 0 && ntp_ip[2] == 0 && ntp_ip[3] == 0 )
+    {
+        if ( dnsLookup ( "pool.ntp.org", false ) )
+            ntpip = IPAddress ( hisip[0], hisip[1], hisip[2], hisip[3] );
+        else
+        {
+            DEBUG_PRINT ( F ( "NTP request failed - could not resolve IP" ) );
+            return;
+        }
+    }
+    else
+        ntpip = IPAddress ( ntp_ip[0], ntp_ip[1], ntp_ip[2], ntp_ip[3] );
 
     // all NTP fields have been given values, now you can send a packet requesting a timestamp:
-    w5100udp.begin ( srcport );			// TODO - should this be in begin()?
-    w5100udp.beginPacket ( ntpip, 123 );	// NTP requests are to port 123
-    w5100udp.write ( buffer, NTP_PACKET_SIZE );
-    w5100udp.endPacket();
-}
+    udp_client.beginPacket ( ntpip, NTP_CLIENT_PORT );		// NTP requests are to port 123
+    udp_client.write ( buffer, NTP_PACKET_SIZE );
+    udp_client.endPacket();
 
-///  TODO START HERE #########################################################
+    DEBUG_PRINT ( F ( "NTP request sent to " ) );
+    printIp ( ntp_ip );
+    DEBUG_PRINT ( F ( ": " ) );
+
+#ifdef SERIAL_DEBUG
+    for ( uint8_t c = 0; c < 16; c++ )
+    {
+        DEBUG_PRINTF ( buffer[c], HEX );
+        DEBUG_PRINT ( F ( " " ) );
+    }
+#endif
+    DEBUG_PRINTLN ( "" );
+}
 
 /// <summary>
 /// Ethercard.cpp - Process network time protocol response
@@ -458,20 +580,34 @@ void EtherCardW5100::ntpRequest ( uint8_t *nt_pip, uint8_t srcport )
 /// <returns>True (1) on success</returns>
 byte EtherCardW5100::ntpProcessAnswer ( uint32_t *time, byte dstport_l )
 {
-    int packetSize = w5100udp.parsePacket();
+    int packetSize = udp_client.parsePacket();
     if ( packetSize )
     {
+        DEBUG_PRINT ( F ( "NTP response received from " ) );
+        DEBUG_PRINT ( udp_client.remoteIP() [0] );
+        DEBUG_PRINT ( F ( "." ) );
+        DEBUG_PRINT ( udp_client.remoteIP() [1] );
+        DEBUG_PRINT ( F ( "." ) );
+        DEBUG_PRINT ( udp_client.remoteIP() [2] );
+        DEBUG_PRINT ( F ( "." ) );
+        DEBUG_PRINT ( udp_client.remoteIP() [3] );
+        DEBUG_PRINT ( F ( ":" ) );
+
         // check the packet is from the correct timeserver IP and port
-        if ( w5100udp.remotePort() != 123 || w5100udp.remoteIP() != ntpip )
+        if ( udp_client.remotePort() != 123 || udp_client.remoteIP() != ntpip )
+        {
+            DEBUG_PRINTLN ( F ( " (invalid IP or port)" ) );
             return 0;
+        }
 
         //the timestamp starts at byte 40 of the received packet and is four bytes, or two words, long.
-        w5100udp.read ( buffer, packetSize );
+        udp_client.read ( buffer, packetSize );
         ( ( byte* ) time ) [3] = buffer[40];
         ( ( byte* ) time ) [2] = buffer[41];
         ( ( byte* ) time ) [1] = buffer[42];
         ( ( byte* ) time ) [0] = buffer[43];
 
+        DEBUG_PRINTLN ( ( uint32_t ) time );
         return 1;
     }
     return 0;
@@ -512,18 +648,18 @@ void EtherCardW5100::printIp ( const char* msg, const uint8_t *buf )
 
 void EtherCardW5100::printIp ( const __FlashStringHelper *ifsh, const uint8_t *buf )
 {
-    Serial.print ( ifsh );
+    DEBUG_PRINT ( ifsh );
     EtherCardW5100::printIp ( buf );
-    Serial.println();
+    DEBUG_PRINTLN();
 }
 
 void EtherCardW5100::printIp ( const uint8_t *buf )
 {
     for ( uint8_t i = 0; i < 4; ++i )
     {
-        Serial.print ( buf[i], DEC );
+        DEBUG_PRINTF ( buf[i], DEC );
         if ( i < 3 )
-            Serial.print ( '.' );
+            DEBUG_PRINT ( '.' );
     }
 }
 
@@ -711,11 +847,46 @@ void EtherCardW5100::makeNetStr ( char *resultstr, byte *bytestr, byte len, char
 /// enc28j60.cpp - copy recieved packets to data buffer
 /// Data buffer is shared by recieve and transmit functions
 /// </summary>
-/// <returns>Size of recieved data</returns>
+/// <returns>Size of recieved data packet</returns>
 uint16_t EtherCardW5100::packetReceive()
 {
-    // do nothing - handle everything in packetloop in this wrapper class
-    return 0;
+    // listen for incoming clients
+    // ** remember this client object is different from the W5100client used for tcp requests **
+    incoming_client = incoming_server.available();
+    if ( incoming_client )
+    {
+		DEBUG_PRINTLN(incoming_client);
+
+        // set all bytes in the buffer to 0 - add a
+        // byte to simulate space for the TCP header
+        memset ( buffer, 0, ETHER_BUFFER_SIZE );
+        memset ( buffer, ' ', TCP_OFFSET );
+        uint16_t i = TCP_OFFSET; // add a space for TCP offset
+
+        DEBUG_PRINT ( F ( "Server request: " ) );
+
+        while ( incoming_client.connected() && ( i < ETHER_BUFFER_SIZE ) )
+        {
+            if ( incoming_client.available() )
+                buffer[i] = incoming_client.read();
+
+            // print readable ascii characters
+            if ( buffer[i] >= 0x08 && buffer[i] <= 0x0D )
+            {
+                DEBUG_PRINT ( F ( " " ) );		// substitute a space so less rows in serial output
+            }
+            else if ( buffer[i] > 0x1F )
+            {
+                DEBUG_PRINT ( ( char ) buffer[i] );
+            }
+
+            i++;
+        }
+        DEBUG_PRINTLN ( F ( "" ) );
+        return i;
+    }
+    else
+        return 0;
 }
 
 //=================================================================================
@@ -726,18 +897,16 @@ uint16_t EtherCardW5100::packetReceive()
 /// tcpip.cpp - send a response to a HTTP request
 /// </summary>
 /// <param name="dlen">Size of the HTTP (TCP) payload</param>
- void EtherCardW5100::httpServerReply ( uint16_t dlen )
+void EtherCardW5100::httpServerReply ( word dlen )
 {
     // ignore dlen - just add a null termination
     // to the buffer and print it out to the client
     buffer[bfill.position() + TCP_OFFSET] = '\0';
-    w5100client.print ( ( char* ) bfill.buffer() );
-	//w5100client.print("prova1.............\0");
+    incoming_client.print ( ( char* ) bfill.buffer() );
 
-	DEBUG_PRINT(">>>"); DEBUG_PRINTLN((int)bfill.position());
     // close the connection:
     delay ( 1 ); // give the web browser time to receive the data
-    w5100client.stop();
+    incoming_client.stop();
 }
 
 /// <summary>
@@ -754,17 +923,13 @@ void EtherCardW5100::httpServerReply_with_flags ( uint16_t dlen, uint8_t flags )
 
     // Same as above - ignore dlen & just add a null termination and print it out to the client
     buffer[bfill.position() + TCP_OFFSET] = '\0';
-	
-	for (int j = 0; j <= bfill.position() + TCP_OFFSET; j++)DEBUG_PRINT( (char)*(bfill.buffer() + j));
-	
-   w5100client.print ( ( char* ) bfill.buffer() );
-	DEBUG_PRINT(">>"); DEBUG_PRINTLN(bfill.position());
-  delay(10); // give the web browser time to receive the data
+    incoming_client.print ( ( char* ) bfill.buffer() );
+    delay ( 1 ); // give the web browser time to receive the data
 
     if ( flags&TCP_FLAGS_FIN_V != 0 ) // final packet in the stream
     {
         // close the connection:
-        w5100client.stop();
+        incoming_client.stop();
     }
 
     /* // Original Code from tcpip.cpp
@@ -792,8 +957,48 @@ void EtherCardW5100::httpServerReplyAck()
 }
 
 /// <summary>
-/// tcpip.cpp - prepare HTTP request
-/// Request sent in main packetloop
+/// Populate the bufferfiller with www request header
+/// </summary>
+/// <param name="fd">File descriptor (always www_fd)</param>
+/// <returns>current buffer filler position including TCP_OFFSET</returns>
+uint16_t EtherCardW5100::www_client_internal_datafill_cb ( uint8_t fd )
+{
+    bfill = EtherCardW5100::tcpOffset();
+
+    if ( fd == www_fd )
+    {
+        if ( client_postval == 0 )
+        {
+            bfill.emit_p ( PSTR ( "GET $F$S HTTP/1.0\r\n"
+                                  "Host: $F\r\n"
+                                  "$F\r\n"
+                                  "\r\n" ), client_urlbuf,
+                           client_urlbuf_var,
+                           client_hoststr, client_additionalheaderline );
+        }
+        else
+        {
+            const char* ahl = client_additionalheaderline;
+            bfill.emit_p ( PSTR ( "POST $F HTTP/1.0\r\n"
+                                  "Host: $F\r\n"
+                                  "$F$S"
+                                  "Accept: */*\r\n"
+                                  "Content-Length: $D\r\n"
+                                  "Content-Type: application/x-www-form-urlencoded\r\n"
+                                  "\r\n"
+                                  "$S" ), client_urlbuf,
+                           client_hoststr,
+                           ahl != 0 ? ahl : PSTR ( "" ),
+                           ahl != 0 ? "\r\n" : "",
+                           strlen ( client_postval ),
+                           client_postval );
+        }
+    }
+    return bfill.position();
+}
+
+/// <summary>
+/// tcpip.cpp - prepare and send HTTP request
 /// </summary>
 /// <param name="urlbuf">Pointer to c-string URL folder</param>
 /// <param name="urlbuf_varpart">Pointer to c-string URL file</param>
@@ -805,8 +1010,7 @@ void EtherCardW5100::browseUrl ( const char *urlbuf, const char *urlbuf_varpart,
 }
 
 /// <summary>
-/// tcpip.cpp - prepare HTTP request
-/// Request sent in main packetloop
+/// tcpip.cpp - prepare and send HTTP request / the reply is received in the main packetloop
 /// </summary>
 /// <param name="urlbuf">Pointer to c-string URL folder</param>
 /// <param name="urlbuf_varpart">Pointer to c-string URL file</param>
@@ -821,35 +1025,56 @@ void EtherCardW5100::browseUrl ( const char *urlbuf, const char *urlbuf_varpart,
     client_additionalheaderline = additionalheaderline;
     client_postval = 0;
     client_browser_cb = callback;
+//    client_tcp_datafill_cb = &www_client_internal_datafill_cb;
 
-    // Original Ethercard code - note it assumes that the request is sent in main packetloop
-    // www_fd = clientTcpReq ( &www_client_internal_result_cb, &www_client_internal_datafill_cb, hisport );
+    // check cb pointer is 'real' (non zero)
+    if ( !client_browser_cb )
+        return;
+	DEBUG_PRINT("hoststring=");
+	for (int i = 0; i < strlen(hoststr); i++)DEBUG_PRINT(hoststr[i]);
 
-    // TODO
-    // this method makes a HTTP connection to the server:
-    // close any connection before send a new request.
-    // This will free the socket on the WiFi shield
-    w5100client.stop();
-	DEBUG_PRINTLN("Browse URL");
-    /*
-    // if there's a successful connection:
-    char server[] = "www.arduino.cc";
-    if ( client.connect (client_hoststr, 80 ) )
+    // fill the buffer  host_name_should be loaded here
+    uint16_t len = ( *www_client_internal_datafill_cb ) ( www_fd );
+    buffer[bfill.position() + TCP_OFFSET] = '\0';
+
+    DEBUG_PRINT ( F ( "Browse URL: " ) );
+
+    for ( uint16_t c = TCP_OFFSET; c < bfill.position() + TCP_OFFSET; c++ )
     {
-    Serial.println ( "connecting..." );
-    // send the HTTP PUT request:
-    client.println ( "GET /latest.txt HTTP/1.1" );
-    client.println ( "Host: www.arduino.cc" );
-    client.println ( "User-Agent: arduino-ethernet" );
-    client.println ( "Connection: close" );
-    client.println();
+        // print readable ascii characters
+        if ( buffer[c] >= 0x08 && buffer[c] <= 0x0D )
+        {
+            DEBUG_PRINT ( ( char ) buffer[c] ); // DEBUG_PRINT ( F ( " " ) );		// substitute a space so less rows in serial output
+        }
+        else if ( buffer[c] > 0x1F )
+        {
+            DEBUG_PRINT ( ( char ) buffer[c] );
+        }
+    }
+    DEBUG_PRINTLN ( F ( "" ) );
+
+    // close any connection before send a new request, to free the socket
+    outgoing_client.stop();
+	delay(1000);
+    // send the request
+    if ( outgoing_client.connect (hoststr, hisport ) )
+		//-------------modified *hoststr now=weather.opensprinkler.com was "*"
+    {
+        // send the HTTP GET request:
+        outgoing_client.print ( ( char* ) bfill.buffer() );
+        outgoing_client.println();
+        DEBUG_PRINT ( F ( "Browse URL: sent to " ) );
+        DEBUG_PRINT ( hoststr );
+        DEBUG_PRINT ( F ( " port " ) );
+        DEBUG_PRINT ( hisport );
+        DEBUG_PRINTLN ( F ( "(OK)" ) );
+        outgoing_client_state = TCP_ESTABLISHED;
     }
     else
     {
-    // if you couldn't make a connection:
-    Serial.println ( "connection failed" );
+        DEBUG_PRINTLN ( F ( "Browse URL: failed (could not connect)" ) );
+        outgoing_client_state = TCP_CLOSED;
     }
-    */
 }
 
 /// <summary>
@@ -861,13 +1086,28 @@ void EtherCardW5100::clientIcmpRequest ( const uint8_t *destip )
 #ifdef MY_PING
     IPAddress pingAddr ( destip[0], destip[1], destip[2], destip[3] ); // ip address to ping
 
+    DEBUG_PRINT ( F ( "Ping: to " ) );
+    DEBUG_PRINT ( destip[0] );
+    DEBUG_PRINT ( F ( "." ) );
+    DEBUG_PRINT ( destip[1] );
+    DEBUG_PRINT ( F ( "." ) );
+    DEBUG_PRINT ( destip[2] );
+    DEBUG_PRINT ( F ( "." ) );
+    DEBUG_PRINT ( destip[3] );
+
     // note - asynchStart will return false if we couldn't even send a ping
-    if ( !ping.asyncStart ( pingAddr, 3, pingResult ) )
+    if ( !ping.asyncStart ( pingAddr, 3, ping_result ) )
     {
-        DEBUG_PRINT ( F ( "Failed to send ping request - status=" ) );
-        DEBUG_PRINTLN ( ( int ) pingResult.status );
+        DEBUG_PRINT ( F ( " send failed (status=" ) );
+        DEBUG_PRINT ( ( int ) ping_result.status );
+        DEBUG_PRINTLN ( F ( ")" ) );
+    }
+    else
+    {
+        DEBUG_PRINTLN ( F ( " sent (OK)" ) );
     }
 #endif
+
 }
 
 /// <summary>
@@ -878,51 +1118,54 @@ void EtherCardW5100::clientIcmpRequest ( const uint8_t *destip )
 uint8_t EtherCardW5100::packetLoopIcmpCheckReply ( const uint8_t *ip_monitoredhost )
 {
 #ifdef MY_PING
-    if ( ping.asyncComplete ( pingResult ) )
+    if ( ping.asyncComplete ( ping_result ) )
     {
-        if ( pingResult.status != SUCCESS )
+        DEBUG_PRINT ( F ( "Ping: " ) );
+
+        if ( ping_result.status != SUCCESS )
         {
             // failure... but whyyyy?
-            DEBUG_PRINT ( F ( "Ping failed - status=" ) );
-            DEBUG_PRINTLN ( pingResult.status );
+            DEBUG_PRINT ( F ( " failed (status=" ) );
+            DEBUG_PRINT ( ping_result.status );
+            DEBUG_PRINTLN ( F ( ")" ) );
             return 0;
         }
         else
         {
             // huzzah
-            DEBUG_PRINT ( F ( "Ping succeeded - reply " ) );
-            DEBUG_PRINT ( pingResult.data.seq );
+            DEBUG_PRINT ( F ( " reply " ) );
+            DEBUG_PRINT ( ping_result.data.seq );
             DEBUG_PRINT ( F ( " from " ) );
-            DEBUG_PRINT ( pingResult.addr[0] );
+            DEBUG_PRINT ( ping_result.addr[0] );
             DEBUG_PRINT ( F ( "." ) );
-            DEBUG_PRINT ( pingResult.addr[1] );
+            DEBUG_PRINT ( ping_result.addr[1] );
             DEBUG_PRINT ( F ( "." ) );
-            DEBUG_PRINT ( pingResult.addr[2] );
+            DEBUG_PRINT ( ping_result.addr[2] );
             DEBUG_PRINT ( F ( "." ) );
-            DEBUG_PRINT ( pingResult.addr[3] );
+            DEBUG_PRINT ( ping_result.addr[3] );
             DEBUG_PRINT ( F ( " bytes=" ) );
             DEBUG_PRINT ( REQ_DATASIZE );
             DEBUG_PRINT ( F ( " time=" ) );
-            DEBUG_PRINT ( millis() - pingResult.data.time );
+            DEBUG_PRINT ( millis() - ping_result.data.time );
             DEBUG_PRINT ( F ( " TTL=" ) );
-            DEBUG_PRINT ( pingResult.ttl );
+            DEBUG_PRINT ( ping_result.ttl );
 
             // check the address
-            if (	pingResult.addr[0] == ip_monitoredhost[0] &&
-                    pingResult.addr[1] == ip_monitoredhost[1] &&
-                    pingResult.addr[2] == ip_monitoredhost[2] &&
-                    pingResult.addr[3] == ip_monitoredhost[3] )
+            if ( ping_result.addr[0] == ip_monitoredhost[0] &&
+                    ping_result.addr[1] == ip_monitoredhost[1] &&
+                    ping_result.addr[2] == ip_monitoredhost[2] &&
+                    ping_result.addr[3] == ip_monitoredhost[3] )
+            {
+                DEBUG_PRINTLN ( F ( " (OK)" ) );
                 return 1;
+            }
             else
             {
-                DEBUG_PRINT ( F ( " (received reply from wrong host)" ) );
+                DEBUG_PRINTLN ( F ( " (received from wrong host)" ) );
                 return 0;
             }
-            DEBUG_PRINTLN ( F ( "" ) );
         }
     }
-#else
-	return 0;
 #endif
 }
 
@@ -951,79 +1194,51 @@ static void set_seq()
 //=================================================================================
 
 /// /// <summary>
-/// dns.cpp - perform DNS lookup.
-/// Use during setup, as this discards all incoming requests until it returns.
-/// Result is stored in hisip member.
+/// dns.cpp - perform DNS lookup. Result is stored in hisip member.
 /// </summary>
 /// <param name="name">Host name to lookup</param>
-/// <param name="fromRam">Set true to look up cached name. Default = false</param>
+/// <param name="fromRam">NOT IMPLEMENTED (Look up cached name. Default = false)</param>
 /// <returns>True on success. </returns>
 bool EtherCardW5100::dnsLookup ( const char* name, bool fromRam )
 {
-#ifdef ESP8266  //use WiFi.hostByName
-	IPAddress serverIP(0, 0, 0, 0);
-	DEBUG_PRINTLN("Starting LOOKUP");
-#ifndef ESP8266 //for ethernet shield
 
-	dns_client.begin(ETHERNE.gatewayIP()); //..................for dns.h
-	int result = dns_client.HostByName(name, serverIP);
-
-#endif
-	int result = ETHERNE.hostByName(name, serverIP);
-
-	DEBUG_PRINT(F("DNS lookup "));
+    IPAddress serverIP ( 0, 0, 0, 0 );
 	DEBUG_PRINT(name);
-	DEBUG_PRINT(F(" is "));
-	DEBUG_PRINT(serverIP[0]);
-	DEBUG_PRINT(F("."));
-	DEBUG_PRINT(serverIP[1]);
-	DEBUG_PRINT(F("."));
-	DEBUG_PRINT(serverIP[2]);
-	DEBUG_PRINT(F("."));
-	DEBUG_PRINT(serverIP[3]);
-
-	for (uint8_t i = 0; i < 4; i++)
-		hisip[i] = serverIP[i];
-
-	if (result == 1)
-	{
-		DEBUG_PRINTLN(F(" (OK)"));
-		return true;
-	}
-	else
-	{
-		DEBUG_PRINTLN(F(" (failed)"));
-		return false;
-	}
-#else //original routine
-    uint16_t start = millis();
-
-    while (!isLinkUp())
-    {
-    	if (uint16_t(millis()) - start >= 30000)
-    		return false; //timeout waiting for link
-    }
-    while (clientWaitingDns())
-    {
-    	packetLoop(packetReceive());
-    	if (uint16_t(millis()) - start >= 30000)
-    		return false; //timeout waiting for gateway ARP
-    }
-
-    memset(hisip, 0, 4);
-    dnsRequest(name, fromRam);
-
-    start = millis();
-    while (hisip[0] == 0) {
-    	if (uint16_t(millis()) - start >= 30000)
-    		return false; //timout waiting for dns response
-    	word len = packetReceive();
-    	if (len > 0 && packetLoop(len) == 0) //packet not handled by tcp/ip packet loop
-    		if (checkForDnsAnswer(len))
-    			return false; //DNS response recieved with error
-    }
+	DEBUG_PRINTLN(" Starting LOOKUP");
+#ifndef ESP8266  //use WiFi.hostByName
+    
+	dns_client.begin(Ethernet.dnsServerIP());
+    int result = dns_client.getHostByName ( name, serverIP );
+#else
+	
+	dns_client.begin ( ETHERNE.gatewayIP());
+	int result = ETHERNE.hostByName(name, serverIP);
 #endif
-    return true;
+
+    DEBUG_PRINT ( F ( "DNS lookup " ) );
+    DEBUG_PRINT ( name );
+    DEBUG_PRINT ( F ( " is " ) );
+    DEBUG_PRINT ( serverIP[0] );
+    DEBUG_PRINT ( F ( "." ) );
+    DEBUG_PRINT ( serverIP[1] );
+    DEBUG_PRINT ( F ( "." ) );
+    DEBUG_PRINT ( serverIP[2] );
+    DEBUG_PRINT ( F ( "." ) );
+    DEBUG_PRINT ( serverIP[3] );
+
+    for ( uint8_t i = 0; i < 4; i++ )
+        hisip[i] = serverIP[i];
+
+    if ( result == 1 )
+    {
+        DEBUG_PRINTLN ( F ( " (OK)" ) );
+        return true;
+    }
+    else
+    {
+        DEBUG_PRINTLN ( F ( " (failed)" ) );
+        return false;
+    }
 }
 
 

@@ -332,7 +332,7 @@ void do_setup()
 	os.button_timeout = LCD_BACKLIGHT_TIMEOUT;
 	DEBUG_PRINTLN("Setup complete");
 	
-    
+	delay(4000);
 }
 
 // Arduino software reset function
@@ -391,7 +391,7 @@ void handle_web_request ( char *p );
 void do_loop()
 {
 	delay(100);
-//	DEBUG_PRINT('-');
+//	DEBUG_PRINT("-_");
     static ulong last_time = 0;
     static ulong last_minute = 0;
 
@@ -830,7 +830,7 @@ void do_loop()
 
         // perform ntp sync
         if ( curr_time % NTP_SYNC_INTERVAL == 0 ) os.status.req_ntpsync = 1;
-        perform_ntp_sync();
+       // perform_ntp_sync();
 
         // check network connection
         if ( curr_time && ( curr_time % CHECK_NETWORK_INTERVAL==0 ) )  os.status.req_network = 1;

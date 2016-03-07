@@ -95,7 +95,8 @@ extern SdFat sd;
 
 
 #elif defined(OSPI)
-// todo: LCD define for OSPi
+// 
+: LCD define for OSPi
 #endif
 
 #if defined(OSPI)
