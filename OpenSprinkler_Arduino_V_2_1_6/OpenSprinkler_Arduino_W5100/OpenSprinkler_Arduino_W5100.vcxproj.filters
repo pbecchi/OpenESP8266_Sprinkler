@@ -48,9 +48,6 @@
     <ClInclude Include="eeprom_mio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\SPIFFSdFat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\EtherCardW5100.h">
       <Filter>Header Files</Filter>
     </ClInclude>

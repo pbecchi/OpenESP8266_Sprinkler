@@ -137,7 +137,6 @@
     <ClInclude Include="..\OpenSprinkler.h" />
     <ClInclude Include="..\OpenSprinklerProgram.h" />
     <ClInclude Include="..\OpenSprinklerServer.h" />
-    <ClInclude Include="..\SPIFFSdFat.h" />
     <ClInclude Include="..\Utils.h" />
     <ClInclude Include="..\Weather.h" />
     <ClInclude Include="Config.h">
