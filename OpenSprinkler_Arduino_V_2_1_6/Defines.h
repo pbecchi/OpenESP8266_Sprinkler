@@ -348,7 +348,7 @@ typedef enum
 	#define PIN_LCD_D7        23    // LCD d7 pin
 	#define PIN_LCD_BACKLIGHT 12    // LCD backlight pin
 	#define PIN_LCD_CONTRAST  13    // LCD contrast pin
-    #endif // OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
+#endif // OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
 #ifdef BUTTON_ADC_PIN
 
 	// ADC readings expected for the 5 buttons on the ADC input

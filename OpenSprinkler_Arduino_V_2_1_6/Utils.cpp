@@ -59,8 +59,12 @@ void write_to_file(const char *name, const char *data, int size, int pos, bool t
 	DEBUG_PRINTLN(fn);
 	File file;
 	if (SPIFFS.exists(fn))
-		file = SPIFFS.open(fn, "r+");
-	else   file = SPIFFS.open(fn, "w");
+	{		file = SPIFFS.open(fn, "r+"); DEBUG_PRINTLN("file exist open R/W");
+}
+	else
+	{
+		file = SPIFFS.open(fn, "w"); DEBUG_PRINTLN("file dont exist open R/W");
+	}
 	int ret = (bool)file;
 #endif //ESP8266
 	if (!ret) {

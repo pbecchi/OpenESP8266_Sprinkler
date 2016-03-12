@@ -53,7 +53,7 @@ byte Ethernet::buffer[ETHER_BUFFER_SIZE];		// Ethernet packet buffer
 #endif
 
 void reset_all_stations();
-unsigned long getNtpTime();
+time_t getNtpTime();
 void manual_start_program ( byte pid );
 #else // header and defs for RPI/BBB
 #include <sys/stat.h>
@@ -830,7 +830,7 @@ void do_loop()
 
         // perform ntp sync
         if ( curr_time % NTP_SYNC_INTERVAL == 0 ) os.status.req_ntpsync = 1;
-       // perform_ntp_sync();
+        perform_ntp_sync();
 
         // check network connection
         if ( curr_time && ( curr_time % CHECK_NETWORK_INTERVAL==0 ) )  os.status.req_network = 1;
@@ -1157,9 +1157,18 @@ void write_log ( byte type, ulong curr_time )
         return;
     }
 #else //ESP8266
-	DEBUG_PRINTLN(tmp_buffer);
+	DEBUG_PRINT("logFile W>"); DEBUG_PRINTLN(tmp_buffer);
 	memmove(tmp_buffer + 1, tmp_buffer, strlen(tmp_buffer)+1); tmp_buffer[0] = '/';
-	File file = SPIFFS.open(tmp_buffer, "r+");
+	File file;
+	if (SPIFFS.exists(tmp_buffer))
+	{
+		file = SPIFFS.open(tmp_buffer, "r+"); DEBUG_PRINTLN("file exist open R/W");
+	}
+	else
+	{
+		file = SPIFFS.open(tmp_buffer, "w"); DEBUG_PRINTLN("file dont exist open R/W");
+	}
+	
 	int ret = (bool) file;
 	file.seek(0, SeekEnd);
 	if (!ret)
@@ -1176,8 +1185,7 @@ void write_log ( byte type, ulong curr_time )
         if ( mkdir ( get_filename_fullpath ( LOG_PREFIX ), S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH ) )
         {
             return;
-        }
-    }
+}
     FILE *file;
     file = fopen ( get_filename_fullpath ( tmp_buffer ), "rb+" );
     if ( !file )
@@ -1383,6 +1391,7 @@ void perform_ntp_sync()
         {
             os.lcd_print_line_clear_pgm ( PSTR ( "NTP Syncing..." ),1 );
         }
+	//	setSyncProvider(getNtpTime);
         ulong t = getNtpTime();
         if ( t>0 )
         {

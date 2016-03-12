@@ -362,6 +362,8 @@ public:
     */
     static void ntpRequest ( uint8_t *ntp_ip, uint8_t srcport );
 
+	int Udp_parsePacket();
+
     /**   @brief  Process network time protocol response
     *     @param  time Pointer to integer to hold result
     *     @param  dstport_l Destination port to expect response. Set to zero to accept on any port

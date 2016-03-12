@@ -217,7 +217,7 @@ void rewind_ether_buffer()
 
 void send_packet ( bool final=false )
 {
-	DEBUG_PRINT(" P ");
+	DEBUG_PRINT(" P="); DEBUG_PRINTLN((char*)bfill.buffer());
     if ( final )
     {
         ether.httpServerReply_with_flags ( bfill.position(), TCP_FLAGS_ACK_V|TCP_FLAGS_FIN_V );
@@ -415,6 +415,7 @@ boolean check_password ( char *p )
     if ( findKeyVal ( p, tmp_buffer, TMP_BUFFER_SIZE, PSTR ( "pw" ), true ) )
     {
         urlDecode ( tmp_buffer );
+		DEBUG_PRINT("pass="); DEBUG_PRINTLN(tmp_buffer);
         if ( os.password_verify ( tmp_buffer ) )
             return true;
     }
@@ -1003,7 +1004,8 @@ void server_json_controller_main()
     }
 
     if ( read_from_file ( wtopts_filename, tmp_buffer ) )
-    {
+	{
+		DEBUG_PRINT("wto="); DEBUG_PRINTLN(tmp_buffer);
         bfill.emit_p ( PSTR ( ",\"wto\":{$S}" ), tmp_buffer );
     }
     bfill.emit_p ( PSTR ( "}" ) );
@@ -1530,6 +1532,7 @@ byte server_json_log ( char *p )
             res = file.fgets ( tmp_buffer, TMP_BUFFER_SIZE );
 #else
 			res = file.readBytesUntil('/n',tmp_buffer, TMP_BUFFER_SIZE);
+			DEBUG_PRINT("Log>"); DEBUG_PRINTLN(tmp_buffer);
 #endif
 			if ( res <= 0 )
             {
@@ -1697,13 +1700,13 @@ void handle_web_request ( char *p )
     ether.httpServerReplyAck();
 #endif
     rewind_ether_buffer();
-	DEBUG_PRINT("web rep ");
+	DEBUG_PRINT("web req ");
     // assume this is a GET request
     // GET /xx?xxxx
     char *com = p+5;
     char *dat = com+3;
-	DEBUG_PRINT(com[0]); DEBUG_PRINT(com[1]); DEBUG_PRINTLN(com[2]);
-    if ( com[0]==' ' )
+	
+    if ( com[0]==' '||com[0]==0 )
     {   
 		DEBUG_PRINTLN("home page");
         server_home();  // home page handler
@@ -1754,7 +1757,7 @@ void handle_web_request ( char *p )
                         ret = ( urls[i] ) ( dat );
                     }
                 }
-				DEBUG_PRINT("ret "); DEBUG_PRINT(ret);
+				DEBUG_PRINT("ret="); DEBUG_PRINT(ret);
                 switch ( ret )
                 {
                 case HTML_OK:
@@ -1786,7 +1789,7 @@ void handle_web_request ( char *p )
 
 #if defined(ARDUINO)
 /** NTP sync request */
-unsigned long getNtpTime()
+time_t getNtpTime()
 {
     byte ntpip[4] =
     {
@@ -1801,13 +1804,19 @@ unsigned long getNtpTime()
     do
     {
         ether.ntpRequest ( ntpip, ++ntpclientportL );
-        expire = millis() + 1000; // wait for at most 1 second
+        expire = millis() + 2000; // wait for at most 5 second  
         do
         {
-            word len = ether.packetReceive();
+           word len = ether.packetReceive();
             ether.packetLoop ( len );
             if ( len > 0 && ether.ntpProcessAnswer ( &time, ntpclientportL ) )
-            {
+           
+//			word len = ether.Udp_parsePacket();
+			//DEBUG_PRINTLN(len);
+//error was on the vodafone server port forwarding
+	//		if(len>=48&& ether.ntpProcessAnswer(&time, ntpclientportL)) //min.legth 48 bytes
+
+		   {
                 if ( ( time & 0x80000000UL ) ==0 )
                 {
                     time+=2085978496;

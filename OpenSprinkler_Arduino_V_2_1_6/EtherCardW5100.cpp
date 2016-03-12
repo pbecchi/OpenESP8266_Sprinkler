@@ -296,7 +296,6 @@ bool EtherCardW5100::staticSetup ( const uint8_t* my_ip, const uint8_t* gw_ip, c
 
 #endif
     incoming_server.begin();
-    udp_client.begin ( NTP_CLIENT_PORT );
 
     // save the values
     IP2Byte ( ETHERNE.localIP(), myip );
@@ -380,7 +379,7 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 
     // start listening for clients
     incoming_server.begin();
-    udp_client.begin ( NTP_CLIENT_PORT );
+ //   udp_client.begin ( NTP_CLIENT_PORT );
 
     // save the values
     IP2Byte ( ETHERNE.localIP(), myip );
@@ -483,7 +482,7 @@ uint16_t EtherCardW5100::packetLoop ( uint16_t plen )
                 while ( outgoing_client.available() && ( len < ETHER_BUFFER_SIZE ) )
                 {
                     buffer[len] = outgoing_client.read();
-                    DEBUG_PRINT ( buffer[len] );
+                    DEBUG_PRINT ( char(buffer[len]&0xFF) );
                     len++;
                 }
                 DEBUG_PRINTLN ( F ( "" ) );
@@ -554,6 +553,8 @@ void EtherCardW5100::ntpRequest ( uint8_t *ntp_ip, uint8_t srcport )
         ntpip = IPAddress ( ntp_ip[0], ntp_ip[1], ntp_ip[2], ntp_ip[3] );
 
     // all NTP fields have been given values, now you can send a packet requesting a timestamp:
+	udp_client.begin(srcport);
+
     udp_client.beginPacket ( ntpip, NTP_CLIENT_PORT );		// NTP requests are to port 123
     udp_client.write ( buffer, NTP_PACKET_SIZE );
     udp_client.endPacket();
@@ -571,6 +572,9 @@ void EtherCardW5100::ntpRequest ( uint8_t *ntp_ip, uint8_t srcport )
 #endif
     DEBUG_PRINTLN ( "" );
 }
+
+/// added 
+int EtherCardW5100::Udp_parsePacket() { return udp_client.parsePacket(); }
 
 /// <summary>
 /// Ethercard.cpp - Process network time protocol response

@@ -62,7 +62,7 @@ About:		This is a fork of Rays OpenSprinkler code thats amended to use alternati
   #define SDFAT                                   // SD card
   #define MY_PING                                 // ping allway OK.
 #else 
-//#define SD_ON
+ #define SD_ON
  #define LCDI2C									  //LCD I2c
 #endif
 // removed PROGMEM from to call look at
