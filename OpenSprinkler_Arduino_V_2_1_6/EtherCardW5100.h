@@ -232,7 +232,8 @@ public:
 													//
 // ESP8266-------------------------------------------------------------------------
 //
-	static  bool WiFiconnect(bool is);          // Connect ESP8266 to network and start server
+	static  bool WiFiconnect();          // Connect ESP8266 to network and start server
+	static bool WiFiconnect(const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask);
 //
     // EtherCard.cpp
     /**   @brief  Initialise the network interface
@@ -331,7 +332,8 @@ public:
     /**   @brief  Prepare HTTP request
     *     @param  urlbuf Pointer to c-string URL folder
     *     @param  urlbuf_varpart Pointer to c-string URL file
-    *     @param  hoststr Pointer to c-string hostname
+    *     @param  hoststr Pointer to c-string 
+
     *     @param  additionalheaderline Pointer to c-string with additional HTTP header info
     *     @param  callback Pointer to callback function to handle response
     */

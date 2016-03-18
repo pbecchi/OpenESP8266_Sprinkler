@@ -137,6 +137,8 @@
     <ClInclude Include="..\OpenSprinkler.h" />
     <ClInclude Include="..\OpenSprinklerProgram.h" />
     <ClInclude Include="..\OpenSprinklerServer.h" />
+    <ClInclude Include="..\PCF8574Mio.h" />
+    <ClInclude Include="..\Pins.h" />
     <ClInclude Include="..\Utils.h" />
     <ClInclude Include="..\Weather.h" />
     <ClInclude Include="Config.h">
@@ -153,6 +155,7 @@
     <ClCompile Include="..\OpenSprinklerMain.cpp" />
     <ClCompile Include="..\OpenSprinklerProgram.cpp" />
     <ClCompile Include="..\OpenSprinklerServer.cpp" />
+    <ClCompile Include="..\PCF8574Mio.cpp" />
     <ClCompile Include="..\Utils.cpp" />
     <ClCompile Include="..\Weather.cpp" />
   </ItemGroup>
@@ -161,7 +164,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties arduino.upload.port="COM4" />
+      <UserProperties arduino.build.auto_discover_includes="0" arduino.upload.port="COM3" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

@@ -35,7 +35,7 @@ extern SdFat sd;
 #endif
 
 
-static uint8_t ntpclientportL = 123; // Default NTP client port
+static uint8_t ntpclientportL = 8888; // Default NTP client port
 extern ulong flow_count;
 
 #else

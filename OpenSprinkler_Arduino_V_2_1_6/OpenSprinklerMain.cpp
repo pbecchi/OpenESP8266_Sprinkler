@@ -28,7 +28,7 @@
 #endif
 
 #include <limits.h>
-
+#include "Defines.h"
 #include "../OpenSprinkler.h"
 #include "../OpenSprinklerProgram.h"
 #include "../Weather.h"
@@ -94,7 +94,8 @@ void flow_isr()
     flow_count++;
     os.flowcount_time_ms = curr;
 }
-
+#undef DB_MASK
+#define DB_MASK 2
 #if defined(ARDUINO)
 // ====== UI defines ======
 static char ui_anim_chars[3] = {'.', 'o', 'O'};
@@ -118,7 +119,7 @@ void ui_state_machine()
 
     // read button, if something is pressed, wait till release
     byte button = os.button_read ( BUTTON_WAIT_HOLD );
-
+	DEBUG_PRINTLN(button);
     if ( button & BUTTON_FLAG_DOWN )   // respond only to button down events
     {
         os.button_timeout = LCD_BACKLIGHT_TIMEOUT;
@@ -391,7 +392,7 @@ void handle_web_request ( char *p );
 void do_loop()
 {
 	delay(100);
-//	DEBUG_PRINT("-_");
+	DEBUG_PRINT("-_");
     static ulong last_time = 0;
     static ulong last_minute = 0;
 
@@ -412,14 +413,14 @@ void do_loop()
         handle_web_request ( ( char* ) Ethernet::buffer+pos );
 #endif
     }
-	//DEBUG_PRINT("+|");
+	DEBUG_PRINT('-'); DEBUG_PRINT(__LINE__);
 #ifdef OPENSPRINKLER_ARDUINO_WDT
     wdt_reset();  // reset watchdog timer
     wdt_timeout = 0;
 #endif // OPENSPRINKLER_ARDUINO_WDT 
 
     ui_state_machine();
-	//DEBUG_PRINT("+%");
+	DEBUG_PRINT('-'); DEBUG_PRINT(__LINE__);
 #else // Process Ethernet packets for RPI/BBB
     EthernetClient client = m_server->available();
     if ( client )
@@ -476,7 +477,7 @@ void do_loop()
                 os.raindelay_start();
             }
         }
-		//DEBUG_PRINT("+%");
+		DEBUG_PRINT("+%");
         // ====== Check controller status changes and write log ======
         if ( os.old_status.rain_delayed != os.status.rain_delayed )
         {
@@ -492,7 +493,7 @@ void do_loop()
             }
             os.old_status.rain_delayed = os.status.rain_delayed;
         }
-		//DEBUG_PRINT("+$");
+		DEBUG_PRINT("+$");
         // ====== Check rain sensor status ======
         if ( os.options[OPTION_SENSOR_TYPE] == SENSOR_TYPE_RAIN ) // if a rain sensor is connected
         {
@@ -523,7 +524,7 @@ void do_loop()
         RuntimeQueueStruct *q;
         // since the granularity of start time is minute
         // we only need to check once every minute
-		//DEBUG_PRINT("+£");
+		DEBUG_PRINT(__LINE__);
         if ( curr_minute != last_minute )
         {
             last_minute = curr_minute;

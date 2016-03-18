@@ -23,9 +23,10 @@
 #ifndef ESP8266
 #include <avr/eeprom.h>
 #else
+#include <FS.h>
 #include "EEprom_mio.h"
-const char* SSID = "Vodafone-25873015";
-const char* PASSWORD = "5ph87cmmjmm8cs9";
+char* SSID = "Vodafone-25873015";
+char* PASSWORD = "5ph87cmmjmm8cs9";
 #endif
 
 #include "EtherCardW5100.h"
@@ -269,7 +270,109 @@ uint8_t EtherCardW5100::begin ( const uint16_t size, const uint8_t* macaddr, uin
     copyMac ( mymac, macaddr );
     return 1; //0 means fail
 }
+//////////////////////////////////////////////////////////////////scanNetwork()///////////////////////////////////////
+String found_SSID[5], found_psw[5];
 
+char* CharFromString(String uno) {
+	
+	char *a = new char[uno.length() +1];
+		a[uno.length()] = 0;
+	memcpy(a, uno.c_str(), uno.length());
+	DEBUG_PRINT(a); DEBUG_PRINT(strlen(a));
+/*
+	int i = 0;
+	while (uno[i++] != 0) {
+		res[i - 1] = uno[i - 1]; DEBUG_PRINT(res[i - 1]);
+	}*/
+	return a;
+}
+byte scanNetwork()
+{
+	Serial.println("scan start");
+
+	// WiFi.scanNetworks will return the number of networks found
+	int n = WiFi.scanNetworks();
+	Serial.println("scan done");
+	byte netCount = 0;
+	if (n == 0)
+	{
+		Serial.println("no networks found");
+		return 0;
+	}
+	else
+	{
+		String Ssid[10];
+		String psw[10];
+		File file;
+		int PaswKnown = -1;
+		int Npas = 0;
+		if (!SPIFFS.exists("SSID_PASSWORD"))
+			file = SPIFFS.open("SSID_PASSWORD", "w");               //new password file
+		else
+		{    //-----------------read SSID and PASSWORD from file.
+
+			Serial.println("Reading password file....");
+			file = SPIFFS.open("SSID_PASSWORD", "r+");               //read passwords from file
+			while (file.available())
+			{
+				char buff[20] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+				file.readBytesUntil(',', buff, 20);
+
+				Ssid[Npas] = buff;
+				char buf[20] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+
+				int n=file.readBytesUntil('\n', buf, 20);
+				buf[n-1] = 0;
+				psw[Npas++] = buf;
+				Serial.print(Ssid[Npas - 1]);
+				Serial.print('\t'); Serial.print("<>"); Serial.println(psw[Npas - 1]);
+			}
+		}
+		Serial.print(n);
+		
+		Serial.println(" networks found");
+		for (int i = 0; i < n; ++i)
+		{
+			// Print SSID and RSSI for each network found
+			Serial.print(i);
+			Serial.print(": ");
+			int jpas = Npas - 1;
+			while (WiFi.SSID(i) != Ssid[jpas] && jpas >= 0)jpas--;
+			if (jpas >= 0)PaswKnown = i;
+			Serial.print(WiFi.SSID(i));
+			Serial.print(" (");
+			Serial.print(WiFi.RSSI(i));
+			Serial.print(")");
+			Serial.print((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? " " : "*");
+
+			if (jpas >= 0) {
+				Serial.println(" passw. available"); netCount++;
+				found_SSID[netCount-1] = Ssid[jpas];
+				found_psw[netCount-1] = psw[jpas];
+
+			}
+
+			else Serial.println();
+			delay(10);
+		}
+
+		if (PaswKnown < 0)
+		{
+			Serial.println("Select network n.");
+			while (!Serial.available()) delay(10);
+			byte ch = Serial.read();
+			Ssid[Npas] = WiFi.SSID(ch - '0');
+			Serial.print("Enter password for "); Serial.println(Ssid[Npas]);
+			while (!Serial.available()) delay(10);
+			psw[Npas] = Serial.readString();
+			Serial.print(Ssid[Npas]); Serial.print(','); Serial.println(psw[Npas]);
+			file.print(Ssid[Npas]); file.print(','); file.println(psw[Npas]);
+			file.close();
+			netCount++;
+		}
+	}
+	return netCount;
+}
 /// <summary>
 /// Configure network interface with static IP
 /// </summary>
@@ -278,19 +381,29 @@ uint8_t EtherCardW5100::begin ( const uint16_t size, const uint8_t* macaddr, uin
 /// <param name="dns_ip">DNS address (4 bytes). 0 for no change. Default = 0</param>
 /// <param name="mask">Subnet mask (4 bytes). 0 for no change. Default = 0</param>
 /// <returns>Returns true on success - actually always true</returns>
-bool EtherCardW5100::staticSetup ( const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask )
+bool EtherCardW5100::staticSetup
+(const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask)
 {
-    using_dhcp = false;
+	using_dhcp = false;
 
-	/*
-	// convert bytes to IPAddress
+	
+#ifdef ESP8266
+	uint8_t n = 0;
+	bool result = false;
+	uint8_t nNetwork= scanNetwork();
+	while (n < nNetwork&&!result) {
+		SSID = /*(char*)found_SSID[n].c_str(); */   CharFromString(found_SSID[n]);
+		PASSWORD = /*(char*)found_psw[n].c_str(); */ CharFromString(found_psw[n]);
+		n++;
+		
+		result = WiFiconnect( my_ip, gw_ip,  dns_ip,  mask);
+	}
+
+#else
+	
 	IPAddress ip = Byte2IP ( my_ip );
 	IPAddress gw = Byte2IP ( gw_ip );
 	IPAddress subnet = Byte2IP ( mask );*/
-#ifdef ESP8266
-	DEBUG_PRINT("-S-");
-	WiFiconnect(true);
-#else
 	// initialize the ethernet device and start listening for clients
 	ETHERNE.begin(mymac, ip, gw, subnet);
 
@@ -309,23 +422,55 @@ bool EtherCardW5100::staticSetup ( const uint8_t* my_ip, const uint8_t* gw_ip, c
     return true;
 }
 #ifdef ESP8266
-bool EtherCardW5100::WiFiconnect(bool isStatic)
+bool EtherCardW5100::WiFiconnect()
 {
 	//if (WiFi.status() != WL_CONNECTED)
 	{
+		// convert bytes to IPAddress
+//		IPAddress ip = Byte2IP(my_ip);
+	//	IPAddress gw = Byte2IP(gw_ip);
+		//IPAddress subnet = Byte2IP(mask);
 		DEBUG_PRINTLN("Wait WIFI...");
 
 		while (millis() < 40000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
-		byte netmask[4] = { 255,255,255,0 };
-		byte MyIp[4] = { 192,168,1,211 };
-		byte MyGate[4] = { 192,168,1,1 };
+								   //		byte netmask[4] = { 255,255,255,0 };
+								   //		byte MyIp[4] = { 192,168,1,211 };
+								   //		byte MyGate[4] = { 192,168,1,1 };
 
-		if (isStatic) WiFi.config(MyIp, MyGate, netmask);
+	//	if (isStatic) WiFi.config(ip, gw, subnet);
 		DEBUG_PRINT("\nConnecting to "); DEBUG_PRINTLN(SSID);
 		uint8_t i = 0;
-		while (WiFi.status() != WL_CONNECTED && i++ < 1000) { yield(); delay(100); DEBUG_PRINT('.'); }
-		if (i == 101) {
+		while (WiFi.status() != WL_CONNECTED && i++ <= 201) { yield(); delay(100); DEBUG_PRINT('.'); }
+		if (i >= 201) {
+			DEBUG_PRINT("Could not connect to"); DEBUG_PRINTLN(SSID);
+			return false;
+		}
+
+		DEBUG_PRINT("Server started IP="); DEBUG_PRINTLN(WiFi.localIP());
+		return true;
+	}
+}
+bool EtherCardW5100::WiFiconnect( const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask)
+{
+	//if (WiFi.status() != WL_CONNECTED)
+	{
+	// convert bytes to IPAddress
+/*	IPAddress ip = Byte2IP ( my_ip );
+	IPAddress gw = Byte2IP ( gw_ip );
+	IPAddress subnet = Byte2IP ( mask );
+	*/
+		DEBUG_PRINTLN("Wait WIFI...");
+
+		while (millis() < 10000) delay(2);
+		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
+		byte netmask[4] = { 255,255,255,0 };
+
+		 WiFi.config(my_ip, gw_ip, netmask);
+		DEBUG_PRINT("\nConnecting to "); DEBUG_PRINTLN(SSID);
+		uint8_t i = 0;
+		while (WiFi.status() != WL_CONNECTED && i++ <=201) { yield(); delay(100); DEBUG_PRINT('.'); }
+		if (i >= 201) {
 			DEBUG_PRINT("Could not connect to"); DEBUG_PRINTLN(SSID);
 			return false;
 		}
@@ -345,39 +490,26 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 {
     using_dhcp = true;
 
-    /* Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
-    if ( hname != NULL )
-    {
-        if ( fromRam )
-        {
-            strncpy ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
-        }
-        else
-        {
-            strncpy_P ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
-        }
-    }
-    else
-    {
-        // Set a unique hostname, use Arduino-?? with last octet of mac address
-        hostname[8] = toAsciiHex ( mymac[5] >> 4 );
-        hostname[9] = toAsciiHex ( mymac[5] );
-    }
-    */
-
-    DEBUG_PRINT ( F ( "Hostname:   " ) );
-    // DEBUG_PRINT (hostname);
-    DEBUG_PRINTLN ( F ( "(not implemented)" ) );
-
     // initialize the ethernet device
 #ifndef ESP8266
 	if (ETHERNE.begin(mymac) == 0)
 #else
-	if (WiFiconnect(false) == false)
-#endif
-        return false;
+	uint8_t n = 0;
+	bool result = false;
+	uint8_t nNetwork = scanNetwork();
+	while (n < nNetwork&&!result) {
+		SSID = CharFromString(found_SSID[n]);
+		
+		//   found_SSID[n];
+		PASSWORD = CharFromString(found_psw[n]); //found_psw[n];
+		n++;
+		result = WiFiconnect();
+	}
+	if (!result )return false;
 
-    // start listening for clients
+
+#endif
+            // start listening for clients
     incoming_server.begin();
  //   udp_client.begin ( NTP_CLIENT_PORT );
 
@@ -391,20 +523,55 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
     printIPConfig();
 
     return true;
-	/* hostname TODOOO implementation
-	if (hname != NULL) {
-	if (fromRam) {
-	strncpy(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+#ifndef ESP8266
+	/*
+	//do not  Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
+	if ( hname != NULL )
+	{
+	if ( fromRam )
+	{
+	strncpy ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
 	}
-	else {
-	strncpy_P(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+	else
+	{
+	strncpy_P ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
 	}
 	}
-	else {
+	else
+	{
 	// Set a unique hostname, use Arduino-?? with last octet of mac address
-	hostname[8] = toAsciiHex(mymac[5] >> 4);
-	hostname[9] = toAsciiHex(mymac[5]);
+	hostname[8] = toAsciiHex ( mymac[5] >> 4 );
+	hostname[9] = toAsciiHex ( mymac[5] );
 	}
+
+	*/
+	DEBUG_PRINT(F("Hostname:   "));
+	DEBUG_PRINT(hostname);
+	DEBUG_PRINTLN(F("(not implemented)"));
+	/*
+	//do not  Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
+	if ( hname != NULL )
+	{
+	if ( fromRam )
+	{
+	strncpy ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
+	}
+	else
+	{
+	strncpy_P ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
+	}
+	}
+	else
+	{
+	// Set a unique hostname, use Arduino-?? with last octet of mac address
+	hostname[8] = toAsciiHex ( mymac[5] >> 4 );
+	hostname[9] = toAsciiHex ( mymac[5] );
+	}
+
+	*/
+	DEBUG_PRINT(F("Hostname:   "));
+	DEBUG_PRINT(hostname);
+	DEBUG_PRINTLN(F("(not implemented)"));
 
 	dhcpState = DHCP_STATE_INIT;
 	uint16_t start = millis();
@@ -415,7 +582,8 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 	updateBroadcastAddress();
 	delaycnt = 0;
 	return dhcpState == DHCP_STATE_BOUND;
-	*/
+#endif
+
 }
 
 /// <summary>

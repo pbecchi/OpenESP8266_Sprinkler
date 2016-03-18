@@ -51,6 +51,12 @@
     <ClInclude Include="..\EtherCardW5100.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Pins.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PCF8574Mio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Gpio.cpp">
@@ -78,6 +84,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\EtherCardW5100.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PCF8574Mio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

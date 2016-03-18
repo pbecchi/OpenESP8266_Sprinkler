@@ -70,6 +70,8 @@ Original Opensprinkler code commences below here
 #ifdef ESP8266
 #include <FS.h>
 //#include "../SPIFFSdFat.h"
+#include "../PCF8574Mio.h"
+
 #else 
 #include <SdFat.h>
 #endif
@@ -84,11 +86,13 @@ Original Opensprinkler code commences below here
 #endif
 
 	#ifdef OPENSPRINKLER_ARDUINO_W5100
-		#include <SPI.h>
-		#include <Ethernet.h>
-		#include <EthernetUdp.h>
-#ifdef ESP8266
+#ifndef ESP8266
 
+#include <SPI.h>
+#include <Ethernet.h>
+#include <EthernetUdp.h>
+
+#else
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <WiFiServer.h>
@@ -120,6 +124,9 @@ byte DB = 0xFF;
 #ifdef ESP8266
 extern DS1307RTC RTC;
 #endif
+
+extern PCF8574 PCF[10];
+
 extern OpenSprinkler os;
 
 void do_setup();

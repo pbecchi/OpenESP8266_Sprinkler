@@ -20,7 +20,7 @@
  * along with this program.  If not, see
  * <http://www.gnu.org/licenses/>. 
  */
-#include "eeprom_mio.h"
+//#include "eeprom_mio.h"
 #include <limits.h>
 #include "../OpenSprinklerProgram.h"
 

@@ -239,7 +239,8 @@ typedef enum
 			#define OS_HW_VERSION (OS_HW_VERSION_BASE+22)
 		#endif
 	#endif
-
+#include "Pins.h"
+#ifdef GETOUT //da eliminare
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
 	/* READ ME - PIN_EXT_BOARDS defines the total number of discrete digital IO pins
 	used to control watering stations. There are 8 stations per extender board, that
@@ -303,7 +304,6 @@ typedef enum
 #define PIN_SR_CLOCK       10    // shift register clock pin
 //#define PIN_SR_OE              // shift register output enable pin
 #define OS_HW_VERSION    0.0
-#define SDFAT
 #endif//--------------------------------------------------------------------------
 #endif // OPENSPRINKLER_ARDUINO_DISCRETE
 #ifdef OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
@@ -416,7 +416,7 @@ typedef enum
 #define PIN_CURR_DIGITAL  24    // digital pin index for A7
 #endif
 #endif
-
+#endif //GETOUT
 // Ethernet buffer size
 #if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
 #define ETHER_BUFFER_SIZE   1500 // ATmega1284 has 16K RAM, so use a bigger buffer
@@ -444,7 +444,7 @@ extern byte DB;
 #define DEBUG_BEGIN(x)   Serial.begin(x)
 #define DEBUG_PRINTF(x,y)   if(DB&DB_MASK) Serial.print(x,y)
 #define DEBUG_PRINT(x)  if(DB&DB_MASK) Serial.print(x)
-#define DEBUG_PRINTLN(x)if(DB&DB_MASK) Serial.println(x)//;Serial.print(DB,DEC);Serial.println(DB_MASK,DEC);
+#define DEBUG_PRINTLN(x) if(DB&DB_MASK) Serial.println(x)  //;Serial.print(DB,DEC);Serial.println(DB_MASK,DEC);
 #else
 #define DEBUG_PRINTF {}
 #define DEBUG_COMMAND {}

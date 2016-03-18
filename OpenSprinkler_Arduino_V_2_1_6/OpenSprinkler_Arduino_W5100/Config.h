@@ -34,7 +34,9 @@ About:		This is a fork of Rays OpenSprinkler code thats amended to use alternati
 #define OPENSPRINKLER_ARDUINO
 //#define OPENSPRINKLER_ARDUINO_DISCRETE			// use discrete IO instead of a shift register to control sprinkler outputs
 //#define OPENSPRINKLER_ARDUINO_FREETRONICS_LCD	// use Freetronics LCD with keypad
+#ifdef ESP8266
 #define OPENSPRINKLER_ARDUINO_W5100			// use Wiznet5100 Ethernet shield (without this the code defaults to the Ethercard enc28j60 library)
+#endif
 //#define OPENSPRINKLER_ARDUINO_AUTOREBOOT		// this is an additional function to reboot daily to ensure stable operation
 //#define OPENSPRINKLER_ARDUINO_FREEMEM			// this is an additional function to display free memory on the LCD for debugging
 //#define OPENSPRINKLER_ARDUINO_HEARTBEAT			// this is an additional function to say 'alls well' - flashes an LED, and the ':' on the LCD time at 1Hz
@@ -58,13 +60,6 @@ About:		This is a fork of Rays OpenSprinkler code thats amended to use alternati
 //ETHERNET			 std ENC							SPI channels
 //					 W5100 SHIELD						SPI channels						OPENSPRINKLER_ARDUINO_W5100
 //					 ESP8266 onboard					none								ESP8266
-#ifndef ESP8266
-  #define SDFAT                                   // SD card
-  #define MY_PING                                 // ping allway OK.
-#else 
- #define SD_ON
- #define LCDI2C									  //LCD I2c
-#endif
 // removed PROGMEM from to call look at
 // ESP8266 has WDT_rst function
 

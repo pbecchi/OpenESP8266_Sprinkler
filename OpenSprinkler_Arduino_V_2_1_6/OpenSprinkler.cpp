@@ -21,14 +21,37 @@
  * <http://www.gnu.org/licenses/>.
  */
 #include "Defines.h"
-#include "../OpenSprinkler.h"
-#include "../Gpio.h"
+#include "OpenSprinkler.h"
+#include "Gpio.h"
 #ifdef ESP8266
+
 #include <FS.h>
 #define sd SPIFFS
 #define FIL file
-#endif
+#include "PCF8574Mio.h"
+#define PCF8574_M
 
+#endif
+ 
+#ifdef PCF8574_M
+PCF8574 PCF[10];//_38(0x3F);  // add switches to lines  (used as input)
+ //PCF8574 PCF_39(0x3F);  // add leds to lines      (used as output)
+
+
+ //
+ //            pin HACKING FUNCTIONS 
+ //            if PIN_NUMBER > MAX MCU PINS (16 for ESP8266) PINs are assigned to PCF 8574 I/O lines 
+ //				(16 pins reserved for each IC) (in the order given by ESP8266 address)
+ //
+#define MAX_MCU_PINS 32
+#define pinMode(x,y) if(x<MAX_MCU_PINS) pinMode(x,y); //verify pin on Ic??
+#define digitalWrite(x,y) (x<MAX_MCU_PINS)? digitalWrite(x,y) :PCF[(x - MAX_MCU_PINS) / 16].write((byte)(x - MAX_MCU_PINS) % 16, y);DEBUG_PRINT("<W>");DEBUG_PRINT(x) //verify pin on Ic??
+#define digitalRead(x)   (x<MAX_MCU_PINS)? digitalRead(x): PCF[(x-MAX_MCU_PINS)/16].read((x-MAX_MCU_PINS)%16)
+#else
+#define PINMODE(x, y)  pinMode(x, y) //verify pin on Ic??
+#define digitalWrite(x,y)  digitalWrite(x,y)
+#define digitalRead(x)   digitalRead(x)
+#endif
 /** Declare static data members */
 NVConData OpenSprinkler::nvdata;
 ConStatus OpenSprinkler::status;
@@ -56,8 +79,10 @@ char tmp_buffer[TMP_BUFFER_SIZE+1];       // scratch buffer
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
 int OpenSprinkler::station_pins[16] =
 {
-    PIN_STN_S01, PIN_STN_S02, PIN_STN_S03, PIN_STN_S04, PIN_STN_S05, PIN_STN_S06, PIN_STN_S07, PIN_STN_S08,
-    PIN_STN_S09, PIN_STN_S10, PIN_STN_S11, PIN_STN_S12, PIN_STN_S13, PIN_STN_S14, PIN_STN_S15, PIN_STN_S16
+    PIN_STN_S01, PIN_STN_S02, PIN_STN_S03, PIN_STN_S04, PIN_STN_S05, PIN_STN_S06, PIN_STN_S07, PIN_STN_S08
+#ifdef PIN_STN_S09
+	,PIN_STN_S09, PIN_STN_S10, PIN_STN_S11, PIN_STN_S12, PIN_STN_S13, PIN_STN_S14, PIN_STN_S15, PIN_STN_S16
+#endif
 };
 #endif // OPENSPRINKLER_ARDUINO_DISCRETE
 
@@ -77,8 +102,9 @@ char stns_filename[]   = STATION_ATTR_FILENAME;
 LiquidCrystal OpenSprinkler::lcd ( PIN_LCD_RS, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7 );
 #else
 #ifdef LCDI2C
-#define BACKLIGHT_PIN 3
-LiquidCrystal_I2C	OpenSprinkler::lcd(0x27, 2, 1, 0, 4, 5, 6, 7);
+#define BACKLIGHT_PIN PIN_LCD_BACKLIGHT
+//LiquidCrystal_I2C	OpenSprinkler::lcd(0X27, 2, 1, 0, 4, 5, 6, 7);
+LiquidCrystal_I2C OpenSprinkler::lcd(LCD_ADDR, PIN_LCD_EN, PIN_LCD_RW, PIN_LCD_RS, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 #else
 LiquidCrystal OpenSprinkler::lcd;
 #endif
@@ -345,6 +371,109 @@ time_t OpenSprinkler::now_tz()
 
 #if defined(ARDUINO)  // AVR network init functions
 
+//static PCF8574 PCF[10];
+
+
+enum I2Cdev_t
+{
+	PCF8574_TYPE,
+	PCF8574A_TYPE,
+	RTC_TYPE,
+	EEPROM_TYPE,
+	
+};
+byte ADR[4] = {
+	0x20,
+	0x38,
+	0x64,
+	0x50
+};
+byte ADR_R[4] = {
+	8,
+	8,
+	16,
+	8
+};
+bool ADR_TYP[4] = {
+	true,
+	true,
+	false,
+	false
+};
+String ADR_DEV_NAME[4] = {
+
+	"PCF8574",
+	"PCF8574A",
+	"DS3231",
+	"AT24Cxx"
+};
+void ScanI2c()
+{
+	byte address[20];
+	byte error;
+	int nDevices;
+
+	Serial.println("Scanning..I2C.....");
+
+	nDevices = 0;
+	for (byte addres = 1; addres < 127; addres++)
+	{
+		// The i2c_scanner uses the return value of
+		// the Write.endTransmisstion to see if
+		// a device did acknowledge to the address.
+		Wire.beginTransmission(addres);
+		error = Wire.endTransmission();
+		bool trov = false;
+		byte trova = 255;
+		if (error == 0)
+		{
+			Serial.print("I2C device found at address 0x");
+			if (addres < 16)
+				Serial.print("0");
+			Serial.print(addres, HEX);
+			Serial.print("\t");
+			byte id = 0;
+			while (id++ < 4) {
+				if (addres >= ADR[id] && addres < ADR[id] + ADR_R[id]) {
+					Serial.println(ADR_DEV_NAME[id]); trov = true;
+					trova = id;
+
+				}
+			}
+			if (!trov) Serial.println(" unknown");
+		}
+		if (trova != 255)
+			if (ADR_TYP[trova]) {
+#ifdef LCD_ADDR            //do not count LCD controller if LCD i2c library is used
+				if (addres == LCD_ADDR)Serial.println("found LCD Controller");
+				else
+#endif
+				address[nDevices] = addres;
+				nDevices++;
+#ifdef PCF8574_M
+				
+			    PCF[nDevices-1].begin(addres);
+#else
+				Serial.println("error Pcf_dev found ???");
+#endif
+
+			}
+			else if (error == 4)
+			{
+				Serial.print("Unknow error at address 0x");
+				if (address[nDevices]<16)
+					Serial.print("0");
+				Serial.println(address[nDevices], HEX);
+			}
+	}
+	if (nDevices == 0)
+		Serial.println("No I2C devices found\n");
+	else
+		Serial.println("done\n");
+
+	//	return nDevices;
+}
+
 /** read hardware MAC */
 #define MAC_CTRL_ID 0x50
 bool OpenSprinkler::read_hardware_mac()
@@ -591,6 +720,15 @@ extern void flow_isr();
 /** Initialize pins, controller variables, LCD */
 void OpenSprinkler::begin()
 {
+	// Init I2C
+#ifdef ESP8266
+	Wire.begin(SDA_PIN, SCL_PIN);
+	DEBUG_PRINTLN("wire begin");
+#else
+	Wire.begin();
+#endif
+
+	ScanI2c();
 
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
     // initialize the Digital IO pins as outputs:
@@ -599,15 +737,15 @@ void OpenSprinkler::begin()
 #else
     // shift register setup
 #ifdef PIN_SSR_OE
-    pinMode ( PIN_SR_OE, OUTPUT );
+    PINMODE ( PIN_SR_OE, OUTPUT );
 
     // pull shift register OE high to disable output
     digitalWrite ( PIN_SR_OE, HIGH );
 #endif
 	DEBUG_PRINTLN(PIN_SR_LATCH);
-    pinMode ( PIN_SR_LATCH, OUTPUT );
+    PINMODE ( PIN_SR_LATCH, OUTPUT );
     digitalWrite ( PIN_SR_LATCH, HIGH );
-    pinMode ( PIN_SR_CLOCK, OUTPUT );
+    PINMODE ( PIN_SR_CLOCK, OUTPUT );
 #endif // OPENSPRINKLER_ARDUINO_DISCRETE
 
 #if defined(OSPI)
@@ -617,10 +755,10 @@ void OpenSprinkler::begin()
     if ( rev==0x0002 || rev==0x0003 )
         pin_sr_data = PIN_SR_DATA_ALT;
     // if this is revision 1, use PIN_SR_DATA_ALT
-    pinMode ( pin_sr_data, OUTPUT );
+    PINMODE ( pin_sr_data, OUTPUT );
 #else
 #ifndef OPENSPRINKLER_ARDUINO_DISCRETE
-    pinMode ( PIN_SR_DATA,  OUTPUT );
+    PINMODE ( PIN_SR_DATA,  OUTPUT );
 #endif
 #endif
 
@@ -663,19 +801,13 @@ void OpenSprinkler::begin()
 
 #ifdef PIN_RF_DATA
     // set rf data pin
-    pinMode ( PIN_RF_DATA, OUTPUT );
+    PINMODE ( PIN_RF_DATA, OUTPUT );
     digitalWrite ( PIN_RF_DATA, LOW );
 #endif
 
     hw_type = HW_TYPE_AC;
 #if defined(ARDUINO)  // AVR SD and LCD functions
-    // Init I2C
-#ifdef ESP8266
-	Wire.begin(SDA_PIN, SCL_PIN);
-	DEBUG_PRINTLN("wire begin");
-#else
-	Wire.begin();
-#endif
+ 
 	
 
 #if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__) // OS 2.3 specific detections
@@ -702,15 +834,15 @@ void OpenSprinkler::begin()
 
     if ( hw_type == HW_TYPE_DC )
     {
-        pinMode ( PIN_BOOST, OUTPUT );
+        PINMODE ( PIN_BOOST, OUTPUT );
         digitalWrite ( PIN_BOOST, LOW );
 
-        pinMode ( PIN_BOOST_EN, OUTPUT );
+        PINMODE ( PIN_BOOST_EN, OUTPUT );
         digitalWrite ( PIN_BOOST_EN, LOW );
     }
 
     // detect if current sensing pin is present
-    pinMode ( PIN_CURR_DIGITAL, INPUT );
+    PINMODE ( PIN_CURR_DIGITAL, INPUT );
     digitalWrite ( PIN_CURR_DIGITAL, HIGH ); // enable internal pullup
     status.has_curr_sense = digitalRead ( PIN_CURR_DIGITAL ) ? 0 : 1;
     digitalWrite ( PIN_CURR_DIGITAL, LOW );
@@ -782,7 +914,7 @@ void OpenSprinkler::begin()
     _icon[7] = B00000;
     lcd.createChar ( 6, _icon );
 #ifdef SDFAT 
-#ifndef ESP8266
+
     // set sd cs pin high to release SD
     pinMode ( PIN_SD_CS, OUTPUT );
     digitalWrite ( PIN_SD_CS, HIGH );
@@ -791,15 +923,13 @@ void OpenSprinkler::begin()
     {
         status.has_sd = 1;
     }
-#else
-#ifdef SD_ON	
+
+#elif defined(SPIFFSDFAT)	
 	if (SPIFFS.begin()) {
 		Dir dir = SPIFFS.openDir("/");
 		while (dir.next())DEBUG_PRINTLN(dir.fileName());
 		status.has_sd = 1;
 	}
-#endif
-#endif //ESP8266
 #endif
 
 
@@ -808,12 +938,15 @@ void OpenSprinkler::begin()
 #else
     // set button pins
     // enable internal pullup
-    pinMode ( PIN_BUTTON_1, INPUT );
-    pinMode ( PIN_BUTTON_2, INPUT );
-    pinMode ( PIN_BUTTON_3, INPUT );
-    digitalWrite ( PIN_BUTTON_1, HIGH );
-    digitalWrite ( PIN_BUTTON_2, HIGH );
-    digitalWrite ( PIN_BUTTON_3, HIGH );
+    pinMode ( PIN_BUTTON_1, INPUT_PULLUP );
+    pinMode ( PIN_BUTTON_2, INPUT_PULLUP );
+    pinMode ( PIN_BUTTON_3, INPUT_PULLUP );
+	DEBUG_PRINT("b1="); DEBUG_PRINTLN(digitalRead(PIN_BUTTON_1));
+	DEBUG_PRINT("b2="); DEBUG_PRINTLN(digitalRead(PIN_BUTTON_2));
+	DEBUG_PRINT("b3="); DEBUG_PRINTLN(digitalRead(PIN_BUTTON_3));
+ //   DIGITALWRITE ( PIN_BUTTON_1, HIGH );
+ //   DIGITALWRITE ( PIN_BUTTON_2, HIGH );
+ //   DIGITALWRITE ( PIN_BUTTON_3, HIGH );
 #endif // OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
 
     // detect and check RTC type
@@ -837,15 +970,26 @@ void OpenSprinkler::apply_all_station_bits()
     // Shift out all station bit values from the highest bit to the lowest
     for ( bid = 0; bid <= MAX_EXT_BOARDS; bid++ )
     {
+
         if ( status.enabled )
             sbits = station_bits[MAX_EXT_BOARDS - bid];
+	//	DEBUG_PRINT(int(bid)); DEBUG_PRINT("sb="); DEBUG_PRINTLN(int(sbits));
         else
             sbits = 0;
 
         // Check that we're switching physical discretes within the range defined
-        if ( bid < PIN_EXT_BOARDS )
-            for ( s = 0; s < 8; s++ )
-                digitalWrite ( station_pins[ ( bid * 8 ) + s], ( sbits & ( ( byte ) 1 << ( 7 - s ) ) ) ? HIGH : LOW );
+		if (MAX_EXT_BOARDS - bid < PIN_EXT_BOARDS)
+		{
+			DEBUG_PRINT("sb="); DEBUG_PRINTLN(int(sbits));
+			for (s = 0; s < 8; s++)
+			{
+
+				//	DEBUG_PRINT(station_pins[(bid * 8) + s]);
+				byte sBit = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
+						Serial.print(sBit,DEC);
+				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
+			}
+		}
     }
 #else
     digitalWrite ( PIN_SR_LATCH, LOW );
@@ -865,10 +1009,13 @@ void OpenSprinkler::apply_all_station_bits()
             digitalWrite ( PIN_SR_CLOCK, LOW );
 #if defined(OSPI) // if OSPI, use dynamically assigned pin_sr_data
             digitalWrite ( pin_sr_data, ( sbits & ( ( byte ) 1<< ( 7-s ) ) ) ? HIGH : LOW );
-#else
-            digitalWrite ( PIN_SR_DATA, ( sbits & ( ( byte ) 1<< ( 7-s ) ) ) ? HIGH : LOW );
 #endif
-            digitalWrite ( PIN_SR_CLOCK, HIGH );
+#ifndef OSPI
+			byte y = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
+			
+			digitalWrite ( PIN_SR_CLOCK, (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW);
+#endif
+            digitalWrite ( PIN_SR_DATA , HIGH );
         }
     }
 
@@ -913,7 +1060,8 @@ void OpenSprinkler::rainsensor_status()
 {
     // options[OPTION_RS_TYPE]: 0 if normally closed, 1 if normally open
     if ( options[OPTION_SENSOR_TYPE]!=SENSOR_TYPE_RAIN ) return;
-    status.rain_sensed = ( digitalRead ( PIN_RAINSENSOR ) == options[OPTION_RAINSENSOR_TYPE] ? 0 : 1 );
+	
+     status.rain_sensed = (digitalRead(PIN_RAINSENSOR) == options[OPTION_RAINSENSOR_TYPE] ? 0 : 1 );
 }
 
 /** Read current sensing value
@@ -1349,7 +1497,7 @@ void OpenSprinkler::options_setup()
 	int i = 0; char d;
 	DEBUG_PRINTLN(DEFAULT_WEATHER_URL);
 	DEBUG_PRINTLN(strlen(DEFAULT_WEATHER_URL));
-	while (d != 0) { d = eeprom_read_byte((byte*)ADDR_NVM_WEATHERURL + i++); DEBUG_PRINT(d); }
+	//while (d != 0) { d = eeprom_read_byte((byte*)ADDR_NVM_WEATHERURL + i++); DEBUG_PRINT(d); }
     byte curr_ver = nvm_read_byte ( ( byte* ) ( ADDR_NVM_OPTIONS+OPTION_FW_VERSION ) );
 	DEBUG_PRINTLN((int)curr_ver);
     // check reset condition: either firmware version has changed, or reset flag is up
@@ -1964,11 +2112,11 @@ byte OpenSprinkler::button_read_busy ( byte pin_butt, byte waitmode, byte butt, 
 
     if ( waitmode==BUTTON_WAIT_NONE || ( waitmode == BUTTON_WAIT_HOLD && is_holding ) )
     {
-        if ( digitalRead ( pin_butt ) != 0 ) return BUTTON_NONE;
+        if (( digitalRead ( pin_butt ) )!= BUT_ON ) return BUTTON_NONE;
         return butt | ( is_holding ? BUTTON_FLAG_HOLD : 0 );
     }
 
-    while ( digitalRead ( pin_butt ) == 0 &&
+    while ( (digitalRead ( pin_butt ) )== BUT_ON &&
             ( waitmode == BUTTON_WAIT_RELEASE || ( waitmode == BUTTON_WAIT_HOLD && hold_time<BUTTON_HOLD_MS ) ) )
     {
         delay ( BUTTON_DELAY_MS );
@@ -1988,20 +2136,25 @@ byte OpenSprinkler::button_read ( byte waitmode )
     byte is_holding = ( old&BUTTON_FLAG_HOLD );
 
     delay ( BUTTON_DELAY_MS );
-
-    if ( digitalRead ( PIN_BUTTON_1 ) == 0 )
+	byte but1 = digitalRead(PIN_BUTTON_1);
+	byte but2 = digitalRead(PIN_BUTTON_2);
+	byte but3 = digitalRead(PIN_BUTTON_3);
+    if (  but1== BUT_ON )
     {
+		DEBUG_PRINT("b1="); DEBUG_PRINT(but1);
         curr = button_read_busy ( PIN_BUTTON_1, waitmode, BUTTON_1, is_holding );
     }
-    else if ( digitalRead ( PIN_BUTTON_2 ) == 0 )
-    {
+    else if ( but2 == BUT_ON )
+    {   
+		DEBUG_PRINT("b2="); DEBUG_PRINT(but2);
         curr = button_read_busy ( PIN_BUTTON_2, waitmode, BUTTON_2, is_holding );
     }
-    else if ( digitalRead ( PIN_BUTTON_3 ) == 0 )
+    else if ( but3 == BUT_ON )
     {
+		DEBUG_PRINT("b3="); DEBUG_PRINT(but3);
         curr = button_read_busy ( PIN_BUTTON_3, waitmode, BUTTON_3, is_holding );
     }
-
+	DEBUG_PRINTLN('r');
     // set flags in return value
     byte ret = curr;
     if ( ! ( old&BUTTON_MASK ) && ( curr&BUTTON_MASK ) )
