@@ -35,7 +35,7 @@ changes for ESP8266 porting are  bounded by "#ifdef ESP8266" , "#endif" commands
 Refer to the start of 'Config.h' and 'Pins.h' for options to substitute different hardware and turn functions on or off.
 
 
- FULL CREDIT to Ray  for all the hard work to build and maintain the Open Sprinkler project and to Dave for his porting to Mega that have simplified a lot my conversion to ESP8266 work.         
+ FULL CREDIT to Ray  for all the hard work to build and maintain the Open Sprinkler project and to Dave for his porting to Mega that have simplified a lot my conversion to ESP8266.         
 --------------------------------------------------------------------------------
 
 Current Release
@@ -59,10 +59,10 @@ This Code is made to be compatible with several MCU and several peripheral:
 		ESP8266 boards: better to use ESP8266 v1.2 or NODEMCU v1.0 with more GPIO available.
 		With NodeMCU you don’t have to worry about power supply and USB interface.
 	-LCD
-		Parallel 16*2 and 20*4 LCD(*) 
-		Freetronics LCD Shield 16*2 + 5 buttons 
-		I2C 16*2 or 20*4 LCD(*)
-           (*) additional lines and characters to be used for future developments
+		Parallel 16x2 and 20x4 LCD(x) 
+		Freetronics LCD Shield 16x2 + 5 buttons 
+		I2C 16x2 or 20*4 LCD(x)
+           (x) additional lines and characters to be used for future developments
 	
       -RTC DS1307 or DS3231(best choice for ESP8266) + AT24C32 I2C EEPROM as can be found on z-042 breakout boards.
 		The presence of the I2C EEPROM is necessary for the actual (beta_ESP_01) code to work on ESP8266.
@@ -107,7 +107,7 @@ Compile and build
 
 To install and compile this code you need:
    
-   1.  Arduino IDE 1.6.5+ -> http://arduino.cc/
+  1.  Arduino IDE 1.6.5+ -> http://arduino.cc/
 		Using ESP core support library from http://arduino.esp8266.com/versions/1.6.5-1160-gef26c5f/doc/reference.html
 
  	  The code is large and may be difficult to manage with the limited resources of Arduino IDE
@@ -116,28 +116,28 @@ To install and compile this code you need:
        
   2.  Libraries:
 
-Most of the libraries are included on the GitHub code and should be placed on the same directory on the code.
+	Most of the libraries are included on the GitHub code and should be placed on the same directory on the code.
 
-Following libraries should be on the <sketchbook/libraries> folder:
--"Time.h"          http://www.pjrc.com/teensy/td_libs_Time.html 
--"TimeAlarms.h"    http://www.pjrc.com/teensy/td_libs_TimeAlarms.html 
--"DS1307RTC.h"     http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
--"LiquidCrystal_I2C.h"https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
+	Following libraries should be on the <sketchbook/libraries> folder:
+	-"Time.h"          http://www.pjrc.com/teensy/td_libs_Time.html 
+	-"TimeAlarms.h"    http://www.pjrc.com/teensy/td_libs_TimeAlarms.html 
+	-"DS1307RTC.h"     http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
+	-"LiquidCrystal_I2C.h"https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
 
-Other libraries are standard (part of Arduino ESP core/Arduino IDE):
+	Other libraries are standard (part of Arduino ESP core/Arduino IDE):
 
-Additional libraries for different Hw configurations
+	Additional libraries for different Hw configurations
 
-- "LiquidCrystal.h" Standard Arduino Library
-- "SPI.h"           Standard Arduino Library
-- "Ethernet.h"      Standard Arduino Library
-- "EthernetUdp.h"   Standard Arduino Library
-- "SDFat.h"         https://github.com/greiman/SdFat
+	- "LiquidCrystal.h" Standard Arduino Library
+	- "SPI.h"           Standard Arduino Library
+	- "Ethernet.h"      Standard Arduino Library
+	- "EthernetUdp.h"   Standard Arduino Library
+	- "SDFat.h"         https://github.com/greiman/SdFat
 
-ESP8266 not compatible libraries:
+	ESP8266 not compatible libraries:
 
-- "ICMPPing.h"      https://github.com/BlakeFoster/Arduino-Ping
-- "MemoryFree.h"    http://playground.arduino.cc/Code/AvailableMemory which links to https://dl.dropbox.com/u/56421988/MemoryFree.zip
+	- "ICMPPing.h"      https://github.com/BlakeFoster/Arduino-Ping
+	- "MemoryFree.h"    http://playground.arduino.cc/Code/AvailableMemory 		
 
   NOTE - unless you're careful, you may have some issues with the libraries above co-existing with OpenSprinklerGen library. The easiest way to fix it is to remove OpenSprinkler from your Arduino library folder. 
 
