@@ -118,11 +118,12 @@ To install and compile this code you need:
 
 	Most of the libraries are included on the GitHub code and should be placed on the same directory on the code.
 
-	Following libraries should be on the <sketchbook/libraries> folder:
-	-"Time.h"          http://www.pjrc.com/teensy/td_libs_Time.html 
-	-"TimeAlarms.h"    http://www.pjrc.com/teensy/td_libs_TimeAlarms.html 
-	-"DS1307RTC.h"     http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
-	-"LiquidCrystal_I2C.h"https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
+	Following libraries should be on the sketchbook/libraries folder:
+	
+	-"Time.h"          	http://www.pjrc.com/teensy/td_libs_Time.html 
+	-"TimeAlarms.h"    	http://www.pjrc.com/teensy/td_libs_TimeAlarms.html 
+	-"DS1307RTC.h"     	http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
+	-"LiquidCrystal_I2C.h"	https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
 
 	Other libraries are standard (part of Arduino ESP core/Arduino IDE):
 
