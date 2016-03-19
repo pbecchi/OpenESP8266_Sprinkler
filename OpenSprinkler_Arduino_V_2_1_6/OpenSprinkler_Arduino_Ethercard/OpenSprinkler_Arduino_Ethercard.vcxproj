@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0909011F-F46F-425E-9595-765EDDEEA736}</ProjectGuid>
+    <RootNamespace>OpenSprinkler_Arduino_Ethercard</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\mega;C:\Users\Dave\Dropbox\GitHub\OpenSprinkler-Arduino\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_Ethercard;C:\Users\Dave\Dropbox\Arduino\libraries\DS1307RTC;C:\Users\Dave\Dropbox\Arduino\libraries\DS1307RTC\utility;C:\Users\Dave\Dropbox\Arduino\libraries\ethercard;C:\Users\Dave\Dropbox\Arduino\libraries\ethercard\utility;C:\Program Files (x86)\Arduino\libraries\Ethernet\src;C:\Program Files (x86)\Arduino\libraries\Ethernet\src\utility;C:\Users\Dave\Dropbox\Arduino\libraries\ICMPPing;C:\Users\Dave\Dropbox\Arduino\libraries\ICMPPing\utility;C:\Program Files (x86)\Arduino\libraries\LiquidCrystal\src;C:\Program Files (x86)\Arduino\libraries\LiquidCrystal\src\utility;C:\Users\Dave\Dropbox\Arduino\libraries\MemoryFree;C:\Users\Dave\Dropbox\Arduino\libraries\MemoryFree\utility;C:\Users\Dave\Dropbox\Arduino\libraries\SdFat;C:\Users\Dave\Dropbox\Arduino\libraries\SdFat\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\utility;C:\Users\Dave\Dropbox\Arduino\libraries\Time;C:\Users\Dave\Dropbox\Arduino\libraries\Time\utility;C:\Users\Dave\Dropbox\Arduino\libraries\TimeAlarms;C:\Users\Dave\Dropbox\Arduino\libraries\TimeAlarms\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\utility;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\vagjduez.qaa\Micro Platforms\default\debuggers;C:\Users\Dave\Dropbox\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\tools\avr/avr/include/;C:\Program Files (x86)\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files (x86)\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>C:\Users\Dave\Dropbox\GitHub\OpenSprinkler-Arduino\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_Ethercard\__vm\.OpenSprinkler_Arduino_Ethercard.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>__AVR_ATmega2560__;_VMDEBUG=1;F_CPU=16000000L;ARDUINO=167;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\cores\esp8266;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\variants\nodemcu;D:\Users\pbecc\OneDrive\Arduino\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_Ethercard;d:\users\pbecc\onedrive\Arduino\libraries\DS1307RTC-master;d:\users\pbecc\onedrive\Arduino\libraries\DS1307RTC-master\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\libraries\Ethernet\src;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\libraries\Ethernet\src\utility;d:\users\pbecc\onedrive\Arduino\libraries\icmpping;d:\users\pbecc\onedrive\Arduino\libraries\icmpping\utility;d:\users\pbecc\onedrive\Arduino\libraries\LiquidCrystal;d:\users\pbecc\onedrive\Arduino\libraries\LiquidCrystal\utility;d:\users\pbecc\onedrive\Arduino\libraries\MemoryFree;d:\users\pbecc\onedrive\Arduino\libraries\MemoryFree\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\libraries\SPI;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\libraries\SPI\utility;d:\users\pbecc\onedrive\Arduino\libraries\Time;d:\users\pbecc\onedrive\Arduino\libraries\Time\utility;d:\users\pbecc\onedrive\Arduino\libraries\TimeAlarms;d:\users\pbecc\onedrive\Arduino\libraries\TimeAlarms\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\libraries\Wire;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\libraries\Wire\utility;d:\Program Files\Arduino\libraries;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\libraries;D:\Program Files\VisualStudio\Common7\IDE\Extensions\3r5ldoi0.jlp\Micro Platforms\default\debuggers;d:\users\pbecc\onedrive\Arduino\libraries;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2/tools/sdk/include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2\xtensa-lx106-elf;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\lib\gcc\xtensa-lx106-elf\4.8.2\include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.0.0-rc2\tools\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>D:\Users\pbecc\OneDrive\Arduino\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_Ethercard\__vm\.OpenSprinkler_Arduino_Ethercard.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <PreprocessorDefinitions>__ESP8266_ESp8266__;__ESP8266_ESP8266__;__ets__;ICACHE_FLASH;F_CPU=80000000L;ARDUINO=10605;ARDUINO_ESP8266_ESP12;ARDUINO_ARCH_ESP8266;ESP8266;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="OpenSprinkler_Arduino_Ethercard.ino">
+      <FileType>CppCode</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Defines.h" />
+    <ClInclude Include="..\Gpio.h" />
+    <ClInclude Include="..\OpenSprinkler.h" />
+    <ClInclude Include="..\OpenSprinklerProgram.h" />
+    <ClInclude Include="..\OpenSprinklerServer.h" />
+    <ClInclude Include="..\Utils.h" />
+    <ClInclude Include="..\Weather.h" />
+    <ClInclude Include="Config.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="__vm\.OpenSprinkler_Arduino_Ethercard.vsarduino.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Gpio.cpp" />
+    <ClCompile Include="..\OpenSprinkler.cpp" />
+    <ClCompile Include="..\OpenSprinklerMain.cpp" />
+    <ClCompile Include="..\OpenSprinklerProgram.cpp" />
+    <ClCompile Include="..\OpenSprinklerServer.cpp" />
+    <ClCompile Include="..\Utils.cpp" />
+    <ClCompile Include="..\Weather.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

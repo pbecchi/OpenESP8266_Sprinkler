@@ -6,16 +6,16 @@
 #define SDA_PIN          D2       //:this is standard....it may be changed
 #define SCL_PIN          D1       //:this is standard  ---it may be chaNGED
 #define OS_HW_VERSION    0.0
-#else // not ESP8266 
+#else // not compatible libraries ESP8266 
 #define SDFAT                                   // SD card on 
 #define MY_PING                                 // ping not available on ESP8266
 #endif
-////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MEGA_W5100 1
 #define ESP8266_C 2
 #define PCF8574_C 3
 #define BUT_ON 0
-// =================================================================
+// ===================================================================================================================
 // HARDWARE CONFIGURATIONS								GPIO channels                     #define
 //
 // RTC               DS1307, DS33xx						I2C channels					allways
@@ -43,7 +43,7 @@
 //                       PIN    ASSIGNEMENT
 //
 //
-#define PROTO 2
+#define PROTO 1             ///////////////////
 //////////////////////////////proto board 1//////////////////////////////////////////////
 #if PROTO==1
 #define SDA_PIN D5                         //:redefined 
@@ -53,7 +53,7 @@
 #define SHIFT_REG
 #define BUTTON_ADC_PIN		 A0            // A0 is the button ADC input				//:analog buttons
 #define LCDI2C								//:i2c LCD
-#define SPIFFSDFAT							//:sd EMULATED ON fLASH
+#define SPIFFSDFAT							//:no sd ....EMULATED ON fLASH
 #define ADDITIONAL_SENSORS ESP8266_C         //:additional sensors to ESP 
 /////////////////////////////proto board 2////////////////////////////////////////////////
 #elif PROTO==2
@@ -128,7 +128,7 @@ like the regular opensprinkler hardware) */
 #define PIN_SR_LATCH       D3    // shift register latch pin
 #define PIN_SR_DATA        D0    // shift register data pin
 #define PIN_SR_CLOCK       10    // shift register clock pin
-#undefine PIN_SR_OE              // shift register output enable pin
+//#define PIN_SR_OE              // shift register output enable pin
 #endif// END ESP8266--------------------------------------------------------------------------
 #endif
 

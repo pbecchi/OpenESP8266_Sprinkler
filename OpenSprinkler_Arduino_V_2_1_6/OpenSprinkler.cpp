@@ -442,7 +442,7 @@ void ScanI2c()
 			}
 			if (!trov) Serial.println(" unknown");
 		}
-		if (trova != 255)
+		if (trova != 255&&trov)
 			if (ADR_TYP[trova]) {
 #ifdef LCD_ADDR            //do not count LCD controller if LCD i2c library is used
 				if (addres == LCD_ADDR)Serial.println("found LCD Controller");
@@ -743,9 +743,9 @@ void OpenSprinkler::begin()
     digitalWrite ( PIN_SR_OE, HIGH );
 #endif
 	DEBUG_PRINTLN(PIN_SR_LATCH);
-    PINMODE ( PIN_SR_LATCH, OUTPUT );
+    pinMode ( PIN_SR_LATCH, OUTPUT );
     digitalWrite ( PIN_SR_LATCH, HIGH );
-    PINMODE ( PIN_SR_CLOCK, OUTPUT );
+    pinMode ( PIN_SR_CLOCK, OUTPUT );
 #endif // OPENSPRINKLER_ARDUINO_DISCRETE
 
 #if defined(OSPI)
@@ -758,7 +758,7 @@ void OpenSprinkler::begin()
     PINMODE ( pin_sr_data, OUTPUT );
 #else
 #ifndef OPENSPRINKLER_ARDUINO_DISCRETE
-    PINMODE ( PIN_SR_DATA,  OUTPUT );
+    pinMode ( PIN_SR_DATA,  OUTPUT );
 #endif
 #endif
 
