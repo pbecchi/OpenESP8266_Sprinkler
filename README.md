@@ -34,11 +34,9 @@ changes for ESP8266 porting are  bounded by "#ifdef ESP8266" , "#endif" commands
 
 Refer to the start of 'Config.h' and 'Pins.h' for options to substitute different hardware and turn functions on or off.
 
-====================================================================================================
- FULL CREDIT to Ray  for all the hard work to build and maintain the Open Sprinkler project and     
-  to Dave for his porting to Mega that have simplified a lot my conversion to ESP8266 work.         
-====================================================================================================
 
+ FULL CREDIT to Ray  for all the hard work to build and maintain the Open Sprinkler project and to Dave for his porting to Mega that have simplified a lot my conversion to ESP8266 work.         
+--------------------------------------------------------------------------------
 
 Current Release
 ---------------
