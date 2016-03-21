@@ -43,7 +43,7 @@
 //                       PIN    ASSIGNEMENT
 //
 //
-#define PROTO 1             ///////////////////
+#define PROTO 2             ///////////////////
 //////////////////////////////proto board 1//////////////////////////////////////////////
 #if PROTO==1
 #define SDA_PIN D5                         //:redefined 
