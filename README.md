@@ -53,35 +53,36 @@ Hardware
 --------
 This Code is made to be compatible with several MCU and several peripheral: 
 
--the code has been ported to ESP8266 but compatibility with previous MCU & peripheral  has been maintained
--the list of peripheral that should be compatible is the following:
-	-MCU
-		ESP8266 boards: better to use ESP8266 v1.2 or NODEMCU v1.0 with more GPIO available.
+	-the code has been ported to ESP8266 but compatibility with previous MCU & peripheral  has been maintained
+	-the list of peripheral that should be compatible is the following:
+
+		-MCU
+		ESP8266 boards: better to use ESP8266 12E or NODEMCU v1.0 with more GPIO available.
 		With NodeMCU you don’t have to worry about power supply and USB interface.
-	-LCD
-		Parallel 16x2 and 20x4 LCD(x) 
+		-LCD
+		Parallel 16x2 and 20x4 LCD
 		Freetronics LCD Shield 16x2 + 5 buttons 
-		I2C 16x2 or 20*4 LCD(x)
-           (x) additional lines and characters to be used for future developments
+		I2C 16x2 or 20x4 LCD
+                on 20x4 2 additional lines and characters to be used for future developments
 	
-      -RTC DS1307 or DS3231(best choice for ESP8266) + AT24C32 I2C EEPROM as can be found on z-042 breakout boards.
+      		-RTC DS1307 or DS3231(best choice for ESP8266) + AT24C32 I2C EEPROM as can be found on z-042 breakout boards.
 		The presence of the I2C EEPROM is necessary for the actual (beta_ESP_01) code to work on ESP8266.
 	
-      -ETHERNET
+      		-ETHERNET
 		-use of ESP8266 internal capability (code has been added to manage Wi-Fi connections to Hubs in a transparent way)
 		-W5100 Ethernet shield (from Dave1001 code) 
 		-ENC28J60   (from original OS code)
-	-SD CARD
+		-SD CARD
 		-at the moment (current release), on ESP8266, I have added a tested emulation of SD drive on FLASH memory (ESP8266 SPIFFS)
 		-SD SPI drive should be compatible (having sufficient GPIO available on ESP8266) 
-	-PIN INPUT/OUTPUT 
+		-PIN INPUT/OUTPUT 
 		Since on ESP8266 only very few GPIO can be utilized, are bound to that number or
 		-use PCF8574 (5) expansion IC with 8/16 additional IO pins (this is the preferred solution)
 		-pin using interrupts should be routed directly to ESP8266
-	-PIN BUTTON
+		-PIN BUTTON
 		-analog input (5 inputs on Dave code Freetronic shield, 4 in my case using 4 switches).
 		-standard 3 BUTTON PIN input with or without use of PCF8574
-	-PIN for STATIONS output
+		-PIN for STATIONS output
 		-shift register expander (like 75SN595) driven by 3 GPIO or thought an PCF8574
 		-parallel connection to MCU (only for MEGA board) (from Dave1001 code)
 
@@ -90,8 +91,10 @@ This Code is made to be compatible with several MCU and several peripheral:
 !!!!!IMPORTANT: ESP8266 is only compatible with 3.3V logic levels!!!!!! (Use level shifters where necessary)
  
  Schematics of prototype boards I have built to test the code and some components data sheet are in the HARDWARE directory.
+ You can use any combination of GPIO pin you would like as far as you use components supported by the code (libraries) and you change the  pins.h file accordingly (detail instructions will follow)
 
-I intend to test as many different configurations as possible: participation to this effort is welcome!
+I intend to test as many different configurations as possible: participation to this effort is welcome! You could describe your HW configuration as well as functions of your prototype and give me input for code update.....thanks!
+
 
 
 
@@ -113,6 +116,7 @@ To install and compile this code you need:
  	  The code is large and may be difficult to manage with the limited resources of Arduino IDE
  
        My suggestion: use Visual Studio 2015 plus the Visual Micro add-on from here -> http://www.visualmicro.com/
+       If you use Arduino Ide put all file in the same directory and get rid of "../" on includes!
        
   2.  Libraries:
 
@@ -161,10 +165,12 @@ If you're trying to make it work:
 If you're a developer:
 
 - Software IDE
+
 	- I'm using Visual Studio 2015 Community Edition plus Visual Micro to build and upload code.
 	- this release was tested to compile and upload using Arduino IDE Version 1.6.5  
 
 - Discrete Outputs :
+
 	- the number of discrete pins is pre-defined as 16 maximum 
       - you'll need to edit OpenSprinklerGen2.cpp and defines.h if you want more - Hostname 
 	- hostname isn't implemented for opensprinkler : (I am working on it and soon will be available)
@@ -173,8 +179,27 @@ If you're a developer:
 
 	-editing Pins.h file it will be possible to select a different hardware configuration that suit your needs: 
 		Actually I have made to different prototype and you will see how the code address both.
-		I will improve documentation on the file for explanation on how to change it.
+		
 	-other file that can be changed (carefully) are : config.h and defines.h ( for DEBUG and other code modifications).
+
+-How to change Pins.h file
+	
+	The file details each pin used for your HW configuration. 
+	You have first to define the configuration you are working on (ESP or other MCU) and the type of peripheral you are using:see detailed comment in the file about it. Then you have to select the pins (for I2c, station output, shift registers, rain ....all other functions) and assign it to a pin number, using following rule:
+		-pin <32 will be assigned to MCU (ESP8266) GPIO pin numbers( only few are available for ESP8266).
+		-pin >32 and <48 will be assigned to an first I2c extender (the one with the lowest address)
+		-pin >48 and <64 will be assigned to second I2c extender 
+		-so on 16 pin at the time
+	This way you can use expander for all functions (interrupt donot work right now) and free most of the pins on MCU
+
+-First Code Startup
+
+	When you start the code the program will check your connected i2c devices and define what to do with it: check on Serial output to verify that your HW has been setup correctely.
+	It will also check available WiFi networks and ask relative Password than will be stored in a file for future restart.
+	For first startup then a USB connection is required to verify I2c and entering passwords! All other restart dont need any intervention.
+	
+
+
 
 
 TO DO
@@ -185,9 +210,9 @@ Complete following modification that will be included in next releases:
 
 Already under development (will be included in next release):
 
--Hostname definition in term of a given or automatic NAME for the unit that will be found in the net as NAME.local
+-Hostname definition in term of a given or automatic NAME for the unit that will be found in the net as NAME.local(DONE WILLBE ON NEXT COMMIT)
 
--EEPROM on ESP8266 flash memory as an alternative to I2C EEPROM
+-EEPROM on ESP8266 flash memory as an alternative to I2C EEPROM (DONE WILLBE ON NEXT COMMIT)
 
 Modifications Planned for future releases :
 
