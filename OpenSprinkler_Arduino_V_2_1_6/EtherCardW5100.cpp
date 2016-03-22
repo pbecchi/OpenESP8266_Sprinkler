@@ -517,7 +517,7 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 	//   the fully-qualified domain name is "esp8266.local"
 	// - second argument is the IP address to advertise
 	//   we send our IP address on the WiFi network
-	char *  hostname = "ESP";
+	char *  hostname = "OS";
 #define  DHCP_HOSTNAME_MAX_LEN 10
 	
 
@@ -535,10 +535,14 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 	}
 	else
 	{
-		hostname = "ESPsta";
+		hostname = "OS";
 		// Set a unique hostname, use Arduino-?? with last octet of mac address
-		hostname[7] = (mymac[5] >> 4)-char('0');
-		hostname[8] = (mymac[5])-char('0');
+		// ESP HW n. last 2 digit
+		long cod = ESP.getChipId();
+
+		hostname[3] = (cod%10+'0');
+		hostname[2] = (cod%100/10)+('0');
+		hostname[4] = 0;
 	
 	}
 	//hostname = "prova";
@@ -569,7 +573,7 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 
     // print debug values
     printIPConfig();
-	delay(2000);
+	delay(4000);
 #ifndef HOSTNAM
     return true;
 #else
