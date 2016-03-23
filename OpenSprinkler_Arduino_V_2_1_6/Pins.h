@@ -81,6 +81,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define LCDI2C								//: assign LCD address
 #define SPIFFSDFAT							//:no SD
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0  
+//#define ACTIVE_LOW             //Invert output logic if using a active low relay board
 #endif
 
 
