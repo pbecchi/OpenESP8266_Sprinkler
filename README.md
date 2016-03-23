@@ -2,6 +2,8 @@
 ESP8266 port of Opensprikler software.
 NOTE:  This  code and the documentation is WORK IN PROGRES. All your comments and suggestions are welcome (please use GitHub Issue form).
 
+Release Notes
+-----------------------
 
 MARCH 2016 - V2.1.6 First ESP8266 BETA release
 ----------------------------------------------
@@ -9,6 +11,14 @@ MARCH 2016 - V2.1.6 First ESP8266 BETA release
 OpenSprinkler_Arduino V2.1.6	- beta test / based on the unified firmware at https://github.com/OpenSprinkler/OpenSprinkler-Firmware
 
 While this release works OK, PLEASE see the 'Notes' section below for some known issues
+
+21-3-16 Branch "ModifAfterUpload"
+--------------------------------
+
+Hostname definition 	now you can access it with http://OSxx.local your Opensprinkler station xx is a unique n. from ESP hw n.
+EEPROM on internalFlash now an external I2c cip is not required any more: up to 4kbytes can be store on flash
+correction of  bugs  	ScanI2c()-scanning of i2c peripherals
+
 
 
 Overview
@@ -126,7 +136,9 @@ To install and compile this code you need:
 		-"Time.h"          	http://www.pjrc.com/teensy/td_libs_Time.html 
 		-"TimeAlarms.h"    	http://www.pjrc.com/teensy/td_libs_TimeAlarms.html 
 		-"DS1307RTC.h"     	http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
-		-"LiquidCrystal_I2C.h"	https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
+		-"LiquidCrystalI2C.h 	https://bitbucket.org/fmalpartida/new-l ... V1.2.1.zip
+		-"Time.h" 		https://github.com/PaulStoffregen/Time
+		-"DS1307RTC.h" 		https://github.com/PaulStoffregen/DS1307RTC - 
 
 	Other libraries are standard (part of Arduino ESP core/Arduino IDE):
 
@@ -212,12 +224,12 @@ Progress with DEBUGGING and with documentation: your help and suggestion is high
 
 Complete following modification that will be included in next releases:
 
-Already under development (will be included in next release):
+Already under development (Done Included in branch uploaded 21-3):
 
 	-Hostname definition in term of a given or automatic NAME for the unit that will be found in the net as NAME.local
-	(DONE WILLBE ON NEXT COMMIT)
+	
 
-	-EEPROM on ESP8266 flash memory as an alternative to I2C EEPROM (DONE WILLBE ON NEXT COMMIT)
+	-EEPROM on ESP8266 flash memory as an alternative to I2C EEPROM 
 
 Modifications Planned for future releases :
 
