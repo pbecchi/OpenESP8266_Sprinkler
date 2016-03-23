@@ -992,7 +992,10 @@ void OpenSprinkler::apply_all_station_bits()
 				//	DEBUG_PRINT(station_pins[(bid * 8) + s]);
 				byte sBit = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
 						DEBUG_PRINTF(sBit,DEC);
-				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
+				#ifdef ACTIVE_LOW  //invert output logic if using active low relay board
+				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], !sBit);
+                                #else digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
+                                #endif
 			}
 		}
     }
