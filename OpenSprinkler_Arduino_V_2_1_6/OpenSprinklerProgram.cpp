@@ -22,7 +22,7 @@
  */
 //#include "eeprom_mio.h"
 #include <limits.h>
-#include "../OpenSprinklerProgram.h"
+#include "OpenSprinklerProgram.h"
 
 #if !defined(SECS_PER_DAY)
 #define SECS_PER_MIN  (60UL)

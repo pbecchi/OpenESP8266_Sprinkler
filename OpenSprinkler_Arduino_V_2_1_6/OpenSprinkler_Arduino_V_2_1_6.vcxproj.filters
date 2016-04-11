@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="File di origine">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="File di intestazione">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="File di risorse">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.OpenSprinkler_Arduino_V_2_1_6.vsarduino.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Defines.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Eeprom_ESP.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="eeprom_mio.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="EtherCardW5100.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="EtherCardW5100_o.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="gpio.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="libsel.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenSprinkler.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenSprinklerProgram.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenSprinklerServer.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="PCF8574Mio.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Pins.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIFFSdFat.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="weather.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Eeprom_ESP.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="eeprom_mio.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="EtherCardW5100.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="gpio.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenSprinkler.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenSprinklerMain.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenSprinklerProgram.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenSprinklerServer.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="PCF8574Mio.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="weather.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="OpenSprinkler_ESP8266_V_2_1_6.ino" />
+  </ItemGroup>
+</Project>

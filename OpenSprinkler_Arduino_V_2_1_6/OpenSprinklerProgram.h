@@ -39,7 +39,7 @@
   #define RUNTIME_QUEUE_SIZE  MAX_NUM_STATIONS
 #endif
 
-#include "../OpenSprinkler.h"
+#include "OpenSprinkler.h"
 
 /** Log data structure */
 struct LogStruct {

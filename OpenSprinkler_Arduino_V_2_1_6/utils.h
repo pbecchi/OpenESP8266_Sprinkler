@@ -35,7 +35,7 @@
 
 #include "Config.h"
 
-#include "../Defines.h"
+#include "Defines.h"
 #undef DB_MASK
 #define DB_MASK 8
 void strncpy_P0(char* dest, const char* src, int n);

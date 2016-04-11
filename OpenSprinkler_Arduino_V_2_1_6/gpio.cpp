@@ -21,7 +21,7 @@
  * <http://www.gnu.org/licenses/>. 
  */
  
-#include "../Gpio.h"
+#include "Gpio.h"
 
 #if defined(ARDUINO)
 

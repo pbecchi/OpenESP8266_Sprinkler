@@ -21,8 +21,8 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "../Utils.h"
-#include "../OpenSprinkler.h"
+#include "Utils.h"
+#include "OpenSprinkler.h"
 extern OpenSprinkler os;
 
 #if defined(ARDUINO)  // AVR
@@ -37,13 +37,15 @@ extern OpenSprinkler os;
 #endif //ESP8266
 
 #ifdef ESP8266
+#ifndef SDFAT
 #include <FS.h>
 //#include "SPIFFSdFat.h"
 #else 
+#include <SD.h>
 #include <SdFat.h>
 extern SdFat sd;
 #endif
-
+#endif
 
 
 void write_to_file(const char *name, const char *data, int size, int pos, bool trunc) {

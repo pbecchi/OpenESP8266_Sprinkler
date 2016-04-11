@@ -24,12 +24,13 @@
 #include "OpenSprinkler.h"
 #include "Gpio.h"
 #ifdef ESP8266
-
+#ifdef SPIFFSDAT
 #include <FS.h>
 #define sd SPIFFS
 #define FIL file
+#endif
 #include "PCF8574Mio.h"
-#define PCF8574_M
+
 
 #endif
  
@@ -111,11 +112,15 @@ LiquidCrystal OpenSprinkler::lcd;
 #endif
 
 #ifdef ESP8266
+#ifndef SDFAT
 #include <FS.h>
 //#include "SPIFFSdFat.h"
 #else 
+#include <SD.h>
 #include <SdFat.h>
 extern SdFat sd;
+#endif
+
 
 #endif
 
@@ -470,8 +475,10 @@ void ScanI2c()
 	}
 	if (nDevices == 0)
 	{
-		Serial.println("No I2C devices found\n cannot continue!");
+#ifdef PCF8574_M
+		Serial.println("No PCF8574 devices found\n cannot continue!");
 		delay(60000);
+#endif
 	}
 	else
 		Serial.println("done\n");
@@ -708,10 +715,10 @@ void OpenSprinkler::lcd_start()
     {
         // for I2C LCD, we don't need to do anything
     }
-#else
+#else  //for i2c library have to turn backligth on 
 	lcd.begin(20, 4);
 
-	lcd.setBacklightPin(BACKLIGHT_PIN, POSITIVE);
+	lcd.setBacklightPin(BACKLIGHT_PIN, PIN_BACKLIGHT_MODE);
 	lcd.setBacklight(HIGH);
 	lcd.home();
 	lcd.print("start..V.2.1.6");
@@ -923,8 +930,11 @@ void OpenSprinkler::begin()
     // set sd cs pin high to release SD
     pinMode ( PIN_SD_CS, OUTPUT );
     digitalWrite ( PIN_SD_CS, HIGH );
-
-    if ( sd.begin ( PIN_SD_CS, SPI_HALF_SPEED ) )
+#ifndef ESP8266
+    if ( sd.begin(PIN_SD_CS, SPI_HALF_SPEED))
+#else
+	if(SD.begin(PIN_SD_CS, SPI_HALF_SPEED))
+#endif
     {
         status.has_sd = 1;
     }
@@ -943,9 +953,9 @@ void OpenSprinkler::begin()
 #else
     // set button pins
     // enable internal pullup
-    pinMode ( PIN_BUTTON_1, INPUT_PULLUP );
-    pinMode ( PIN_BUTTON_2, INPUT_PULLUP );
-    pinMode ( PIN_BUTTON_3, INPUT_PULLUP );
+    pinMode ( PIN_BUTTON_1, BUT1_ON == 0 ? INPUT_PULLUP : INPUT);
+    pinMode ( PIN_BUTTON_2,  BUT2_ON == 0 ? INPUT_PULLUP : INPUT);
+    pinMode ( PIN_BUTTON_3,BUT3_ON==0? INPUT_PULLUP:INPUT );
 	DEBUG_PRINT("b1="); DEBUG_PRINTLN(digitalRead(PIN_BUTTON_1));
 	DEBUG_PRINT("b2="); DEBUG_PRINTLN(digitalRead(PIN_BUTTON_2));
 	DEBUG_PRINT("b3="); DEBUG_PRINTLN(digitalRead(PIN_BUTTON_3));
@@ -991,7 +1001,7 @@ void OpenSprinkler::apply_all_station_bits()
 
 				//	DEBUG_PRINT(station_pins[(bid * 8) + s]);
 				byte sBit = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
-						DEBUG_PRINTF(sBit,DEC);
+						//DEBUG_PRINTF(sBit,DEC);
 				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
 			}
 		}
@@ -1018,9 +1028,9 @@ void OpenSprinkler::apply_all_station_bits()
 #ifndef OSPI
 			byte y = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
 			
-			digitalWrite ( PIN_SR_CLOCK, (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW);
+			digitalWrite ( PIN_SR_DATA, (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW);
 #endif
-            digitalWrite ( PIN_SR_DATA , HIGH );
+            digitalWrite ( PIN_SR_CLOCK, HIGH );
         }
     }
 
@@ -1555,6 +1565,8 @@ void OpenSprinkler::options_setup()
         tmp_buffer[1]='0';
         tmp_buffer[2]=0;
         int stepsize=sizeof ( StationSpecialData );
+		DEBUG_PRINTLN("Preparing files");
+		delay(1000);
         for ( i=0; i<MAX_NUM_STATIONS; i++ )
         {
             write_to_file ( stns_filename, tmp_buffer, stepsize, i*stepsize, false );
@@ -2112,16 +2124,20 @@ byte OpenSprinkler::button_sample()
 /** wait for button */
 byte OpenSprinkler::button_read_busy ( byte pin_butt, byte waitmode, byte butt, byte is_holding )
 {
+	byte but_on = 0 ;
+	if (pin_butt == PIN_BUTTON_1)but_on = BUT1_ON;
+	else if (pin_butt == PIN_BUTTON_2)but_on = BUT2_ON;
+	else but_on = BUT3_ON;
 
     int hold_time = 0;
 
     if ( waitmode==BUTTON_WAIT_NONE || ( waitmode == BUTTON_WAIT_HOLD && is_holding ) )
     {
-        if (( digitalRead ( pin_butt ) )!= BUT_ON ) return BUTTON_NONE;
+        if (( digitalRead ( pin_butt ) )!= but_on ) return BUTTON_NONE;
         return butt | ( is_holding ? BUTTON_FLAG_HOLD : 0 );
     }
 
-    while ( (digitalRead ( pin_butt ) )== BUT_ON &&
+    while ( (digitalRead ( pin_butt ) )== but_on &&
             ( waitmode == BUTTON_WAIT_RELEASE || ( waitmode == BUTTON_WAIT_HOLD && hold_time<BUTTON_HOLD_MS ) ) )
     {
         delay ( BUTTON_DELAY_MS );
@@ -2144,17 +2160,17 @@ byte OpenSprinkler::button_read ( byte waitmode )
 	byte but1 = digitalRead(PIN_BUTTON_1);
 	byte but2 = digitalRead(PIN_BUTTON_2);
 	byte but3 = digitalRead(PIN_BUTTON_3);
-    if (  but1== BUT_ON )
+    if (  but1== BUT1_ON )
     {
 		DEBUG_PRINT("b1="); DEBUG_PRINT(but1);
         curr = button_read_busy ( PIN_BUTTON_1, waitmode, BUTTON_1, is_holding );
     }
-    else if ( but2 == BUT_ON )
+    else if ( but2 == BUT2_ON )
     {   
 		DEBUG_PRINT("b2="); DEBUG_PRINT(but2);
         curr = button_read_busy ( PIN_BUTTON_2, waitmode, BUTTON_2, is_holding );
     }
-    else if ( but3 == BUT_ON )
+    else if ( but3 == BUT3_ON )
     {
 		DEBUG_PRINT("b3="); DEBUG_PRINT(but3);
         curr = button_read_busy ( PIN_BUTTON_3, waitmode, BUTTON_3, is_holding );
@@ -2286,6 +2302,11 @@ void OpenSprinkler::lcd_set_brightness ( byte value )
             analogWrite ( PIN_LCD_BACKLIGHT, 255-options[OPTION_LCD_DIMMING] );
         }
     }
+#else
+	if (value == 1)
+		digitalWrite(PIN_LCD_BACKLIGHT, LOW);
+	else
+		digitalWrite(PIN_LCD_BACKLIGHT, HIGH);
 #endif
 #endif // OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
 }

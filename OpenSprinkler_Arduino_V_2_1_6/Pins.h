@@ -27,8 +27,8 @@ This way you can use expander for all functions (interrupt donot work right now)
 // SD                Std. SPI MicroSD					SPI channels +1					def SD_FAT	
 //					 SPIFFS (emulations in Flash mem)	none							def SPIFFSDFAT
 // EEPROM            Std. 2kB on board(Mega)			onboard							AUTOMATIC ON MEGA
-//					 I2C on RTC board	4kB				I2C channels					def esp8266 undef EEPROM_ESP
-//					 on ESP8266 flash mem				internal						def EEPROM_ESP
+//					 I2C on RTC board	4kB				I2C channels					def esp8266 undef EEPROM_ESP(+++ Comment out #define EEPROM_ESP in libsel.h)
+//					 on ESP8266 flash mem				internal						def EEPROM_ESP (+++#define EEPROM_ESP in libsel.h)
 //ETHERNET			 std ENC							SPI channels					undef OPENSPRINKLER_ARDUINO_DISCRETE
 //					 W5100 SHIELD						SPI channels					def OPENSPRINKLER_ARDUINO_W5100
 //					 ESP8266 onboard					none							ESP8266 & def OPENSPRINKLER_ARDUINO_W5100
@@ -52,17 +52,24 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define MY_PING                                 // ping not available on ESP8266
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define PIN_BACKLIGHT_MODE POSITIVE
 #define MEGA_W5100 1
 #define ESP8266_C 2
 #define PCF8574_C 3
-#define BUT_ON 0
+// BUT_ON 0                           // define if button pins are switched to ground 0 or to Vcc 1
+#define BUT1_ON 0
+#define BUT2_ON 0
+#define BUT3_ON 0
+#include "libsel.h"
 //
 //                       PIN    ASSIGNEMENT
 //
-//
-#define PROTO 2             ///////////////////
+///////////////////
+#define PROTO 3
+///////////////////
 //////////////////////////////proto board 1//////////////////////////////////////////////
 #if PROTO==1 // shift register 
+
 #define SDA_PIN D5                         //:redefined 
 #define SCL_PIN D2                         //:redefined
 //#define OPENSPRINKLER_ARDUINO_W5100      //:required for ESP8266
@@ -72,17 +79,63 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define LCDI2C								//:i2c LCD
 #define SPIFFSDFAT							//:no sd ....EMULATED ON fLASH
 #define ADDITIONAL_SENSORS ESP8266_C         //:additional sensors to ESP 
+#undef EEPROM_ESP                            //modify in libsel.h
+
 /////////////////////////////proto board 2////////////////////////////////////////////////
 #elif PROTO==2
+#define PCF8574_M
 //#define OPENSPRINKLER_ARDUINO_W5100         //:required for ESP8266 
 #define OPENSPRINKLER_ARDUINO_DISCRETE      //:no shift registers
 #define I2C_SHIFT_REG						//: stations on PCF8574 n.1...7  
 //#define BUTTON_ADC_PIN        A0                   //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
 #define LCDI2C								//: assign LCD address
 #define SPIFFSDFAT							//:no SD
-#define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0  
-#endif
+#define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
+////////////////////////////////////////////prtotype n.3 Ian Board///////////////////////////////////////////////////////
+#elif PROTO==3
+#define PCF8574_M
+#define SDA_PIN 4
+#define SCL_PIN 5
+#define SHIFT_REG
+#undef OPENSPRINKLER_ARDUINO_DISCRETE
+#define LCDI2C
+//#define SDFAT
+//#define PIN_SD_CS 16
+#define SPIFFSDFAT
+#define EEPROM_ESP
+#define PIN_BUTTON_1 0
+#define PIN_BUTTON_2 2
+#define PIN_BUTTON_3 15
+#define BUT3_ON 1
+#define I2C_SHIFT_REG
+#define DUMMY_PIN 0x25  //dummy pin for unused functions
+#define LCD_ADDR 0x20    // following are pin of the I2c lcd expander
+#define PIN_LCD_RS        0    // LCD rs pin
+#define PIN_LCD_RW        7    // LCD rw pin dummy decl.
+#define PIN_LCD_EN        1    // LCD enable pin
+#define PIN_LCD_D4        2    // LCD d4 pin
+#define PIN_LCD_D5        3    // LCD d5 pin
+#define PIN_LCD_D6        6    // LCD d6 pin
+#define PIN_LCD_D7        5    // LCD d7 pin
+#define PIN_LCD_BACKLIGHT 4    // LCD backlight pin
+#define PIN_BACKLIGHT_MODE NEGATIVE //POSITIVE
 
+#endif
+//////check if libsel.h is correct
+#ifdef EEPROM_ESP
+//#undef EEPROM_ESP
+
+#include "libsel.h"
+
+#ifndef EEPROM_ESP
+#error "file LIBSEL.H need to be corrected:uncomment #define"
+#endif
+#else
+#include "libsel.h"
+#ifdef EEPROM_ESP
+#error "file LIBSEL.H need to be corrected:comment out #define"
+#endif
+#endif
 
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE //no shift register used
 
@@ -136,10 +189,10 @@ like the regular opensprinkler hardware) */
 #if defined(SHIFT_REG)
 #ifdef I2C_SHIFT_REG
 // standard PCF8574 Pinout
-#define PIN_SR_LATCH       0x21    // shift register latch pin
-#define PIN_SR_DATA        0x22    // shift register data pin
-#define PIN_SR_CLOCK       0x23    // shift register clock pin
-#define PIN_SR_OE          0x24    // shift register output enable pin
+#define PIN_SR_LATCH       0x22    // shift register latch pin
+#define PIN_SR_DATA        0x24    // shift register data pin
+#define PIN_SR_CLOCK       0x21    // shift register clock pin
+#define PIN_SR_OE          0x23    // shift register output enable pin
 #else
  //-----------------------ESP8266------------------------------------------
 #define PIN_SR_LATCH       D3    // shift register latch pin
@@ -185,6 +238,7 @@ http://forum.freetronics.com/viewtopic.php?t=770 */
 #define LCD_BACKLIGHT(state)    {if( state ){digitalWrite( PIN_LCD_BACKLIGHT, HIGH );}else{digitalWrite( PIN_LCD_BACKLIGHT, LOW );} }
 #define BUTTON_ADC_PIN    A0    // A0 is the button ADC input
 #elif defined(LCDI2C)       //PINOUT of LCD BOARD not related to MCU pins
+#ifndef LCD_ADDR   //already define in protoboard declarations
 #define LCD_ADDR 0x27
 #define PIN_LCD_RS        0    // LCD rs pin
 #define PIN_LCD_RW        1    // LCD rw pin
@@ -194,7 +248,7 @@ http://forum.freetronics.com/viewtopic.php?t=770 */
 #define PIN_LCD_D6        6    // LCD d6 pin
 #define PIN_LCD_D7        7    // LCD d7 pin
 #define PIN_LCD_BACKLIGHT 3    // LCD backlight pin
-
+#endif
 #else
 // regular 16x2 LCD pin defines
 #define PIN_LCD_RS        19    // LCD rs pin
@@ -226,10 +280,11 @@ http://forum.freetronics.com/viewtopic.php?t=770 */
 #define BUTTON_LEFT        4    // 
 #define BUTTON_SELECT      5    //   
 #else
+#ifndef PIN_BUTTON_1
 #define PIN_BUTTON_1   10 //  0x20// 31    // button 1
 #define PIN_BUTTON_2   14 //  0x21// 30    // button 2
 #define PIN_BUTTON_3   16//  0x22// 29    // button 3
-
+#endif
 #endif
 //
 //------------------------------------------------ NOT ENABLED----------------------------------
@@ -245,8 +300,8 @@ http://forum.freetronics.com/viewtopic.php?t=770 */
 //-----------------------------------------------------SPI PINS------------
 //
 #ifdef OPENSPRINKLER_ARDUINO_W5100 // Wiznet W5100
-#define PIN_ETHER_CS     4     // Ethernet controller chip select pin - default is 10
-#define PIN_SD_CS        4     // SD card chip select pin - default is 4
+#define PIN_ETHER_CS     10     // Ethernet controller chip select pin - default is 10
+#define PIN__CS        4     // SD card chip select pin - default is 4
 
 // Define the chipselect pins for all SPI devices attached to the arduino
 // Unused pins needs to be pulled high otherwise SPI doesn't work properly
@@ -285,17 +340,28 @@ const uint8_t spi_ss_pin[] =   // SS pin for each device
 #define PIN_CURR_SENSE     A0    // current sensing pin (A7)
 #define PIN_CURR_DIGITAL   A0    // digital pin index for A7
 
-#else
+#else //additional sensors undefined ESP8266
+#ifdef ESP8266
+#define PIN_RAINSENSOR    DUMMY_PIN    // rain sensor is connected to pin D3
+#define PIN_FLOWSENSOR    DUMMY_PIN    // flow sensor (currently shared with rain sensor, change if using a different pin)
+#define PIN_FLOWSENSOR_INT DUMMY_PIN    // flow sensor interrupt pin (INT1)
+#define PIN_EXP_SENSE      DUMMY_PIN    // expansion board sensing pin (A4)
+#define PIN_CURR_SENSE     DUMMY_PIN    // current sensing pin (A7)
+#define PIN_CURR_DIGITAL  DUMMY_PIN    // digital pin index for A7
+
+#else //This is setting for Ray O.S. 
+
 #define PIN_RAINSENSOR    11    // rain sensor is connected to pin D3
 #define PIN_FLOWSENSOR    11    // flow sensor (currently shared with rain sensor, change if using a different pin)
 #define PIN_FLOWSENSOR_INT 1    // flow sensor interrupt pin (INT1)
 #define PIN_EXP_SENSE      4    // expansion board sensing pin (A4)
 #define PIN_CURR_SENSE     7    // current sensing pin (A7)
 #define PIN_CURR_DIGITAL  24    // digital pin index for A7
-/*
+
+
 #define PIN_RF_DATA       28    // RF data pin
 #define PORT_RF        PORTA
 #define PINX_RF        PINA3
-*/
+#endif 
 #endif      //ESP8266
 

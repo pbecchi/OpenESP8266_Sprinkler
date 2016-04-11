@@ -38,9 +38,9 @@ extern char ether_buffer[];
 
 extern const char wtopts_filename[];
 
-#include "../OpenSprinkler.h"
-#include "../Utils.h"
-#include "../OpenSprinklerServer.h"
+#include "OpenSprinkler.h"
+#include "Utils.h"
+#include "OpenSprinklerServer.h"
 
 extern OpenSprinkler os; // OpenSprinkler object
 extern char tmp_buffer[];

@@ -25,7 +25,7 @@
 #define _OPENSPRINKLER_H
 
 #include "Config.h"
-#include "../Defines.h"
+#include "Defines.h"
 #include "libsel.h"
 #if defined(ARDUINO) // heades for AVR
 
@@ -50,7 +50,7 @@
 	#include <DS1307RTC.h>
 
 	#ifdef OPENSPRINKLER_ARDUINO_W5100
-	  #include "../EtherCardW5100.h"
+	  #include "EtherCardW5100.h"
 	#else
 	  #include <EtherCard.h>
 	#endif // OPENSPRINKLER_ARDUINO_W5100
@@ -66,7 +66,7 @@
   #include "etherport.h"
 #endif // end of headers
 
-#include "../Utils.h"
+#include "Utils.h"
 
 /** Non-volatile data */
 struct NVConData {

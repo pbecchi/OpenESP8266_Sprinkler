@@ -27,7 +27,7 @@
 #if defined(ARDUINO)
 
 #ifdef OPENSPRINKLER_ARDUINO
-	#include "../OpenSprinkler.h"
+	#include "OpenSprinkler.h"
 #endif
 
 #else

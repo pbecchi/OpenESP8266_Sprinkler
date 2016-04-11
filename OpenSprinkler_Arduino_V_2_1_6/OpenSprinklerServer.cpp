@@ -21,19 +21,21 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "../OpenSprinkler.h"
-#include "../OpenSprinklerProgram.h"
+#include "OpenSprinkler.h"
+#include "OpenSprinklerProgram.h"
 
 // External variables defined in main ion file
 #if defined(ARDUINO)
 #ifdef ESP8266
+#ifndef SDFAT
 #include <FS.h>
 //#include "SPIFFSdFat.h"
 #else 
+#include <SD.h>
 #include <SdFat.h>
 extern SdFat sd;
 #endif
-
+#endif
 
 static uint8_t ntpclientportL = 8888; // Default NTP client port
 extern ulong flow_count;
@@ -1531,8 +1533,9 @@ byte server_json_log ( char *p )
 #ifndef ESP8266
             res = file.fgets ( tmp_buffer, TMP_BUFFER_SIZE );
 #else
-			res = file.readBytesUntil('/n',tmp_buffer, TMP_BUFFER_SIZE);
-			DEBUG_PRINT("Log>"); DEBUG_PRINTLN(tmp_buffer);
+			res = file.readBytesUntil('\n',tmp_buffer, TMP_BUFFER_SIZE);
+			tmp_buffer[res+1 ] = 0;
+			DEBUG_PRINT("Log>"); DEBUG_PRINT(res); DEBUG_PRINT('=');  DEBUG_PRINTLN(tmp_buffer);
 #endif
 			if ( res <= 0 )
             {
@@ -1562,14 +1565,16 @@ byte server_json_log ( char *p )
             char *ptype = tmp_buffer;
             tmp_buffer[TMP_BUFFER_SIZE-1]=0; // make sure the search will end
             while ( *ptype && *ptype != ',' ) ptype++;
+			//DEBUG_PRINTLN(type_specified);
             if ( *ptype != ',' ) continue; // didn't find comma, move on
             ptype++;  // move past comma
-
+			//DEBUG_PRINTLN(type);
             if ( type_specified && strncmp ( type, ptype+1, 2 ) )
                 continue;
             // if type is not specified, output everything except "wl" and "fl" records
             if ( !type_specified && ( !strncmp ( "wl", ptype+1, 2 ) || !strncmp ( "fl", ptype+1, 2 ) ) )
                 continue;
+			DEBUG_PRINT("OK");
             // if this is the first record, do not print comma
             if ( comma )  bfill.emit_p ( PSTR ( "," ) );
             else
@@ -1577,6 +1582,7 @@ byte server_json_log ( char *p )
                 comma=1;
             }
             bfill.emit_p ( PSTR ( "$S" ), tmp_buffer );
+		     DEBUG_PRINTLN(tmp_buffer);
             // if the available ether buffer size is getting small
             // push out a packet
             if ( available_ether_buffer() < 80 )
