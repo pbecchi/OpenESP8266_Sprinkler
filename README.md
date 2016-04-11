@@ -20,6 +20,22 @@ EEPROM on internalFlash now an external I2c cip is not required any more: up to 
 correction of  bugs  	ScanI2c()-scanning of i2c peripherals
 
 
+10-4-2016 BRANCH "modifAfterUpload" (RELEASE 2_0)
+-------------------------------------------------
+
+Implemented Proto3 hardware configuration using both PCF8574 and 75SN575 IC .
+
+BUGS COORECTION:
+
+	-corrected PIN definition on shift register control code
+	-corrected bug in log files I/O preventing historical log data extraction
+	-corrected pin definitions (is now in term of GPIO n. )
+	-enabled lcd brigthness control
+	-source code: 
+	
+			all sources & libraries are in the same directory OPENSPRINKER_Arduino_V_2_1_6
+			main renamed OpenSprinkler_ESP8266_v_2_1_6
+
 
 Overview
 --------
