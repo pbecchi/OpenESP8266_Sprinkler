@@ -16,6 +16,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="json_parse_program.ino" />
+    <None Include="..\..\..\EE\EElogger_9_1_ESP_2.ino\INTERRUPT.ino" />
+    <None Include="..\..\..\EE\EElogger_9_1_ESP_2.ino\Telnet.ino" />
+    <None Include="EEPROM.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.json_parse_program.vsarduino.h">
@@ -39,9 +42,15 @@
     <ClInclude Include="libsel.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="Glx_SWindows.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Eeprom_ESP.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="Glx_SWindows.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

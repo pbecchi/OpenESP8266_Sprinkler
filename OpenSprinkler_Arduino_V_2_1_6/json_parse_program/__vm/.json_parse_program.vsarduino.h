@@ -15,8 +15,8 @@
 #define __ets__
 #define ICACHE_FLASH
 #define F_CPU 80000000L
-#define ARDUINO 10605
-#define ARDUINO_ESP8266_ESP12
+#define ARDUINO 10608
+#define ARDUINO_ESP8266_NODEMCU
 #define ARDUINO_ARCH_ESP8266
 #define ESP8266
 #define __cplusplus 201103L
@@ -102,10 +102,15 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portModeRegister(P)
 #include <..\json_parse_program\json_parse_program.ino>
 #include <..\json_parse_program\Config.h>
+#include <..\json_parse_program\EEPROM.ino>
 #include <..\json_parse_program\Eeprom_ESP.cpp>
 #include <..\json_parse_program\Eeprom_ESP.h>
+#include <..\json_parse_program\Glx_SWindows.cpp>
+#include <..\json_parse_program\Glx_SWindows.h>
+#include <..\..\..\EE\EElogger_9_1_ESP_2.ino\INTERRUPT.ino>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler.h>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.h>
+#include <..\..\..\EE\EElogger_9_1_ESP_2.ino\Telnet.ino>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\Utils.h>
 #include <..\json_parse_program\libsel.h>
 #endif
