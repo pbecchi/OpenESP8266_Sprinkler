@@ -18,36 +18,41 @@
 // For the esp shield, these are the default.
 #define TFT_DC 2
 #define TFT_CS 15
+#define ILI9341_VSCRDEF 0x33
+#define ILI9341_VSCRSADD 0x37
+
 extern Adafruit_ILI9341 tft; //= Adafruit_ILI9341(TFT_CS, TFT_DC);
 extern XPT2046 touch;//(/*cs=*/ 16, /*irq=*/ 0);
-
-class Glx_GWindowsClass 
+static int ScreenH;
+static  int winXmax, winXmin, winYmax, winYmin, backgroundColor;
+static float xmax, ymax, xmin, ymin;
+class Glx_GWindowsClass
 {
-public:
-	static  int winXmax, winXmin, winYmax, winYmin;
 
-	void init(byte type,int x0,int y0,int x1,int y1);//screen pixels
-	
-//	void scroll(byte x,byte y);
 
-//	boolean redraw( Graf* _g);
-	//void clear(byte color);
-	//void setBackground(byte color);
-};
-class Graf {
 public:
-	Graf(float * xp, float*yp, int nval);
-	int nval;
-	float x[100], y[100];
-	float scax, scay;
-	int x0, y0;
-	
-	byte color;
-	boolean draw();
-	boolean drawAxX(float y_pos,float deltx);
-	boolean drawAxY(float x_pos);
+	void init(byte type, int x0, int y0, int x1, int y1, uint16_t backColor);//screen pixels
 
 };
+	class Graf {
+	public:
+		
+		//static int Xmax = winXmax; static int Xmin = winXmin; static int Ymax = winYmax;
+		void init( uint16_t col);
+		int nval;
+		float x[100], y[100];
+		float scax, scay;
+		float x0, y0;
+		int windowsH = 100, windowsW = 240, yGrafScr = 50;
+		uint16_t color;
+		boolean draw();
+		boolean drawAxX(float y_pos, float deltx);
+		void changeScaX(float dx);
+		void scroll(float dx);
+		boolean drawAxY(int x_scr_pos);
+
+	};
+
 struct Menu {
 	
 	Adafruit_GFX_Button button[10];
@@ -89,3 +94,14 @@ static byte curr_m;
 static int i_sel = 0;
 #endif
 
+class Glx_TWindows :public Print {
+public:
+	void init(int x0, int y0, int x1, int y1,byte textH, byte mode);
+	virtual size_t write(uint8_t);
+protected:
+	int yDraw, xPos, yStart, TOP_FIXED_AREA, BOT_FIXED_AREA, TEXT_HEIGHT;
+	char blank[50];
+	void scrollAddress(uint16_t _vsp);
+	void setupScrollArea(uint16_t tfa, uint16_t bfa);
+	int scroll_line();
+};
