@@ -92,7 +92,7 @@ extern Glx_MWindowsClass Glx_MWindows;
 static  int Xmax, Xmin, Ymax, Ymin;
 static byte curr_m;
 static int i_sel = 0;
-#endif
+
 
 class Glx_TWindows :public Print {
 public:
@@ -105,3 +105,4 @@ protected:
 	void setupScrollArea(uint16_t tfa, uint16_t bfa);
 	int scroll_line();
 };
+#endif
