@@ -45,12 +45,21 @@
     <ClInclude Include="Glx_SWindows.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="Def.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\TimeNTP_ESP8266WiFi\TimeNTP_ESP8266WiFi.ino\NPTtimeSync.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Eeprom_ESP.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="Glx_SWindows.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\TimeNTP_ESP8266WiFi\TimeNTP_ESP8266WiFi.ino\NPTtimeSync.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

@@ -291,14 +291,16 @@ char* CharFromString(String uno) {
 	}*/
 	return a;
 }
-byte scanNetwork()
+byte scanNetwork(byte flag)
 {
+	byte netCount = 0;
+
+#ifndef WIFIMANAGER
 	Serial.println("scan start");
 
 	// WiFi.scanNetworks will return the number of networks found
 	int n = WiFi.scanNetworks();
 	Serial.println("scan done");
-	byte netCount = 0;
 	if (n == 0)
 	{
 		Serial.println("no networks found");
@@ -361,7 +363,7 @@ byte scanNetwork()
 			delay(10);
 		}
 
-		if (PaswKnown < 0)
+		if (PaswKnown < 0||flag==1)
 		{
 			Serial.println("Select network n.");
 			while (!Serial.available()) delay(10);
@@ -376,8 +378,10 @@ byte scanNetwork()
 			netCount++;
 		}
 	}
+#	endif
 	return netCount;
 }
+
 /// <summary>
 /// Configure network interface with static IP
 /// </summary>
@@ -386,6 +390,16 @@ byte scanNetwork()
 /// <param name="dns_ip">DNS address (4 bytes). 0 for no change. Default = 0</param>
 /// <param name="mask">Subnet mask (4 bytes). 0 for no change. Default = 0</param>
 /// <returns>Returns true on success - actually always true</returns>
+#ifdef WIFIMANAGER
+#include "OpenSprinkler.h"
+extern OpenSprinkler os;
+
+void configModeCallback(WiFiManager *myWiFiManager) {
+	os.lcd_print_line_clear_pgm(PSTR("Conf WiFi..."), 0);
+	os.lcd_print_line_clear_pgm(PSTR("Go 192.168.4.1 "), 1);
+	Serial.println("Go 192.168.4.1 ");
+}
+#endif
 bool EtherCardW5100::staticSetup
 (const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask)
 {
@@ -393,17 +407,31 @@ bool EtherCardW5100::staticSetup
 
 	
 #ifdef ESP8266
+#ifndef WIFIMANAGER
 	uint8_t n = 0;
 	bool result = false;
-	uint8_t nNetwork= scanNetwork();
+	uint8_t nNetwork= scanNetwork(0);
 	while (n < nNetwork&&!result) {
-		SSID = /*(char*)found_SSID[n].c_str(); */   CharFromString(found_SSID[n]);
-		PASSWORD = /*(char*)found_psw[n].c_str(); */ CharFromString(found_psw[n]);
+		SSID =  CharFromString(found_SSID[n]);
+		PASSWORD =  CharFromString(found_psw[n]);
 		n++;
-		
+		if (PASSWORD[strlen(PASSWORD) - 1] < '0')PASSWORD[strlen(PASSWORD) - 1] = 0;
+
+		DEBUG_PRINTLN(strlen(PASSWORD));
 		result = WiFiconnect( my_ip, gw_ip,  dns_ip,  mask);
 	}
+#else
+	WiFiManager wifiManager;
+	IPAddress ip = IPAddress(my_ip[0],my_ip[1],my_ip[2],my_ip[3]);
+	IPAddress gw = IPAddress(gw_ip[0], gw_ip[1], gw_ip[2], gw_ip[3]); 
+	IPAddress subnet = IPAddress(255,255,255,0);
+	DEBUG_PRINTLN(ip);
+	wifiManager.setSTAStaticIPConfig(ip,gw, subnet);
+	//wifiManager.setAPCallback(configModeCallback);
 
+
+	wifiManager.autoConnect("AutoConnectAP");
+#endif //WIFIMANAGER
 #else
 	
 	IPAddress ip = Byte2IP ( my_ip );
@@ -413,18 +441,19 @@ bool EtherCardW5100::staticSetup
 	ETHERNE.begin(mymac, ip, gw, subnet);
 
 #endif
-    incoming_server.begin();
+	if (result) {
+		incoming_server.begin();
 
-    // save the values
-    IP2Byte ( ETHERNE.localIP(), myip );
-    IP2Byte ( ETHERNE.gatewayIP(), gwip );
-    IP2Byte ( ETHERNE.gatewayIP(), dnsip );
-    IP2Byte ( ETHERNE.subnetMask(), netmask );
+		// save the values
+		IP2Byte(ETHERNE.localIP(), myip);
+		IP2Byte(ETHERNE.gatewayIP(), gwip);
+		IP2Byte(ETHERNE.gatewayIP(), dnsip);
+		IP2Byte(ETHERNE.subnetMask(), netmask);
 
-    // print debug values
-    printIPConfig();
-
-    return true;
+		// print debug values
+		printIPConfig();
+	}
+    return result;
 }
 #ifdef ESP8266
 bool EtherCardW5100::WiFiconnect()
@@ -436,8 +465,8 @@ bool EtherCardW5100::WiFiconnect()
 	//	IPAddress gw = Byte2IP(gw_ip);
 		//IPAddress subnet = Byte2IP(mask);
 		DEBUG_PRINTLN("Wait WIFI...");
-
-		while (millis() < 40000) delay(2);
+		WiFi.mode(WIFI_STA);
+		while (millis() < 60000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 								   //		byte netmask[4] = { 255,255,255,0 };
 								   //		byte MyIp[4] = { 192,168,1,211 };
@@ -446,12 +475,11 @@ bool EtherCardW5100::WiFiconnect()
 	//	if (isStatic) WiFi.config(ip, gw, subnet);
 		DEBUG_PRINT("\nConnecting to "); DEBUG_PRINTLN(SSID);
 		uint8_t i = 0;
-		while (WiFi.status() != WL_CONNECTED && i++ <= 201) { yield(); delay(100); DEBUG_PRINT('.'); }
+		while (WiFi.status() != WL_CONNECTED && i++ <= 201) { yield(); delay(400); DEBUG_PRINT('.'); }
 		if (i >= 201) {
 			DEBUG_PRINT("Could not connect to"); DEBUG_PRINTLN(SSID);
 			return false;
 		}
-
 		DEBUG_PRINT("Server started IP="); DEBUG_PRINTLN(WiFi.localIP());
 		return true;
 	}
@@ -466,7 +494,7 @@ bool EtherCardW5100::WiFiconnect( const uint8_t* my_ip, const uint8_t* gw_ip, co
 	IPAddress subnet = Byte2IP ( mask );
 	*/
 		DEBUG_PRINTLN("Wait WIFI...");
-
+		WiFi.mode(WIFI_STA);
 		while (millis() < 10000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 		byte netmask[4] = { 255,255,255,0 };
@@ -474,7 +502,7 @@ bool EtherCardW5100::WiFiconnect( const uint8_t* my_ip, const uint8_t* gw_ip, co
 		 WiFi.config(my_ip, gw_ip, netmask);
 		DEBUG_PRINT("\nConnecting to "); DEBUG_PRINTLN(SSID);
 		uint8_t i = 0;
-		while (WiFi.status() != WL_CONNECTED && i++ <=201) { yield(); delay(100); DEBUG_PRINT('.'); }
+		while (WiFi.status() != WL_CONNECTED && i++ <=201) { yield(); delay(400); DEBUG_PRINT('.'); }
 		if (i >= 201) {
 			DEBUG_PRINT("Could not connect to"); DEBUG_PRINTLN(SSID);
 			return false;
@@ -499,18 +527,28 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 #ifndef ESP8266
 	if (ETHERNE.begin(mymac) == 0)
 #else
+#ifndef WIFIMANAGER
 	uint8_t n = 0;
 	bool result = false;
-	uint8_t nNetwork = scanNetwork();
+	uint8_t nNetwork = scanNetwork(0);
 	while (n < nNetwork&&!result) {
 		SSID = CharFromString(found_SSID[n]);
 		
 		//   found_SSID[n];
 		PASSWORD = CharFromString(found_psw[n]); //found_psw[n];
+		//delete special char at the end/////////////////////////////////////
+		if (PASSWORD[strlen(PASSWORD)-1] < '0')PASSWORD[strlen(PASSWORD)-1] = 0;
+	
+		DEBUG_PRINTLN(strlen(PASSWORD));
 		n++;
 		result = WiFiconnect();
 	}
 	if (!result )return false;
+#else
+	WiFiManager wifiManager;
+	wifiManager.autoConnect("AutoConnectAP");
+#endif
+
 #ifdef HOSTNAM
 	// Set up mDNS responder:
 	// - first argument is the domain name, in this example
@@ -1303,7 +1341,10 @@ void EtherCardW5100::clientIcmpRequest ( const uint8_t *destip )
 /// <returns>True (1) if ping response from specified host</returns>
 uint8_t EtherCardW5100::packetLoopIcmpCheckReply ( const uint8_t *ip_monitoredhost )
 {
-#ifdef MY_PING
+#ifndef MY_PING
+
+	if (WiFi.status() != WL_CONNECTED) return true; else return false;
+#else
     if ( ping.asyncComplete ( ping_result ) )
     {
         DEBUG_PRINT ( F ( "Ping: " ) );

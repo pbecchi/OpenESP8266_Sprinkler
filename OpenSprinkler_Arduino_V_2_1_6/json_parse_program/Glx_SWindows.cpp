@@ -1,5 +1,5 @@
 // 
-// 
+// a6d82bced638de3def1e9bbb4983225c
 // 
 
 #include "Glx_SWindows.h"
@@ -8,17 +8,17 @@
 
 void Graf::init( uint16_t col)
 {
-	//if (ymax == 0 && ymin == 0)
+	if (ymax == 0 && ymin == 0)
 	{
-		xmax = x[0]; xmin = x[0]; ymax = y[0]; ymin = y[0];
+		xmax = x[0]; xmin = x[0]; ymax = YSign*y[0]; ymin = YSign*y[0];
 	}
 	color = col;
 	for (byte i = 0; i < nval; i++)
 	{
 		if( x [ i]>xmax)xmax= x[i];
 		if (x[i]<xmin)xmin = x[i];
-		if (y[i]>ymax)ymax = y[i];
-		if (y[i]<ymin)ymin = y[i];
+		if (y[i]*YSign>ymax)ymax = YSign*y[i];
+		if (y[i] * YSign<ymin)ymin = YSign*y[i];
 		
 	}
 	windowsW = winXmax - winXmin;
@@ -45,9 +45,9 @@ boolean Graf::draw()
 	for (int i = 1; i < nval; i++)
 		//if (x[i] >winXmin && x[i] < winXmax )
 			tft.drawLine(int((x[i - 1]  - x0)*scax+winXmin), 
-						int((y[i - 1] - y0)*scay+winYmin), 
+						int((YSign*y[i - 1] - y0)*scay+winYmin),
 						int((x[i ] - x0)*scax+winXmin),
-						int((y[i] - y0)*scay + winYmin),  color);
+						int((YSign*y[i] - y0)*scay + winYmin),  color);
 	return true;
 	
 }
@@ -85,18 +85,100 @@ void Graf::scroll(float dx)
 	x0 += (xmax-xmin)/dx;
 	tft.fillRect(winXmin, winYmin, winXmax - winXmin, winYmax - winYmin, backgroundColor);
 }
-boolean Graf::drawAxY(int  x)  //yaxis at screen pos 0 for left 320 for right
+boolean Graf::drawAxX(float  y,float xstep,byte ty)  //yaxis at screen pos 0 for left 320 for right
+{   
+	byte ntics = (xmax - xmin) / xstep;
+	tft.drawFastHLine(winXmin, (y - y0)*scay + winYmin, winXmax - winXmin, color);
+
+	float substep;
+	int i, j = 0;
+	if (ty == TIME_SCA) {
+		int Xwind = winXmax - winXmin;
+		if (Xwind/scax > 1440) { xstep = 120; substep = 30; }
+		if (Xwind/scax > 720) { xstep = 60; substep = 10; }
+		if (Xwind/scax > 240) { xstep = 30; substep = 5; }
+		if (Xwind/scax > 120) { xstep = 10; substep = 2; }
+		if (Xwind/scax > 60) { xstep = 5; substep = 1; }
+
+	}
+	else {
+		float divisor[3] = { 1,2,5 };
+		substep = 0;
+		for (int j = -10; j < 10; j++)
+		{
+			for (byte k = 0; k < 3; k++)
+				if ((winXmax - winXmin) / scax < pow(10., j)*divisor[k])
+				{
+					//if (k > 0)xstep = pow(10, j)*divisor[k - 1];
+					//else xstep = pow(10, j - 1)*divisor[2];
+					xstep = pow(10, j - 1)*divisor[k];
+					substep = xstep*0.2; break;
+				}
+			if (substep != 0)break;
+		}
+	}
+	ntics = (xmax - xmin) / substep;
+//	Serial.print((winXmax-winXmin)/scax); Serial.print(' '); Serial.println(substep);
+//	Serial.print(xstep); Serial.print(' '); Serial.println(substep);
+// serial.println(xstep);
+for (byte i = 0; i < ntics; i++) {
+	int xp = (i*substep + xmin - x0)*scax + winXmin;
+	tft.drawFastVLine(xp,(y - y0)*scay + winYmin - TICKSIZE,  2 * TICKSIZE, color);
+	tft.setTextColor(ILI9341_BLACK);
+//	Serial.println(i*substep/xstep);
+	if (i*substep/xstep-int(i*substep/xstep)== 0) {
+		int ivalue(i*substep + xmin); if (ty == TIME_SCA)ivalue = ivalue / 60;
+		tft.drawFastVLine(xp,(y - y0)*scay + winYmin - TICKSIZEL,  2 * TICKSIZEL, color);
+		tft.drawNumber(ivalue, xp - 6, int((y - y0)*scay + winYmin), 1);
+	}
+
+	}
+	return boolean();
+}
+
+boolean Graf::drawAxy(int x_pos, float step, byte ty)
 {
+	byte ntics = (xmax - xmin) / step;
+#define TIME_SCA 1
+#define TICKSIZEL 3
+	float substep;
+	int i, j = 0;
+
+	//if (ty == TIME_SCA) {
+	//	if ((xmax - xmin)*scay > 1440) { step = 60; substep = 30; }
+	//	if ((xmax - xmin)*scay > 720) { step = 60; substep = 10; }
+	//	if ((xmax - xmin)*scay > 240) { step = 60; substep = 5; }
+	//	if ((xmax - xmin)*scay > 120) { step = 60; substep = 1; }
+	//	if ((xmax - xmin)*scay > 60)xstep = 1;
+	//}
+	//else {
+		for (int j = -10; j < 10; j++)
+			if ((ymax - ymin)*scay <pow (10.,j) ){ step = pow(10.,j )/2; substep = step*.2; break; }
+	//}
+	ntics = (ymax - ymin)*scay / substep;
+	
+
+	// serial.println(xstep);
+	for (byte i = 0; i < ntics; i++) {
+		int yp = (i*substep + ymin - y0)*scay + winYmin;
+		tft.drawFastHLine(LegXmargin-TICKSIZE,yp, TICKSIZE, color);
+		tft.setTextColor(ILI9341_BLACK);
+		if (int(i*substep) % int(step) == 0) {
+			tft.drawFastHLine(LegXmargin-TICKSIZEL, yp,  TICKSIZEL, color);
+			tft.drawFloat(i*step + xmin, 1,LegXmargin-3, yp -8, 1);
+		}
+
+	}
 	return boolean();
 }
 
 void Glx_GWindowsClass::init(byte type, int x0, int y0, int x1, int y1,uint16_t col_back)
 {
 	{ backgroundColor = col_back;
-		winXmax = x1;
-		winXmin = x0;
-		winYmax = y1;
-		winYmin = y0;
+		winXmax = x1-xMargin;
+		winXmin = x0+xMargin+LegXmargin;
+		winYmax = y1-yMargin-LegYmargin;
+		winYmin = y0+yMargin;
 		tft.fillRect(x0, y0, x1 - x0, y1 - y0, col_back);
 	}
 }
@@ -173,7 +255,7 @@ void Menu::draw()
 
 void Glx_keyborad::init(int x0, int y0,byte uppercase)
 {
-	line[0][0] = "1234567890";		line[0][1] = "!\"£$%&/()=";
+	line[0][0] = "1234567890";		line[0][1] = "!\"?$%&/()=";
 	line[1][0] = "qwertyuiop";		line[1][1] = "QWERTYUIOP";
 	line[2][0] = "asdfghjkl+";		line[2][1] = "ASDFGHJKL*";
 	line[3][0] = "zxcvbnm,.-";		line[3][1] = "ZXCVBNM;:_";
@@ -278,35 +360,54 @@ char Glx_keyborad::isPressed(uint16_t x, uint16_t y)
 void Glx_keyborad::end()
 {
 }
-
+void Glx_TWindows::charPos(byte nline, byte nchar,byte mode) //y pos, x pos , mode >0 clean mode lines to right border
+{
+	tft.setCursor(nchar, nline+yS);
+	if (mode>0)	tft.fillRect(0,nline+yS, tft.width(), mode, ILI9341_BLACK);
+}
 void Glx_TWindows::init(int x0, int y0, int x1, int y1,byte textH, byte mode)
 {
-	TEXT_HEIGHT = textH;// Height of text to be printed and scrolled
-	ScreenH = tft.height();
-		BOT_FIXED_AREA =ScreenH- y1; // Number of lines in bottom fixed area (lines counted from bottom of screen)
+	yS = y0;
+	if (mode == 0) {
+		TEXT_HEIGHT = textH;// Height of text to be printed and scrolled
+		ScreenH = tft.height();
+		BOT_FIXED_AREA = ScreenH - y1; // Number of lines in bottom fixed area (lines counted from bottom of screen)
 		TOP_FIXED_AREA = y0; // Number of lines in top fixed area (lines counted from top of screen)
 		yStart = TOP_FIXED_AREA;
-		yDraw = ScreenH- BOT_FIXED_AREA - TEXT_HEIGHT;
+		yDraw = ScreenH - BOT_FIXED_AREA - TEXT_HEIGHT;
 
-	// Keep track of the drawing x coordinate
-	//	tft.fillRect(x0, y0, x1, y1, ILI9341_BLUE);
-	tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-	for (byte i = 0; i<40; i++) blank[i] = 0;
-	setupScrollArea(TOP_FIXED_AREA, BOT_FIXED_AREA);
+		// Keep track of the drawing x coordinate
+		//	tft.fillRect(x0, y0, x1, y1, ILI9341_BLUE);
+		tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+		for (byte i = 0; i < 100; i++) blank[i] = 0;
+		setupScrollArea(TOP_FIXED_AREA, BOT_FIXED_AREA);
+		Scroll = true;
+	}
+	else
+		Scroll = false;
 }
 
-  size_t Glx_TWindows::write(uint8_t data)
+size_t Glx_TWindows::write(uint8_t data)
 {
-if (data == '\r' || xPos>231) {
-	xPos = 0;
-	yDraw = scroll_line(); // It takes about 13ms to scroll 16 pixel lines
+	if (Scroll)
+	{
+		if (data == '\r' || xPos > 231) {
+			xPos = 0;
+			yDraw = scroll_line(); // It takes about 13ms to scroll 16 pixel lines
+			//long times = millis();
+			delay(20);
+		}
+		if (data > 31 && data < 128) {
+			//	if (millis()<times+20)
+
+			xPos += tft.drawChar(data, xPos, yDraw, 2);
+			blank[(18 + (yStart - TOP_FIXED_AREA) / TEXT_HEIGHT) % 19] = xPos; // Keep a record of line lengths
+		}
+		//change_colour = 1; // Line to indicate buffer is being emptied
+	}
+	else
+		tft.write(data);
 }
-if (data > 31 && data < 128) {
-	xPos += tft.drawChar(data, xPos, yDraw, 2);
-	blank[(18 + (yStart - TOP_FIXED_AREA) / TEXT_HEIGHT) % 19] = xPos; // Keep a record of line lengths
-}
-//change_colour = 1; // Line to indicate buffer is being emptied
-  }
 
 
 
@@ -349,6 +450,21 @@ void  Glx_TWindows::scrollAddress(uint16_t VSP) {
 	tft.writecommand(ILI9341_VSCRSADD); // Vertical scrolling start address
 	tft.writedata(VSP >> 8);
 	tft.writedata(VSP);
+}
+void Glx_TWindows::textColor(int color) {
+	tft.setTextColor(color);
+}
+void Glx_TWindows::throttle(int xpos, int ypos) {
+
+	char cc[] = { '|','/','-','\\' };
+	tft.setCursor(xpos, ypos+yS);
+	tft.fillRect(xpos, ypos + yS, 8,10 , ILI9341_BLACK);
+//	tft.setTextColor(ILI9341_BLACK);
+//	tft.write(cc[index]);
+	if (index++ == 3)index = 0;
+	tft.setTextColor(ILI9341_WHITE);
+	tft.write(cc[index]);
+
 }
 
 

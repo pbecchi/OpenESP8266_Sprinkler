@@ -102,6 +102,12 @@ Original Opensprinkler code commences below here
 #include <WiFiServer.h>
 #include <WiFiClientSecure.h>
 #include <WiFiClient.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h> 
+#ifdef OTA_UPLOAD
+#include <ArduinoOTA.h>
+#endif
 
 #endif
 //		#include <ICMPPing.h>
@@ -147,13 +153,46 @@ void setup()
 #ifdef OPENSPRINKLER_ARDUINO_AUTOREBOOT // Added for Auto Reboot   
    Alarm.alarmRepeat ( REBOOT_HR, REBOOT_MIN, REBOOT_SEC, reboot );
 #endif // OPENSPRINKLER_ARDUINO_AUTOREBOOT
+#ifdef OTA_UPLOAD
+   // Port defaults to 8266
+   // ArduinoOTA.setPort(8266);
 
+   // Hostname defaults to esp8266-[ChipID]
+   // ArduinoOTA.setHostname("myesp8266");
+
+   // No authentication by default
+   // ArduinoOTA.setPassword((const char *)"123");
+
+   ArduinoOTA.onStart([]() {
+	   Serial.println("Start");
+   });
+   ArduinoOTA.onEnd([]() {
+	   write_message("firmware reloaded!");
+	   Serial.println("\nEnd");
+   });
+   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+	   Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+   });
+   ArduinoOTA.onError([](ota_error_t error) {
+	   Serial.printf("Error[%u]: ", error);
+	   write_message("firmware upload error!");
+	   if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+	   else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+	   else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+	   else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+	   else if (error == OTA_END_ERROR) Serial.println("End Failed");
+   });
+   ArduinoOTA.begin();
+#endif
     do_setup();
 }
 
 void loop()
 {
 	DEBUG_COMMAND
+#ifdef OTA_UPLOAD
+		ArduinoOTA.handle();
+#endif
    do_loop();
 }
 

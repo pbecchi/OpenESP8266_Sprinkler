@@ -55,8 +55,15 @@ Refer to the README file for more information
 #include <WiFiClientSecure.h>
 #include <WiFiClient.h>
 #include <Dns.h>
+
 #include "Config.h"
 #include "Defines.h"
+#endif
+
+#ifdef WIFIMANAGER
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
+
 #endif
 //=================================================================================
 

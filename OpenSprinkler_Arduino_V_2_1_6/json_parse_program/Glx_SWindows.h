@@ -15,17 +15,26 @@
 #include <Adafruit_ILI9341esp.h>
 #include <Adafruit_GFX.h>
 #include <XPT2046.h>
+#include <vector>
 // For the esp shield, these are the default.
 #define TFT_DC 2
 #define TFT_CS 15
 #define ILI9341_VSCRDEF 0x33
 #define ILI9341_VSCRSADD 0x37
-
+#define TIME_SCA 1
+#define TICKSIZEL 3
+#define  xMargin 2
+#define yMargin 2
+#define YSign 1
+#define LegYmargin 0
+#define LegXmargin 4
 extern Adafruit_ILI9341 tft; //= Adafruit_ILI9341(TFT_CS, TFT_DC);
 extern XPT2046 touch;//(/*cs=*/ 16, /*irq=*/ 0);
 static int ScreenH;
-static  int winXmax, winXmin, winYmax, winYmin, backgroundColor;
+static  int winXmax, winXmin, winYmax, winYmin, backgroundColor;// xMargin, yMargin;
 static float xmax, ymax, xmin, ymin;
+static float scax, scay;
+
 class Glx_GWindowsClass
 {
 
@@ -33,15 +42,18 @@ class Glx_GWindowsClass
 public:
 	void init(byte type, int x0, int y0, int x1, int y1, uint16_t backColor);//screen pixels
 
+
 };
+
 	class Graf {
 	public:
 		
 		//static int Xmax = winXmax; static int Xmin = winXmin; static int Ymax = winYmax;
 		void init( uint16_t col);
 		int nval;
-		float x[100], y[100];
-		float scax, scay;
+		std::vector<float> x;
+		std::vector<float> y;
+//		float scax, scay;
 		float x0, y0;
 		int windowsH = 100, windowsW = 240, yGrafScr = 50;
 		uint16_t color;
@@ -49,7 +61,8 @@ public:
 		boolean drawAxX(float y_pos, float deltx);
 		void changeScaX(float dx);
 		void scroll(float dx);
-		boolean drawAxY(int x_scr_pos);
+		boolean drawAxX(float y_pos, float deltx,byte ty);
+		boolean drawAxy(int x_pos,float delty,byte ty);
 
 	};
 
@@ -96,11 +109,17 @@ static int i_sel = 0;
 
 class Glx_TWindows :public Print {
 public:
+	void charPos(byte nline, byte nchar,byte mode);
 	void init(int x0, int y0, int x1, int y1,byte textH, byte mode);
 	virtual size_t write(uint8_t);
+	void throttle(int xpos, int ypos);
+	void textColor(int color);
+
 protected:
-	int yDraw, xPos, yStart, TOP_FIXED_AREA, BOT_FIXED_AREA, TEXT_HEIGHT;
-	char blank[50];
+    int yS,yDraw, xPos, yStart, TOP_FIXED_AREA, BOT_FIXED_AREA, TEXT_HEIGHT;
+	byte index;
+	char blank[100];
+	bool Scroll;
 	void scrollAddress(uint16_t _vsp);
 	void setupScrollArea(uint16_t tfa, uint16_t bfa);
 	int scroll_line();

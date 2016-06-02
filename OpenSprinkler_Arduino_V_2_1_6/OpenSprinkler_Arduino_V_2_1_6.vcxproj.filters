@@ -105,4 +105,7 @@
   <ItemGroup>
     <None Include="OpenSprinkler_ESP8266_V_2_1_6.ino" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="board.txt" />
+  </ItemGroup>
 </Project>

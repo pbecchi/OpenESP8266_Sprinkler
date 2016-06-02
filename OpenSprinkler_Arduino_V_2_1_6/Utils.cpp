@@ -23,6 +23,7 @@
 
 #include "Utils.h"
 #include "OpenSprinkler.h"
+#include <TimeLib.h>
 extern OpenSprinkler os;
 
 #if defined(ARDUINO)  // AVR
@@ -46,8 +47,69 @@ extern OpenSprinkler os;
 extern SdFat sd;
 #endif
 #endif
+void write_message(char * message) {
+	File file;char * fn  = "message.txt";
+#ifdef MESSAGE
+	if (SPIFFS.exists(fn))
+	{
+		file = SPIFFS.open(fn, "r+"); DEBUG_PRINTLN("file exist open R/W");
+	}
+	else
+	{
+		file = SPIFFS.open(fn, "w"); DEBUG_PRINTLN("file dont exist open R/W");
+	}
+//	file.print(date);
+	file.seek(0, SeekEnd);
+	
+	file.print(hour());
+	file.print(':');
+	file.print(minute());
+	file.print(':');
+	file.print(second());
+	file.print(' ');
+	file.print(day());
+	file.print('/');
+	file.print(month());
+	file.print(' ');
+	for (byte i = 0; i < strlen(message);i++)
+		file.print(char(message[i]));
 
-
+	file.println();
+	file.close();
+#endif
+}
+#define MAXSIZE_MESSAGE 40
+void print_message(int pos) {
+	File file; 
+	char * fn = "message.txt";
+	if (SPIFFS.exists(fn))
+	{
+		file = SPIFFS.open(fn, "r"); DEBUG_PRINTLN("file exist open R/W");
+	}
+	else
+	{
+		DEBUG_PRINTLN("file dont exist open R/W");
+		return;
+	}
+	//	file.print(date); 
+	char  data[MAXSIZE_MESSAGE];
+	if(pos>=0)
+	    file.seek(pos, SeekSet);
+	else
+		file.seek(-pos, SeekEnd);
+	byte i0 = 0;
+	while (file.available()) {
+		file.readBytesUntil('/n', data, MAXSIZE_MESSAGE);
+		Serial.println(data);
+		strtok(data, ":");
+		strtok(data, ":");
+		os.lcd_print_line_clear_pgm(data, i0++);
+		if (i0 == 2)i0 = 0;
+		delay(2000);
+		
+	}
+	
+}
 void write_to_file(const char *name, const char *data, int size, int pos, bool trunc) {
 	if (!os.status.has_sd)  return;
 

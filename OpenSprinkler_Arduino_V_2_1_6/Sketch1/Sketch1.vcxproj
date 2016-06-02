@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{37A1B96F-3C60-4525-B90E-11EB5FDC1FB5}</ProjectGuid>
+    <RootNamespace>Sketch1</RootNamespace>
+    <ProjectName>Sketch1</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266\libb64;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266\spiffs;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266\umm_malloc;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu;d:\Users\pbecc\OneDrive\Arduino\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Sketch1;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src\utility;d:\users\pbecc\onedrive\Arduino\libraries\SSIDPASSWORD;d:\users\pbecc\onedrive\Arduino\libraries\SSIDPASSWORD\utility;d:\Program Files\Arduino\libraries;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries;D:\Program Files\VisualStudio\Common7\IDE\Extensions\oqmkifwn.z55\Micro Platforms\default\debuggers;d:\users\pbecc\onedrive\Arduino\libraries;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/lwip/include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2\xtensa-lx106-elf;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\lib\gcc\xtensa-lx106-elf\4.8.2\include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\tools\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>d:\Users\pbecc\OneDrive\Arduino\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Sketch1\__vm\.Sketch1.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>__ESP8266_ESp8266__;__ESP8266_ESP8266__;__ets__;ICACHE_FLASH;F_CPU=80000000L;ARDUINO=10608;ARDUINO_ESP8266_NODEMCU;ARDUINO_ARCH_ESP8266;ESP8266;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="Sketch1.ino">
+      <FileType>CppCode</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.Sketch1.vsarduino.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

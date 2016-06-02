@@ -5,7 +5,7 @@
 	        all non-arduino files created by visual micro and all visual studio project or solution files can be freely deleted and are not required to compile a sketch (do not delete your own code!).
 	        note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xml file. Both files are required to continue a previous debug session without needing to compile and upload again
 	
-	Hardware: Generic ESP8266 Module, Platform=esp8266, Package=esp8266
+	Hardware: NodeMCU 1.0 (ESP-12E Module), Platform=esp8266, Package=esp8266
 */
 
 #ifndef _VSARDUINO_H_
@@ -15,8 +15,8 @@
 #define __ets__
 #define ICACHE_FLASH
 #define F_CPU 80000000L
-#define ARDUINO 10605
-#define ARDUINO_ESP8266_ESP01
+#define ARDUINO 10608
+#define ARDUINO_ESP8266_NODEMCU
 #define ARDUINO_ARCH_ESP8266
 #define ESP8266
 #define __cplusplus 201103L
@@ -100,32 +100,32 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portOutputRegister(P)
 #define portInputRegister(P)
 #define portModeRegister(P)
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_ESP8266_V_2_1_6.ino>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\Config.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\Defines.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\Eeprom_ESP.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\Eeprom_ESP.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100_o.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerMain.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\PCF8574Mio.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\PCF8574Mio.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\Pins.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\SPIFFSdFat.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\Utils.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\eeprom_mio.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\eeprom_mio.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\gpio.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\gpio.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\libsel.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\utils.h>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\weather.cpp>
-#include <..\OpenSprinkler_Arduino_V_2_1_6\weather.h>
+#include <OpenSprinkler_ESP8266_V_2_1_6.ino>
+#include <Config.h>
+#include <Defines.h>
+#include <Eeprom_ESP.cpp>
+#include <Eeprom_ESP.h>
+#include <EtherCardW5100.cpp>
+#include <EtherCardW5100.h>
+#include <EtherCardW5100_o.h>
+#include <OpenSprinkler.cpp>
+#include <OpenSprinkler.h>
+#include <OpenSprinklerMain.cpp>
+#include <OpenSprinklerProgram.cpp>
+#include <OpenSprinklerProgram.h>
+#include <OpenSprinklerServer.cpp>
+#include <OpenSprinklerServer.h>
+#include <PCF8574Mio.cpp>
+#include <PCF8574Mio.h>
+#include <Pins.h>
+#include <SPIFFSdFat.h>
+#include <Utils.cpp>
+#include <eeprom_mio.cpp>
+#include <eeprom_mio.h>
+#include <gpio.cpp>
+#include <gpio.h>
+#include <libsel.h>
+#include <utils.h>
+#include <weather.cpp>
+#include <weather.h>
 #endif

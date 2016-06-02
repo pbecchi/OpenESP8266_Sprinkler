@@ -120,7 +120,7 @@ void ui_state_machine()
 
     // read button, if something is pressed, wait till release
     byte button = os.button_read ( BUTTON_WAIT_HOLD );
-	DEBUG_PRINTLN(button);
+	//DEBUG_PRINTLN(button);
     if ( button & BUTTON_FLAG_DOWN )   // respond only to button down events
     {
         os.button_timeout = LCD_BACKLIGHT_TIMEOUT;
@@ -525,7 +525,7 @@ void do_loop()
         RuntimeQueueStruct *q;
         // since the granularity of start time is minute
         // we only need to check once every minute
-//		DEBUG_PRINT(__LINE__);
+		//DEBUG_PRINT(__LINE__); DEBUG_PRINT("_");
         if ( curr_minute != last_minute )
         {
             last_minute = curr_minute;
@@ -582,6 +582,7 @@ void do_loop()
                     }// for sid
                 }// if check_match
             }// for pid
+			//DEBUG_PRINT(__LINE__); DEBUG_PRINT("_");
 
             // calculate start and end time
             if ( match_found )
@@ -781,6 +782,7 @@ void do_loop()
 
         // process dynamic events
         process_dynamic_events ( curr_time );
+		//DEBUG_PRINT(__LINE__); DEBUG_PRINT("_");
 
         // activate/deactivate valves
         os.apply_all_station_bits();
@@ -793,6 +795,7 @@ void do_loop()
 #else
             os.lcd_print_station ( 1, ui_anim_chars[curr_time % 3] );
 #endif // OPENSPRINKLER_ARDUINO_FREEMEM
+		//DEBUG_PRINT(__LINE__); DEBUG_PRINT("_");
 
         // check safe_reboot condition
         if ( os.status.safe_reboot )
@@ -818,6 +821,7 @@ void do_loop()
             }
         }
 #endif
+		//DEBUG_PRINT(__LINE__); DEBUG_PRINT("_");
 
         // real-time flow count
         static ulong flowcount_rt_start = 0;
@@ -840,6 +844,7 @@ void do_loop()
 
         // check weather
         check_weather();
+		//DEBUG_PRINT(__LINE__); DEBUG_PRINT("_");
 
 #ifdef OPENSPRINKLER_ARDUINO_HEARTBEAT
 		if (curr_time % 2 == 0)
@@ -874,6 +879,7 @@ void check_weather()
         os.checkwt_success_lasttime = 0;
         // mark for safe restart
         os.status.safe_reboot = 1;
+		write_message("restart for missing weather data!");
         return;
     }
     if ( !os.checkwt_lasttime || ( ntz > os.checkwt_lasttime + CHECK_WEATHER_TIMEOUT ) )
@@ -1362,14 +1368,18 @@ void check_network()
         else os.status.network_fails=0;
         // if failed more than 6 times, restart
         if ( os.status.network_fails>=6 )
-        {
+		{
+			write_message("netw. reconnection inpossible");
             // mark for safe restart
             os.status.safe_reboot = 1;
         }
         else if ( os.status.network_fails>2 )
         {
+			write_message("try to reconnect!");
             // if failed more than twice, try to reconnect
-            if ( os.start_network() )
+			if (os.start_network())
+
+				
                 os.status.network_fails=0;
         }
     }

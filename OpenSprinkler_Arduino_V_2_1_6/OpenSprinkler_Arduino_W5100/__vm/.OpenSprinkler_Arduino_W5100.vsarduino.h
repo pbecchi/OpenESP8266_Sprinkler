@@ -15,7 +15,7 @@
 #define __ets__
 #define ICACHE_FLASH
 #define F_CPU 80000000L
-#define ARDUINO 10605
+#define ARDUINO 10608
 #define ARDUINO_ESP8266_ESP01
 #define ARDUINO_ARCH_ESP8266
 #define ESP8266
@@ -83,6 +83,7 @@ extern "C" void __cxa_pure_virtual() {;}
 
 
 #include <arduino.h>
+#include <common.h> 
 #include <pins_arduino.h> 
 #undef F
 #define F(string_literal) ((const PROGMEM char *)(string_literal))
@@ -100,29 +101,29 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portOutputRegister(P)
 #define portInputRegister(P)
 #define portModeRegister(P)
-#include <..\OpenSprinkler_Arduino_W5100\OpenSprinkler_Arduino_W5100.ino>
-#include <..\OpenSprinkler_Arduino_W5100\Config.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Defines.h>
-#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.cpp>
-#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Gpio.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Gpio.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerMain.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\PCF8574Mio.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\PCF8574Mio.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Pins.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Utils.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Utils.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Weather.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\Weather.h>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\eeprom_mio.cpp>
-#include <..\..\OpenSprinkler_Arduino_V_2_1_6\eeprom_mio.h>
+#include <OpenSprinkler_Arduino_W5100.ino>
+#include <Config.h>
+#include <..\Defines.h>
+#include <Eeprom_ESP.cpp>
+#include <Eeprom_ESP.h>
+#include <..\EtherCardW5100.cpp>
+#include <..\EtherCardW5100.h>
+#include <..\Gpio.cpp>
+#include <..\Gpio.h>
+#include <..\OpenSprinkler.cpp>
+#include <..\OpenSprinkler.h>
+#include <..\OpenSprinklerMain.cpp>
+#include <..\OpenSprinklerProgram.cpp>
+#include <..\OpenSprinklerProgram.h>
+#include <..\OpenSprinklerServer.cpp>
+#include <..\OpenSprinklerServer.h>
+#include <..\PCF8574Mio.cpp>
+#include <..\PCF8574Mio.h>
+#include <..\Pins.h>
+#include <..\Utils.cpp>
+#include <..\Utils.h>
+#include <..\Weather.cpp>
+#include <..\Weather.h>
+#include <..\eeprom_mio.cpp>
+#include <..\eeprom_mio.h>
 #endif

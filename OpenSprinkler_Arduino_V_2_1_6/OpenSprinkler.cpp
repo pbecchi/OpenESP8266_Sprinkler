@@ -45,11 +45,11 @@ PCF8574 PCF[10];//_38(0x3F);  // add switches to lines  (used as input)
  //				(16 pins reserved for each IC) (in the order given by ESP8266 address)
  //
 #define MAX_MCU_PINS 32
-#define pinMode(x,y) if(x<MAX_MCU_PINS) pinMode(x,y); //verify pin on Ic??
-#define digitalWrite(x,y) (x<MAX_MCU_PINS)? digitalWrite(x,y) :PCF[(x - MAX_MCU_PINS) / 16].write((byte)(x - MAX_MCU_PINS) % 16, y);DEBUG_PRINT("<W>");DEBUG_PRINT(x) //verify pin on Ic??
+#define pinMode(x,y) if(x<MAX_MCU_PINS) pinMode(x,y);else{DEBUG_PRINT(x); DEBUG_PRINT(" at PCF_addr ");DEBUG_PRINTLN((x - MAX_MCU_PINS) / 16);}//verify pin on Ic??
+#define digitalWrite(x,y) (x<MAX_MCU_PINS)? digitalWrite(x,y) :PCF[(x - MAX_MCU_PINS) / 16].write((byte)(x - MAX_MCU_PINS) % 16, y);DEBUG_PRINT("<W");DEBUG_PRINT(x);DEBUG_PRINT(">");DEBUG_PRINT(y) //verify pin on Ic??
 #define digitalRead(x)   (x<MAX_MCU_PINS)? digitalRead(x): PCF[(x-MAX_MCU_PINS)/16].read((x-MAX_MCU_PINS)%16)
 #else
-#define PINMODE(x, y)  pinMode(x, y) //verify pin on Ic??
+#define pinMode(x, y)  pinMode(x, y)          //verify pin on Ic??
 #define digitalWrite(x,y)  digitalWrite(x,y)
 #define digitalRead(x)   digitalRead(x)
 #endif
@@ -458,7 +458,7 @@ void ScanI2c()
 					address[nDevices] = addres;
 					nDevices++;
 #ifdef PCF8574_M
-
+					DEBUG_PRINT("PCF expander "); DEBUG_PRINT(nDevices - 1); DEBUG_PRINT("at"); DEBUG_PRINTLN(addres);
 					PCF[nDevices - 1].begin(addres);
 #else
 					Serial.println("error Pcf_dev found ???");
@@ -477,6 +477,7 @@ void ScanI2c()
 	{
 #ifdef PCF8574_M
 		Serial.println("No PCF8574 devices found\n cannot continue!");
+		write_message("No PCF devices found!!");
 		delay(60000);
 #endif
 	}
@@ -511,7 +512,7 @@ bool OpenSprinkler::read_hardware_mac()
 void ( * resetFunc ) ( void ) = 0; // AVR software reset function
 
 /** Initialize network with the given mac address and http port */
-byte OpenSprinkler::start_network()
+byte OpenSprinkler::start_network( )
 {
 
     lcd_print_line_clear_pgm ( PSTR ( "Connecting..." ), 1 );
@@ -559,7 +560,7 @@ byte OpenSprinkler::start_network()
     ether.hisport = ( unsigned int ) ( options[OPTION_HTTPPORT_1]<<8 ) + ( unsigned int ) options[OPTION_HTTPPORT_0];
     DEBUG_PRINT ( F ( "Using http port " ) );
     DEBUG_PRINTLN ( ether.hisport );
-
+	write_message("connected");
     if ( options[OPTION_USE_DHCP] )
     {
         // set up DHCP
@@ -567,6 +568,7 @@ byte OpenSprinkler::start_network()
         if ( !ether.dhcpSetup() )
         {
             DEBUG_PRINTLN ( F ( "DHCP IP setup failed" ) );
+			write_message("DHCP conn. failed");
             return 0;
         }
 
@@ -609,6 +611,7 @@ byte OpenSprinkler::start_network()
         if ( !ether.staticSetup ( staticip, gateway, gateway ) )
         {
             DEBUG_PRINTLN ( F ( "failed" ) );
+			write_message("Static conn. failed");
             return 0;
         }
         else
@@ -624,7 +627,7 @@ byte OpenSprinkler::start_network()
 void OpenSprinkler::reboot_dev()
 {
 #ifdef ESP8266
-	
+	write_message("restart");
 	ESP.restart();
 #else
 
@@ -995,17 +998,19 @@ void OpenSprinkler::apply_all_station_bits()
         // Check that we're switching physical discretes within the range defined
 		if (MAX_EXT_BOARDS - bid < PIN_EXT_BOARDS)
 		{
-			DEBUG_PRINT("sb="); DEBUG_PRINTLN(int(sbits));
+			DEBUG_PRINT("s "); DEBUG_PRINT(bid);DEBUG_PRINT(" b = "); DEBUG_PRINTLN(int(sbits));
 			for (s = 0; s < 8; s++)
 			{
 
 				//	DEBUG_PRINT(station_pins[(bid * 8) + s]);
-				byte sBit = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
+				byte sBit = (sbits & ((byte)1 << (7 - s))) ? STA_HIGH : STA_LOW;
 						//DEBUG_PRINTF(sBit,DEC);
 				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
 			}
 		}
+		
     }
+	
 #else
     digitalWrite ( PIN_SR_LATCH, LOW );
     byte bid, s, sbits;
@@ -1523,6 +1528,7 @@ void OpenSprinkler::options_setup()
         lcd_print_line_clear_pgm ( PSTR ( "Resetting..." ), 0 );
         lcd_print_line_clear_pgm ( PSTR ( "Please Wait..." ), 1 );
 		DEBUG_PRINTLN("Reset EEPROM");
+		write_message("Resetting to factory default!");
 #else
         DEBUG_PRINT ( "Resetting Options..." );
 #endif
@@ -1608,21 +1614,31 @@ void OpenSprinkler::options_setup()
 #if defined(ARDUINO)  // handle AVR buttons
     byte button = button_read ( BUTTON_WAIT_NONE );
 	DEBUG_PRINT(button);
-//	button = 0;
-    switch ( button & BUTTON_MASK )
-    {
+//	button = 2;
+	byte ii = 1;
+	switch (button & BUTTON_MASK)
+	{
 
-    case BUTTON_1:
-        // if BUTTON_1 is pressed during startup, go to 'reset all options'
-        ui_set_options ( OPTION_RESET );
-        if ( options[OPTION_RESET] )
-        {
-            reboot_dev();
-        }
-        break;
+	case BUTTON_1:
+		// if BUTTON_1 is pressed during startup, go to 'reset all options'
+		ui_set_options(OPTION_RESET);
+		if (options[OPTION_RESET])
+		{
+			reboot_dev();
+		}
+		break;
 
-    case BUTTON_2:  // button 2 is used to enter bootloader
-        break;
+	case BUTTON_2:  // button 2 is used to enter bootloader
+#ifdef MESSAGE
+		print_message(-(ii++ * 20));
+		delay(2000);
+		while (button_read(BUTTON_WAIT_NONE)&BUTTON_MASK == 2)
+		{
+			print_message(-(ii++ * 20));
+			delay(2000);
+		}
+#endif
+		break;
 
     case BUTTON_3:
         // if BUTTON_3 is pressed during startup, enter Setup option mode
@@ -2175,7 +2191,7 @@ byte OpenSprinkler::button_read ( byte waitmode )
 		DEBUG_PRINT("b3="); DEBUG_PRINT(but3);
         curr = button_read_busy ( PIN_BUTTON_3, waitmode, BUTTON_3, is_holding );
     }
-	DEBUG_PRINTLN('r');
+	//DEBUG_PRINTLN('r');
     // set flags in return value
     byte ret = curr;
     if ( ! ( old&BUTTON_MASK ) && ( curr&BUTTON_MASK ) )

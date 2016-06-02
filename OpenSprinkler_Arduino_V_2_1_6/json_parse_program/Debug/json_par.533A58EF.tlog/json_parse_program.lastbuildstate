@@ -1,0 +1,2 @@
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v140:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit:WindowsTargetPlatformVersion=8.1
+Debug|Win32|d:\Users\pbecc\OneDrive\Arduino\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_W5100\|
