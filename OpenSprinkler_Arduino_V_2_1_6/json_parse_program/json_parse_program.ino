@@ -95,7 +95,7 @@ static	bool noClient = true;
 	unsigned long TimeOUT,posFile=0;
 	
 #define MAXBYTES 100000
-#define POS posFile=logfile.position();if(posFile>MAXBYTES)posFile=0;
+#define POS posFile=logfile.position();if(posFile>MAXBYTES)reset_logfile()
 #define LOG logfile.seek(posFile,SeekSet)
 #define SP(x) SERIAL.print(x);Serial.print(x);if(Tclient)(Tclient.print(x));LOG;logfile.print(x);POS
 #define SPL(x) SERIAL.println(x);Serial.println(x);if(Tclient)Tclient.println(x);TimeOUT = millis();LOG;logfile.println(x);POS
@@ -111,6 +111,7 @@ static	bool noClient = true;
 #define SPL_D(x) logf.println(x);Serial.println(x)
 #define SPLF_D(x,y) logf.println(x);Serial.println(x,y)
 #endif
+
 #define SPT(x,y)  SP(x);SP(":");SP(y/10);SP(y%10)
 #define SEQ_EE_START 0
 #define MAXSEQ 100
@@ -299,7 +300,7 @@ static	bool noClient = true;
 		byte flux;
 		byte flags;
 		byte progIndex;
-		byte Check_day_match(DateTime t) {
+		bool Check_day_match(DateTime t) {
 
 			byte weekday_t = t.dayOfTheWeek();        // weekday ranges from [0,6] within Sunday being 1
 			byte day_t = t.day();
@@ -316,10 +317,10 @@ static	bool noClient = true;
 			if (type == 0)
 			{   // weekday match
 				SP_D("wd"); SP_D(1 << wd);
-				if ((days[0] & (1 << wd)) != 0)
+				if (!(days[0] & (1 << wd)) )
 				{
-					SPL_D("ok");
-					return 0;
+					SPL_D("no");
+					return false;
 				}
 
 			}
@@ -328,10 +329,10 @@ static	bool noClient = true;
 
 				SPL_D(((t.unixtime() / 24 / 3600) % days[1]));
 				// this is an inverval program
-				if (byte((t.unixtime() / 24 / 3600) % days[1]) != days[0])  return 0;
+				if (byte((t.unixtime() / 24 / 3600) % days[1]) != days[0])  return false;
 
 			}
-			SPL_D("NoM");
+			SPL_D("Y");
 			/*
 			// check odd/even day restriction
 			if (!oddeven) {}
@@ -346,7 +347,10 @@ static	bool noClient = true;
 				else if (dt == 29 && month_t == 2)  return 0;
 				else if ((dt % 2) != 1)  return 0;
 			}*/
-			return 1;
+		//	if (type == 3) {
+		//		int  rest = int(t.unixtime() / 24 / 3600) % days[1] - days[0]; return rest;	}
+		//	else
+				return true;
 		}
 		int Check_Flux(uint16_t startime, int duration, int  fluxp) 
 		{					//check flux reading ret 0 no match 1 full match 2 flux change
@@ -356,11 +360,11 @@ static	bool noClient = true;
 					SP_D(" startime "); SP_D(duration); SP_D(" ");SP_D (dur); SP_D(" ");                         //comp.minutes
 					if (abs(int(duration) - int(dur)) < TOL_DUR_SEQ) {     //comp.seconds
 						SP_D("duration "); SP(flux*20); SP("F");  SPL(fluxp);
-						if (abs(flux*20 - fluxp) > TOL_FLUX_SEQ)
+						if (abs(int(flux*20) - fluxp) > TOL_FLUX_SEQ)
 						{
 							
 
-							return flux*20 - fluxp;
+							return int(flux*20) - fluxp;
 						}
 
 						else				// flux match!!
@@ -432,7 +436,7 @@ static	bool noClient = true;
 		int16_t starttime_decode(int16_t t);
 		byte flags;
 	protected:
-		byte Check_day_match(DateTime t) {
+		bool Check_day_match(DateTime t) {
 
 			byte weekday_t = t.dayOfTheWeek();        // weekday ranges from [0,6] within Sunday being 1
 			byte day_t = t.day();
@@ -447,7 +451,7 @@ static	bool noClient = true;
 			case PROGRAM_TYPE_WEEKLY:
 				// weekday match
 				if (!(days[0] & (1 << wd)))
-					return 0;
+					return false;
 				break;
 
 			case PROGRAM_TYPE_BIWEEKLY:
@@ -456,12 +460,12 @@ static	bool noClient = true;
 
 			case PROGRAM_TYPE_MONTHLY:
 				if (dt != (days[0] & 0b11111))
-					return 0;
+					return false;
 				break;
 
 			case PROGRAM_TYPE_INTERVAL:
 				// this is an inverval program
-				if (byte((t.unixtime() / 24*3600) % days[1]) != days[0])  return 0;
+				if (byte((t.unixtime() / 24*3600) % days[1]) != days[0])  return false;
 				break;
 			}
 
@@ -469,16 +473,16 @@ static	bool noClient = true;
 			if (!oddeven) {}
 			else if (oddeven == 2) {
 				// even day restriction
-				if ((dt % 2) != 0)  return 0;
+				if ((dt % 2) != 0)  return false;
 			}
 			else if (oddeven == 1) {
 				// odd day restriction
 				// skip 31st and Feb 29
-				if (dt == 31)  return 0;
-				else if (dt == 29 && month_t == 2)  return 0;
-				else if ((dt % 2) != 1)  return 0;
+				if (dt == 31)  return false;
+				else if (dt == 29 && month_t == 2)  return false;
+				else if ((dt % 2) != 1)  return false;
 			}
-			return 1;
+			return true;
 		}
 
 	};
@@ -1111,8 +1115,9 @@ static	bool noClient = true;
 void	logView(char c) {
 		if(c=='<'){
 			Tclient.print("--------------------------");
-			int offset = logfile.position();
-			if (offset > PAGE_TELNET)
+			long filePos = logfile.position();
+			int offset = filePos;
+			if (filePos > PAGE_TELNET)
 				 offset = PAGE_TELNET;
 			delay(1000);
 			while (Tclient.available()) {
@@ -1124,11 +1129,12 @@ void	logView(char c) {
 			
 			logfile.seek (-offset,SeekEnd);
 			logfile.read();
-			while (logfile.available()) {
+			while (logfile.available()||logfile.position()>filePos) {
 
 				Tclient.println(logfile.readStringUntil('\n'));
 			}
 			Tclient.println("-------------------------end");
+			logfile.seek(filePos, SeekSet);
 		}
 		
 			
@@ -1265,8 +1271,13 @@ void	logView(char c) {
 		startUpEdit();
 		startUpFluxMonitor();
 		// read Pd structure
-		for (byte ic=0;ic<N_OS_STA;ic++)
-		eeprom_read_block(&pd[ic], (void*)(PD_EEPROM_POS + ic*PD_SIZE), PD_SIZE);					//----------------ADDR_EE_OPTIONS --- 3800--------4080 280 IC max 6
+		for (byte ic = 0; ic < N_OS_STA; ic++) {
+			eeprom_read_block(&pd[ic], (void*)(PD_EEPROM_POS + ic*PD_SIZE), PD_SIZE);					//----------------ADDR_EE_OPTIONS --- 3800--------4080 280 IC max 6
+			for (byte j = 0; j < 8; j++) {
+				SP_D(" "); SP_D(pd[ic].valveStatus[j]);
+			}
+		}
+		SPL_D();
 		print_status();
 	}
 	//IPAddress jsonserver(192, 168, 1, 10);
@@ -1372,7 +1383,7 @@ void	logView(char c) {
 			TFWin.charPos(i*DLINES + STARTLINE, TABW*tab++, 0);
 			char buf[8];
 			byte nchar = sprintf(buf, "%d", pd[i].valveUsed);
-			SP_D("valves "); SP_D(buf); SP_D(" status "); for (byte ix = 0; ix < nchar; ix++) {SP_D(pd[i].valveStatus[ix]); SP_D(" ");}
+			SP_D("valves "); SP_D(buf); SP_D(" status "); for (byte ix = 0; ix < nchar; ix++) {SP_D(pd[i].valveStatus[buf[ix]-'1']); SP_D(" ");}
 			SPL_D();
 			if(pd[i].valveUsed!=0)
 				for (byte ic = 0; ic < nchar; ic++) {
@@ -1384,7 +1395,14 @@ void	logView(char c) {
 			TFWin.println();
 		}
 	}
+	void reset_logfile(){
+		SPIFFS.remove("/log1.txt");
 
+		SPIFFS.rename("/logs.txt", "/log1.txt");
+
+		logfile = SPIFFS.open("/logs.txt", "w+");
+		posFile = 0;
+	}
 #define TIME_INT_JSON   3600000  // 1h
 #define TIME1_INT_JSON 43400000  //12 h
 	byte ichange = 0;
@@ -1414,7 +1432,7 @@ void	logView(char c) {
 		//password HASHED=a6d82bced638de3def1e9bbb4983225c
 		
 	  //  if(cc!=' ')SPL_D(cc);
-		if (cc == 's')print_seq(-1);
+		if (cc == 's')print_seq(0); if (Tclient.available())print_seq(Tclient.read() - '0');
 		if (cc == ' ')cc = 0;
 		//#ifdef LCD_TOUCH
 		c = touch_control(cc);
@@ -1437,9 +1455,7 @@ void	logView(char c) {
 		else if (rest&&millis() > timerest + 5000)rest = false;
 		else if (rest&&c == '3') {
 			SPL_D("resetting logFile");
-			SPIFFS.remove("/logs.txt");
-			logfile = SPIFFS.open("/logs.txt", "w+");
-			posFile = 0;
+			reset_logfile();
 		}
 		if (c != 0||time_json>0||time_json1>0)
 		{
@@ -1590,7 +1606,7 @@ void	logView(char c) {
 			if (day >= 0)
 			{
 				SP_D(day);
-				if (seq[i].Check_day_match(oggi.operator+(day * 24 * 3600)) == 0)SP_D("A ");
+				if (seq[i].Check_day_match(oggi.operator+(day * 24 * 3600))) { SP_D("A "); }
 							}
 
 		//	else
@@ -1629,7 +1645,7 @@ void	logView(char c) {
 			float y1 = y0 + .20;						 //  0.20 for valve open
 			
 			
-				if (seq[i].Check_day_match(  oggi.operator+(day * 24 * 3600) )==0)
+				if (seq[i].Check_day_match(  oggi.operator+(day * 24 * 3600) ))
 				{
 					SP_D("Match d."); SP_D(day); SP_D(" s."); SPL_D(i);
 					int dayStart = seq[i].start + day * 1440;
@@ -1648,8 +1664,9 @@ void	logView(char c) {
 		}
 		return true;
 	}
+
 	byte iprec = 0;
-	int precTime = 0;
+	int precTime = 0,nextSeqStart=0,nextSeqEnd=0;
 	boolean startFlag = true;
 	bool check_sequence(uint16_t startime, int duration, int  fluxp)
 		// check sequences loaded from OS units versus water usage and 
@@ -1669,7 +1686,7 @@ void	logView(char c) {
 			FluxDiff = 0;
 
 			SP_D(seq[i].start / 60); SP_D(":"); SP_D(seq[i].start % 60);
-			if (seq[i].Check_day_match(ora) == 0) {										//cycle match day restrictions
+			if (seq[i].Check_day_match(ora) ) {										//cycle match day restrictions
 				FluxDiff = seq[i].Check_Flux(startime, duration, fluxp);				//cycle match in startime and duration
 				if (FluxDiff != 0)
 				{
@@ -1681,18 +1698,19 @@ void	logView(char c) {
 					{
 						byte fluxInd = seq[i].flux*10 / abs(FluxDiff);       //fluxInd contain  variation of flux:1 50%,2 25%,3 15%, 4 12.5% ,5 10% 
 						if (fluxInd < NUM_FLUX_COLOR)
-							pd[seq[i].valv / 10].valveStatus[seq[i].valv % 10+1] = fluxInd;  //valveStatus contain fluxInd
+							pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = fluxInd;  //valveStatus contain fluxInd
 						else
-							pd[seq[i].valv / 10].valveStatus[seq[i].valv % 10+1] = NUM_FLUX_COLOR; // 
+							pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = NUM_FLUX_COLOR; //
+						SP_D("fluxI"); SP_D(fluxInd); SP_D((seq[i].valv % 10));
 					}
 					SP("Seq.match p."); SP(seq[i].progIndex); SP(" v."); SP(seq[i].valv); SP(" fdif."); SPL(FluxDiff - 1);
 					//if(pd[seq[i].valv / 10].Status >0)pd[seq[i].valv / 10].Status =0;) //unit works! 
-						
+					eeprom_write_block(&pd[seq[i].valv / 10], (void*)(PD_EEPROM_POS + seq[i].valv / 10 *PD_SIZE), PD_SIZE);
 					break;
 				}
 				else																		//FluxDiff==0 no interval match
 					if (!startFlag) {
-						pd[seq[i].valv / 10].valveStatus[seq[i].valv % 10 + 1] = 0;//0 zero means non expected watering
+						pd[seq[i].valv / 10].valveStatus[seq[i].valv % 10 ] = 0;//0 zero means non expected watering
 					  //pd[seq[i].valv / 10].Status +=10; 
 					  //if (pd[seq[i].valv / 10].Status>=20)
 					//		if(!check_unit_ok(seq[i].valv / 10)) send_message(sprintf("UNIT %d Stopped",seq[i].valv / 10));
@@ -1708,9 +1726,14 @@ void	logView(char c) {
 		}
 			
 		}
-		iprec = i;
+		iprec = i++; long timeSpan = 0;
+		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))) { i++; if (i == sequn + 1) { i = 1; timeSpan += 24 * 3600; } }
+		nextSeqStart = seq[i].start;
+		nextSeqEnd = nextSeqStart + seq[i].dur / 60;
+		SP_D("next S "); SP_D(nextSeqStart); SP_D(" next E "); SPL_D(nextSeqEnd);
 		precTime = ora.hour() * 60 + ora.minute();
 		startFlag = false;
+
 		if (FluxDiff == 0) {
 			SPL(" no Seq match ");
 			
@@ -1720,6 +1743,7 @@ void	logView(char c) {
 			//write sequence to eeprom
 			eeprom_write_byte(SEQ_EE_START, sequn);
 			eeprom_write_block((void *)&seq, (void *)(SEQ_EE_START + 1), MAXSEQ * sizeof(sequence));
+			
 			return true;
 		}
 	}
