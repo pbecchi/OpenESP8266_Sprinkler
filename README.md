@@ -3,7 +3,7 @@ ESP8266 port of Opensprikler software.
 NOTE:  This  code and the documentation is WORK IN PROGRES. All your comments and suggestions are welcome (please use GitHub Issue form).
 
 Status
-
+--------
 Last June release should be last beta release: I will do some other months of testing but new corrections or improvements are not forseen. But since I have worked with OpenSprinkler I have considered the UI to be the weekest aspect of this project and I intend  to create a new branch to revise and upgrade all User Interfaces, so that most of the operations can be controlled and monitored locally .
 
 Release Notes
@@ -11,10 +11,10 @@ Release Notes
 JUNE 2016 V 2 2.1.6 Second ESP 8266 Beta release
 
 Last relase include several improvements and additions:
--WiFimanagger library to select right SSID and define password in a wireless manner.
--Arduino OTA library library to upload firmware without using USB.
--correction of serveral bugs
--testing of new hardware configurations:a description of all Hw devices tested and relative pros/contras will be added to Git, you are invited to add your own projet and experience to it.
+*-WiFimanagger library to select right SSID and define password in a wireless manner.
+*-Arduino OTA library library to upload firmware without using USB.
+*-correction of serveral bugs
+*-testing of new hardware configurations:a Wiki with description of all Hw devices tested and relative pros/contras will be added to Git, you are invited to add your own projet and experience to it.
 
 MARCH 2016 - V2.1.6 First ESP8266 BETA release
 ----------------------------------------------
