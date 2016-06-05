@@ -76,7 +76,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 //                       PIN    ASSIGNEMENT
 //
 //////////////////////////////////////////////////////////////////////////
-#define PROTO 6     //board type selection
+#define PROTO 2     //board type selection
 /////////////////////////////////////////////////////////////////////////
 //////////////////////////////proto board 1////////////rear garden//////////////////////////////////
 #if PROTO==1 // shift register 
@@ -333,10 +333,10 @@ http://forum.freetronics.com/viewtopic.php?t=770 */
 #define LCD_BACKLIGHT_ON()      digitalWrite( PIN_LCD_BACKLIGHT, HIGH )
 #define LCD_BACKLIGHT(state)    {if( state ){digitalWrite( PIN_LCD_BACKLIGHT, HIGH );}else{digitalWrite( PIN_LCD_BACKLIGHT, LOW );} }
 #define BUTTON_ADC_PIN    A0    // A0 is the button ADC input
-#elif defined(LCDI2C)       //PINOUT of LCD BOARD not related to MCU pins
-#ifndef LCD_ADDR   //already define in protoboard declarations
+#elif defined(LCDI2C)       // ---------LCD BOARD with I2C interface----------- 
+#ifndef LCD_ADDR   //--------if not defined in protoboard declarations these are defaults
 #define LCD_ADDR 0x27
-#elif !defined(PIN_LCD_EN)
+#if !defined(PIN_LCD_EN)
 #define PIN_LCD_RS        0    // LCD rs pin
 #define PIN_LCD_RW        1    // LCD rw pin
 #define PIN_LCD_EN        2    // LCD enable pin
@@ -345,6 +345,7 @@ http://forum.freetronics.com/viewtopic.php?t=770 */
 #define PIN_LCD_D6        6    // LCD d6 pin
 #define PIN_LCD_D7        7    // LCD d7 pin
 #define PIN_LCD_BACKLIGHT 3    // LCD backlight pin
+#endif
 #endif
 #else ///////////////////////parallel LCD
 // regular 16x2 LCD pin defines

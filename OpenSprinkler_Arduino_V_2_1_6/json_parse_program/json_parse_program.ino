@@ -111,7 +111,7 @@ static	bool noClient = true;
 #define SPL_D(x) logf.println(x);Serial.println(x)
 #define SPLF_D(x,y) logf.println(x);Serial.println(x,y)
 #endif
-
+#define SPS_D(x) SP_D(" ");SP_D(x)
 #define SPT(x,y)  SP(x);SP(":");SP(y/10);SP(y%10)
 #define SEQ_EE_START 0
 #define MAXSEQ 100
@@ -1344,7 +1344,7 @@ void	logView(char c) {
 
 	}
 #define NUM_FLUX_COLOR 5
-	int color[] = { ILI9341_RED,ILI9341_ORANGE,ILI9341_YELLOW,ILI9341_BLUE,ILI9341_GREEN };
+	int color[] = { ILI9341_GREEN,ILI9341_BLUE,ILI9341_YELLOW,ILI9341_ORANGE,ILI9341_RED };
 
 	//////////// PRINT STATUS/////
 #define TABW 40		
@@ -1383,12 +1383,12 @@ void	logView(char c) {
 			TFWin.charPos(i*DLINES + STARTLINE, TABW*tab++, 0);
 			char buf[8];
 			byte nchar = sprintf(buf, "%d", pd[i].valveUsed);
-			SP_D("valves "); SP_D(buf); SP_D(" status "); for (byte ix = 0; ix < nchar; ix++) {SP_D(pd[i].valveStatus[buf[ix]-'1']); SP_D(" ");}
+			SP_D("valves "); SP_D(buf); SP_D(" status "); for (byte ix = 0; ix < nchar; ix++) {SP_D(pd[i].valveStatus[buf[ix]-'0']); SP_D(" ");}
 			SPL_D();
 			if(pd[i].valveUsed!=0)
 				for (byte ic = 0; ic < nchar; ic++) {
-					if (pd[i].valveStatus[buf[ic] - '1'] != 0)
-						TFWin.textColor(color[pd[i].valveStatus[buf[ic] - '1']]);
+					if (pd[i].valveStatus[buf[ic] - '0'] != 0)
+						TFWin.textColor(color[pd[i].valveStatus[buf[ic] - '0']]);
 					TFWin.print(buf[ic]);
 				}
 			TFWin.textColor(ILI9341_WHITE);
@@ -1664,8 +1664,9 @@ void	logView(char c) {
 		}
 		return true;
 	}
-
-	byte iprec = 0;
+#define Flux_Correction false
+#define Valve_Correction 0
+	byte iprec = 0,nextValv=0;
 	int precTime = 0,nextSeqStart=0,nextSeqEnd=0;
 	boolean startFlag = true;
 	bool check_sequence(uint16_t startime, int duration, int  fluxp)
@@ -1675,8 +1676,9 @@ void	logView(char c) {
 		//	sequence seq[MAXSEQ];
 		sequn = eeprom_read_byte(SEQ_EE_START);
 		eeprom_read_block(&seq, (void *)(SEQ_EE_START + 1), MAXSEQ * sizeof(sequence));
-		
+		long timeSpan = 0;
 		int FluxDiff;
+		byte fluxSteps[] = { 2,7,15,30,60 };
 		DateTime ora = RTC.now();
 		byte	i = iprec;			// -------start from previous checked cycle
 		
@@ -1696,16 +1698,24 @@ void	logView(char c) {
 					if (seq[i].flux == 0) seq[i].flux = abs(-FluxDiff / 20);  //fisrt time : add flux info to seq
 					else
 					{
-						byte fluxInd = seq[i].flux*10 / abs(FluxDiff);       //fluxInd contain  variation of flux:1 50%,2 25%,3 15%, 4 12.5% ,5 10% 
-						if (fluxInd < NUM_FLUX_COLOR)
+						byte fluxInd=5;
+						for (byte j = 0; j < 5; j++)
+							if (seq[i].flux * fluxSteps[j] > abs(FluxDiff)) {
+								fluxInd =  j+1; break;
+							}     
+					//	fluxInd = 5 - fluxInd;//fluxInd contain  variation of flux:1 >50%,2 >25%,
+					//	if (fluxInd >3)fluxInd = seq[i].flux * 5 / abs(FluxDiff) + 1;  //3 >, 4 12.5% ,5 10% 
+						
+				//		if (fluxInd < NUM_FLUX_COLOR)
 							pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = fluxInd;  //valveStatus contain fluxInd
-						else
-							pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = NUM_FLUX_COLOR; //
-						SP_D("fluxI"); SP_D(fluxInd); SP_D((seq[i].valv % 10));
+				//		else
+				//			pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = NUM_FLUX_COLOR; //
+						SP_D("fluxI"); SP_D(fluxInd); SPS_D((seq[i].valv % 10)); SPS_D(seq[i].valv / 10); SPS_D(pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)]);
 					}
 					SP("Seq.match p."); SP(seq[i].progIndex); SP(" v."); SP(seq[i].valv); SP(" fdif."); SPL(FluxDiff - 1);
 					//if(pd[seq[i].valv / 10].Status >0)pd[seq[i].valv / 10].Status =0;) //unit works! 
 					eeprom_write_block(&pd[seq[i].valv / 10], (void*)(PD_EEPROM_POS + seq[i].valv / 10 *PD_SIZE), PD_SIZE);
+					if (seq[i].valv==Valve_Correction&&Flux_Correction)seq[i].flux += FluxDiff / 2;
 					break;
 				}
 				else																		//FluxDiff==0 no interval match
@@ -1723,12 +1733,15 @@ void	logView(char c) {
 			if (i == sequn + 1){
 				i = 1;
 				precTime = 0;
+				timeSpan += 24 * 3600;
 		}
 			
 		}
-		iprec = i++; long timeSpan = 0;
-		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))) { i++; if (i == sequn + 1) { i = 1; timeSpan += 24 * 3600; } }
+		iprec = i++; 
+
+		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))) { i++; if (i == sequn+1 ) { i = 1; timeSpan += 24 * 3600; } }
 		nextSeqStart = seq[i].start;
+		nextValv = seq[i].valv;
 		nextSeqEnd = nextSeqStart + seq[i].dur / 60;
 		SP_D("next S "); SP_D(nextSeqStart); SP_D(" next E "); SPL_D(nextSeqEnd);
 		precTime = ora.hour() * 60 + ora.minute();

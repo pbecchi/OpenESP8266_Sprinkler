@@ -444,6 +444,8 @@ bool EtherCardW5100::staticSetup
 	if (result) {
 		incoming_server.begin();
 
+
+
 		// save the values
 		IP2Byte(ETHERNE.localIP(), myip);
 		IP2Byte(ETHERNE.gatewayIP(), gwip);
@@ -466,7 +468,7 @@ bool EtherCardW5100::WiFiconnect()
 		//IPAddress subnet = Byte2IP(mask);
 		DEBUG_PRINTLN("Wait WIFI...");
 		WiFi.mode(WIFI_STA);
-		while (millis() < 60000) delay(2);
+	//	while (millis() < 60000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 								   //		byte netmask[4] = { 255,255,255,0 };
 								   //		byte MyIp[4] = { 192,168,1,211 };
@@ -495,7 +497,7 @@ bool EtherCardW5100::WiFiconnect( const uint8_t* my_ip, const uint8_t* gw_ip, co
 	*/
 		DEBUG_PRINTLN("Wait WIFI...");
 		WiFi.mode(WIFI_STA);
-		while (millis() < 10000) delay(2);
+		//while (millis() < 10000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 		byte netmask[4] = { 255,255,255,0 };
 
@@ -513,6 +515,8 @@ bool EtherCardW5100::WiFiconnect( const uint8_t* my_ip, const uint8_t* gw_ip, co
 	}
 }
 #endif
+
+
 /// <summary>
 /// Configure network interface with DHCP
 /// </summary>
@@ -550,52 +554,53 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 #endif
 
 #ifdef HOSTNAM
-	// Set up mDNS responder:
-	// - first argument is the domain name, in this example
-	//   the fully-qualified domain name is "esp8266.local"
-	// - second argument is the IP address to advertise
-	//   we send our IP address on the WiFi network
-	char *  hostname = "OS";
-#define  DHCP_HOSTNAME_MAX_LEN 10
 	
+		// Set up mDNS responder:
+		// - first argument is the domain name, in this example
+		//   the fully-qualified domain name is "esp8266.local"
+		// - second argument is the IP address to advertise
+		//   we send our IP address on the WiFi network
+		char *  hostname = "OS";
+#define  DHCP_HOSTNAME_MAX_LEN 10
 
-	//do not  Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
-	if (hname != NULL)
-	{
-		if (fromRam)
+
+		//do not  Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
+		if (hname != NULL)
 		{
-			strncpy(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+			if (fromRam)
+			{
+				strncpy(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+			}
+			else
+			{
+				strncpy_P(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+			}
 		}
 		else
 		{
-			strncpy_P(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
-		}
-	}
-	else
-	{
-		hostname = "OS";
-		// Set a unique hostname, use Arduino-?? with last octet of mac address
-		// ESP HW n. last 2 digit
-		long cod = ESP.getChipId();
+			hostname = "OS";
+			// Set a unique hostname, use Arduino-?? with last octet of mac address
+			// ESP HW n. last 2 digit
+			long cod = ESP.getChipId();
 
-		hostname[3] = (cod%10+'0');
-		hostname[2] = (cod%100/10)+('0');
-		hostname[4] = 0;
+			hostname[3] = (cod % 10 + '0');
+			hostname[2] = (cod % 100 / 10) + ('0');
+			hostname[4] = 0;
+
+		}
+		//hostname = "prova";
+		DEBUG_PRINT("Hostname:   ");
+		DEBUG_PRINTLN(hostname);
+
+
+		if (!MDNS.begin(hostname)) {
+			Serial.println("Error setting up MDNS responder!");
+			while (1) {
+				delay(1000);
+			}
+		}
+		Serial.println("mDNS responder started");
 	
-	}
-	//hostname = "prova";
-	DEBUG_PRINT("Hostname:   ");
-	DEBUG_PRINTLN(hostname);
-
-
-	if (!MDNS.begin(hostname)) {
-		Serial.println("Error setting up MDNS responder!");
-		while (1) {
-			delay(1000);
-		}
-	}
-	Serial.println("mDNS responder started");
-
 #endif
 #endif
     

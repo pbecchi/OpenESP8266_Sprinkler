@@ -1378,9 +1378,9 @@ void check_network()
 			write_message("try to reconnect!");
             // if failed more than twice, try to reconnect
 			if (os.start_network())
-
-				
-                os.status.network_fails=0;
+				os.status.network_fails = 0;
+			else
+				os.status.network_fails = 1;
         }
     }
 #else

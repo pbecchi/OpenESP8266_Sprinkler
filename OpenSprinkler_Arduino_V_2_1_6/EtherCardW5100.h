@@ -627,12 +627,11 @@ public:
     // ==========================================
     // Inherited from tcpip.cpp
     static uint16_t www_client_internal_datafill_cb ( uint8_t fd );
+
 };
 
 extern EtherCardW5100 ether; //!< Global presentation of EtherCard class
 
 #endif
-
-
 
 
