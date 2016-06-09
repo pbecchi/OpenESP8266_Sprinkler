@@ -311,15 +311,14 @@ static	bool noClient = true;
 			byte dt = day_t;
 			byte type = (flags & 0B0110000) >> 4;
 			byte oddeven = 0;
-			SP_D("day "); SP_D(day_t); SP_D("day[0]"); SP_D(days[0]);
-			SP_D("t."); SP_D(type);
+			//SP_D("day "); SP_D(day_t); SP_D("day[0]"); SP_D(days[0]);SP_D("t."); SP_D(type);
 			// check day match
 			if (type == 0)
 			{   // weekday match
-				SP_D("wd"); SP_D(1 << wd);
+				//SP_D("wd"); SP_D(1 << wd);
 				if (!(days[0] & (1 << wd)) )
 				{
-					SPL_D("no");
+				//	SPL_D("no");
 					return false;
 				}
 
@@ -327,12 +326,12 @@ static	bool noClient = true;
 			else if (type == 3)
 			{
 
-				SPL_D(((t.unixtime() / 24 / 3600) % days[1]));
+				//SPS_D(((t.unixtime() / 24 / 3600) % days[1]));
 				// this is an inverval program
 				if (byte((t.unixtime() / 24 / 3600) % days[1]) != days[0])  return false;
 
 			}
-			SPL_D("Y");
+			//SPL_D("Y");
 			/*
 			// check odd/even day restriction
 			if (!oddeven) {}
@@ -364,15 +363,15 @@ static	bool noClient = true;
 						{
 							
 
-							return int(flux*20) - fluxp;
+							return int(flux*20) - fluxp; //return flux diff
 						}
 
-						else				// flux match!!
+						else				//  match!!
 							return 1;
 					}
 					
 				}
-				return 0;
+				return 0;  //no match
 			}
 	};
 
@@ -504,7 +503,7 @@ static	bool noClient = true;
 		days[0] = (byte)(((RTC.now().unixtime() / SECS_PER_DAY) + rem_rel) % inv);
 	}
 #define PD_EEPROM_POS 3600
-#define PD_SIZE 25
+#define PD_SIZE sizeof(ProgramData)
 	class ProgramData {  //dimension 25 byte  *6->  EEPROM position 3600->3800
 	public:
 		byte nprogs;
@@ -512,9 +511,11 @@ static	bool noClient = true;
 		byte mnp ;
 		byte mnst;
 		byte stations_delay_time;
+		
 		int  progChangTime, connTime;
 		unsigned long  progChang, valveUsed;
 		byte valveStatus[8];
+		byte Status;
 
 	};
 	ProgramData pd[6];
@@ -825,8 +826,8 @@ static	bool noClient = true;
 						char buf[10];
 						bool notF = true;
 						for (byte icc = 0; icc < sprintf(buf, "%d", pd[ic].valveUsed); icc++)
-							if (buf[icc] ==(char)( '0'+j+1)) { notF = false; break; }
-						if (notF) { pd[ic].valveUsed  = pd[ic].valveUsed*10+ j+1; }
+							if (buf[icc] ==(char)( '0'+j)) { notF = false; break; }
+						if (notF) { pd[ic].valveUsed  = pd[ic].valveUsed*10+ j; }
 					}
 				}
 
@@ -1129,7 +1130,7 @@ void	logView(char c) {
 			
 			logfile.seek (-offset,SeekEnd);
 			logfile.read();
-			while (logfile.available()||logfile.position()>filePos) {
+			while (logfile.available()&&logfile.position()<filePos) {
 
 				Tclient.println(logfile.readStringUntil('\n'));
 			}
@@ -1273,11 +1274,13 @@ void	logView(char c) {
 		// read Pd structure
 		for (byte ic = 0; ic < N_OS_STA; ic++) {
 			eeprom_read_block(&pd[ic], (void*)(PD_EEPROM_POS + ic*PD_SIZE), PD_SIZE);					//----------------ADDR_EE_OPTIONS --- 3800--------4080 280 IC max 6
+			SP_D(pd[ic].valveUsed); SPS_D(pd[ic].Status);
 			for (byte j = 0; j < 8; j++) {
 				SP_D(" "); SP_D(pd[ic].valveStatus[j]);
 			}
+
+			SPL_D();
 		}
-		SPL_D();
 		print_status();
 	}
 	//IPAddress jsonserver(192, 168, 1, 10);
@@ -1390,6 +1393,7 @@ void	logView(char c) {
 					if (pd[i].valveStatus[buf[ic] - '0'] != 0)
 						TFWin.textColor(color[pd[i].valveStatus[buf[ic] - '0']]);
 					TFWin.print(buf[ic]);
+					TFWin.textColor(ILI9341_WHITE);
 				}
 			TFWin.textColor(ILI9341_WHITE);
 			TFWin.println();
@@ -1432,7 +1436,7 @@ void	logView(char c) {
 		//password HASHED=a6d82bced638de3def1e9bbb4983225c
 		
 	  //  if(cc!=' ')SPL_D(cc);
-		if (cc == 's')print_seq(0); if (Tclient.available())print_seq(Tclient.read() - '0');
+		if (cc == 's') { print_seq(0); if (Tclient.available())print_seq(Tclient.read() - '0'); }
 		if (cc == ' ')cc = 0;
 		//#ifdef LCD_TOUCH
 		c = touch_control(cc);
@@ -1689,57 +1693,63 @@ void	logView(char c) {
 
 			SP_D(seq[i].start / 60); SP_D(":"); SP_D(seq[i].start % 60);
 			if (seq[i].Check_day_match(ora) ) {										//cycle match day restrictions
-				FluxDiff = seq[i].Check_Flux(startime, duration, fluxp);				//cycle match in startime and duration
+				FluxDiff = seq[i].Check_Flux(startime, duration, fluxp);			//cycle match in startime and duration
 				if (FluxDiff != 0)
 				{
-					//					delay(3000); char c = Tclient.read();
-					//					if (c == 'y')seq[i].flux = abs(-FluxDiff / 20);
-
 					if (seq[i].flux == 0) seq[i].flux = abs(-FluxDiff / 20);  //fisrt time : add flux info to seq
 					else
 					{
-						byte fluxInd=5;
+						byte fluxInd = 5;
 						for (byte j = 0; j < 5; j++)
 							if (seq[i].flux * fluxSteps[j] > abs(FluxDiff)) {
-								fluxInd =  j+1; break;
-							}     
-					//	fluxInd = 5 - fluxInd;//fluxInd contain  variation of flux:1 >50%,2 >25%,
-					//	if (fluxInd >3)fluxInd = seq[i].flux * 5 / abs(FluxDiff) + 1;  //3 >, 4 12.5% ,5 10% 
-						
-				//		if (fluxInd < NUM_FLUX_COLOR)
-							pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = fluxInd;  //valveStatus contain fluxInd
-				//		else
-				//			pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = NUM_FLUX_COLOR; //
-						SP_D("fluxI"); SP_D(fluxInd); SPS_D((seq[i].valv % 10)); SPS_D(seq[i].valv / 10); SPS_D(pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)]);
+								fluxInd = j + 1; break;
+							}
+						pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = fluxInd;  //valveStatus contain fluxInd
+			//		else
+			//			pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = NUM_FLUX_COLOR; //
+						SP_D("fluxI"); SP_D(fluxInd); SPS_D((seq[i].valv % 10)); 
+						SPS_D(seq[i].valv / 10); SPS_D(pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)]);
 					}
 					SP("Seq.match p."); SP(seq[i].progIndex); SP(" v."); SP(seq[i].valv); SP(" fdif."); SPL(FluxDiff - 1);
 					//if(pd[seq[i].valv / 10].Status >0)pd[seq[i].valv / 10].Status =0;) //unit works! 
-					eeprom_write_block(&pd[seq[i].valv / 10], (void*)(PD_EEPROM_POS + seq[i].valv / 10 *PD_SIZE), PD_SIZE);
+					eeprom_write_block((void *)&pd[seq[i].valv / 10],(void*)(PD_EEPROM_POS + int(seq[i].valv / 10) *PD_SIZE), PD_SIZE);
+					//eeprom_read_block((void *)&pd[seq[i].valv / 10], (void*)(PD_EEPROM_POS + int(seq[i].valv / 10) *PD_SIZE), PD_SIZE);
+					//SPS_D(pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)]); SP_D(" read ");
+
 					if (seq[i].valv==Valve_Correction&&Flux_Correction)seq[i].flux += FluxDiff / 2;
+					iprec = i;
 					break;
 				}
-				else																		//FluxDiff==0 no interval match
-					if (!startFlag) {
-						pd[seq[i].valv / 10].valveStatus[seq[i].valv % 10 ] = 0;//0 zero means non expected watering
-					  //pd[seq[i].valv / 10].Status +=10; 
-					  //if (pd[seq[i].valv / 10].Status>=20)
-					//		if(!check_unit_ok(seq[i].valv / 10)) send_message(sprintf("UNIT %d Stopped",seq[i].valv / 10));
-					//		else send_message(sprintf("UNIT %d valve %d not working",seq[i].valv/10,seq[i].valv % 10unit));
+				else																	//FluxDiff==0 no interval match
+					if (!startFlag) {													 
+						if(seq[i].start==nextSeqStart)									//is expected start
+					        pd[seq[i].valv / 10].valveStatus[seq[i].valv % 10 ] = 5;    //5 red means expected watering not executed
+					//		
+						  	pd[seq[i].valv / 10].Status = pd[seq[i].valv / 10].Status*10+seq[i].valv%10;							//OS unit status=0 OK
+					//		if (pd[seq[i].valv / 10].Status>=Alarm_Times)				//if more times valves are not working
+			     	//			if(pd[seq[i].valv / 10].Status%10!=(pd[seq[i].valv / 10].Status/10)%10) //on different valves 			     				)				//if more times valves are not working
+			     	//			
+					//			if(!check_unit_ok(seq[i].valv / 10)) send_message(sprintf("UNIT %d Stopped",seq[i].valv / 10));
+					//		else  // SAME VALVE
+					//			send_message(sprintf("UNIT %d valve %d not working",seq[i].valv/10,seq[i].valv % 10unit));
 					//   	on line? unit not working? send message
 						
 					}
+				
 			}
+			iprec = i;
 			i++;
-			if (i == sequn + 1){
+			if (i >= sequn + 1){
 				i = 1;
 				precTime = 0;
 				timeSpan += 24 * 3600;
 		}
 			
 		}
-		iprec = i++; 
+	
+			i++; 
 
-		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))) { i++; if (i == sequn+1 ) { i = 1; timeSpan += 24 * 3600; } }
+		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))) { i++; if (i >= sequn+1 ) { i = 1; timeSpan += 24 * 3600; } }
 		nextSeqStart = seq[i].start;
 		nextValv = seq[i].valv;
 		nextSeqEnd = nextSeqStart + seq[i].dur / 60;
@@ -2019,7 +2029,7 @@ bool day_match(byte flags,byte days[], byte k)
 		{
 			if (days[1] != seq[k].day1)  //different intervals
 			{
-				SP_D("m-"); SP_D(int(k));
+			//	SP_D("m-"); SP_D(int(k));
 				return true;   //different interval will overlap
 
 			}

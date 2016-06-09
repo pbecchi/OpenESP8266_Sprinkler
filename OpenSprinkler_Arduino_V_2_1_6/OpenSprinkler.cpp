@@ -46,7 +46,7 @@ PCF8574 PCF[10];//_38(0x3F);  // add switches to lines  (used as input)
  //
 #define MAX_MCU_PINS 32
 #define pinMode(x,y) if(x<MAX_MCU_PINS) pinMode(x,y);else{DEBUG_PRINT(x); DEBUG_PRINT(" at PCF_addr ");DEBUG_PRINTLN((x - MAX_MCU_PINS) / 16);}//verify pin on Ic??
-#define digitalWrite(x,y) (x<MAX_MCU_PINS)? digitalWrite(x,y) :PCF[(x - MAX_MCU_PINS) / 16].write((byte)(x - MAX_MCU_PINS) % 16, y);DEBUG_PRINT("<W");DEBUG_PRINT(x);DEBUG_PRINT(">");DEBUG_PRINT(y) //verify pin on Ic??
+#define digitalWrite(x,y) (x<MAX_MCU_PINS)? digitalWrite(x,y) :PCF[(x - MAX_MCU_PINS) / 16].write((byte)(x - MAX_MCU_PINS) % 16, y)//;DEBUG_PRINT("<W");DEBUG_PRINT(x);DEBUG_PRINT(">");DEBUG_PRINT(y) //verify pin on Ic??
 #define digitalRead(x)   (x<MAX_MCU_PINS)? digitalRead(x): PCF[(x-MAX_MCU_PINS)/16].read((x-MAX_MCU_PINS)%16)
 #else
 #define pinMode(x, y)  pinMode(x, y)          //verify pin on Ic??

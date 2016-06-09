@@ -366,7 +366,8 @@ byte scanNetwork(byte flag)
 		if (PaswKnown < 0||flag==1)
 		{
 			Serial.println("Select network n.");
-			while (!Serial.available()) delay(10);
+			while (!Serial.available()&&millis()<30000) delay(10);
+			if (millis() > 30000)return 0;
 			byte ch = Serial.read();
 			Ssid[Npas] = WiFi.SSID(ch - '0');
 			Serial.print("Enter password for "); Serial.println(Ssid[Npas]);
@@ -390,10 +391,13 @@ byte scanNetwork(byte flag)
 /// <param name="dns_ip">DNS address (4 bytes). 0 for no change. Default = 0</param>
 /// <param name="mask">Subnet mask (4 bytes). 0 for no change. Default = 0</param>
 /// <returns>Returns true on success - actually always true</returns>
-#ifdef WIFIMANAGER
+
 #include "OpenSprinkler.h"
 extern OpenSprinkler os;
-
+void message(char * buf) {
+	os.lcd_print_line_clear_pgm(buf, 1);
+}
+#ifdef WIFIMANAGER
 void configModeCallback(WiFiManager *myWiFiManager) {
 	os.lcd_print_line_clear_pgm(PSTR("Conf WiFi..."), 0);
 	os.lcd_print_line_clear_pgm(PSTR("Go 192.168.4.1 "), 1);
@@ -410,7 +414,11 @@ bool EtherCardW5100::staticSetup
 #ifndef WIFIMANAGER
 	uint8_t n = 0;
 	bool result = false;
-	uint8_t nNetwork= scanNetwork(0);
+	uint8_t nNetwork = scanNetwork(0);
+	if (nNetwork == 0)
+	{
+		message("no net"); ESP.restart();
+	}
 	while (n < nNetwork&&!result) {
 		SSID =  CharFromString(found_SSID[n]);
 		PASSWORD =  CharFromString(found_psw[n]);

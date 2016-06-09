@@ -92,35 +92,35 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define ADDITIONAL_SENSORS ESP8266_C         //:additional sensors to ESP 
 #undef EEPROM_ESP                            //modify in libsel.h
 
-/////////////////////////////proto board 2//////////Vegetable garden/casetta garden/////////////////////////////////////
 #elif PROTO==2
+/////////////////////////////proto board 2//////////Vegetable garden board/////////////////////////////////////
 #define PCF8574_M
-//#define OPENSPRINKLER_ARDUINO_W5100     //:required for ESP8266 not using shift registers
+//#define OPENSPRINKLER_ARDUINO_W5100     //:ONLY required for ESP8266 not using shift registers
 #undef OPENSPRINKLER_ARDUINO_DISCRETE     //:no shift registers
-#define SHIFT_REG						  //: stations on PCF8574 n.1...7                                                         
-//#define BUTTON_ADC_PIN        A0       //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
-#define LCDI2C								//: assign LCD address
+#define SHIFT_REG						  //: stations on PCF8574 n.1...7
+#define I2C_SHIFT_REG						//shift reg. controlled by PCF8574
+//#define BUTTON_ADC_PIN        A0         //:NO analog buttons
+#define LCDI2C								//: assign LCD address---default
 #define SPIFFSDFAT							//:no SD
-#define PIN_BUTTON_1 0x24		//button are on PCF8574 expaneder
+#define PIN_BUTTON_1 0x24					//button are on PCF8574 expaneder
 #define PIN_BUTTON_2 0x25
 #define PIN_BUTTON_3 0x26
-#define BUT1_ON 1		//PIN input:1= Vcc, 0 =GND
-#define BUT2_ON 1		//PIN input:1= Vcc, 0 =GND
-#define BUT3_ON 1		//PIN input:1= Vcc, 0 =GND
-#define I2C_SHIFT_REG
+#define BUT1_ON 1							//PIN input:1= Vcc, 0 =GND
+#define BUT2_ON 1							//PIN input:1= Vcc, 0 =GND
+#define BUT3_ON 1							//PIN input:1= Vcc, 0 =GND
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
-////////////////////////////////////////////prtotype n.3 Ian Board///////////////////////////////////////////////////////
 #elif PROTO==3
+////////////////////////////////////////////prtotype n.3 Ian Board///////////////////////////////////////////////////////
 #define PCF8574_M
 #define SDA_PIN 4
 #define SCL_PIN 5
 #define SHIFT_REG
+#define I2C_SHIFT_REG				//shift register controlled by PCF8574 follow custom pinout
 #define PIN_SR_LATCH       0x22    // shift register latch pin
 #define PIN_SR_DATA        0x24    // shift register data pin
 #define PIN_SR_CLOCK       0x21    // shift register clock pin
 #define PIN_SR_OE          0x23    // shift register output enable pin
 #undef OPENSPRINKLER_ARDUINO_DISCRETE
-#define LCDI2C
 //#define SDFAT
 //#define PIN_SD_CS 16
 #define SPIFFSDFAT
@@ -129,9 +129,9 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define PIN_BUTTON_2 2
 #define PIN_BUTTON_3 15
 #define BUT3_ON 1
-#define I2C_SHIFT_REG
 #define DUMMY_PIN 0x25  //dummy pin for unused functions
-#define LCD_ADDR 0x20    // following are pin of the I2c lcd expander
+#define LCDI2C
+#define LCD_ADDR 0x20    // following are pin of the I2c lcd expander ....follow custom LCD pin definition
 #define PIN_LCD_RS        0    // LCD rs pin
 #define PIN_LCD_RW        7    // LCD rw pin dummy decl.
 #define PIN_LCD_EN        1    // LCD enable pin
@@ -141,29 +141,29 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define PIN_LCD_D7        5    // LCD d7 pin
 #define PIN_LCD_BACKLIGHT 4    // LCD backlight pin
 #define PIN_BACKLIGHT_MODE NEGATIVE //POSITIVE
-#elif PROTO==4
+#elif PROTO==4							// ----------casetta board---------
 #define PCF8574_M
 //#define OPENSPRINKLER_ARDUINO_W5100     //:required for ESP8266 not using shift registers
-#undef OPENSPRINKLER_ARDUINO_DISCRETE     //:no shift registers
-#define SHIFT_REG						  //: stations on PCF8574 n.1...7                                                         
+#undef OPENSPRINKLER_ARDUINO_DISCRETE     //:undef so shift registers
+#define SHIFT_REG						  // shift registers                                                        
+#define I2C_SHIFT_REG                     //: stations on PCF8574 n.1...7 ---default
 //#define BUTTON_ADC_PIN        A0       //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
-#define LCDI2C								//: assign LCD address
+#define LCDI2C								//: assign LCD address default
 #define SPIFFSDFAT							//:no SD
-#define PIN_BUTTON_1 0x25		//button are on PCF8574 expaneder
+#define PIN_BUTTON_1 0x25				//button are on PCF8574 expaneder
 #define PIN_BUTTON_2 0x26
 #define PIN_BUTTON_3 0x27
-#define BUT1_ON 0		//PIN input:1= Vcc, 0 =GND
-#define BUT2_ON 0	//PIN input:1= Vcc, 0 =GND
-#define BUT3_ON 0		//PIN input:1= Vcc, 0 =GND
-#define I2C_SHIFT_REG
-#define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 #elif PROTO==2
+#define BUT1_ON 0						//PIN input:1= Vcc, 0 =GND
+#define BUT2_ON 0						//PIN input:1= Vcc, 0 =GND
+#define BUT3_ON 0						//PIN input:1= Vcc, 0 =GND
+#define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
 
 #elif PROTO==5
-///////////////////////////////new board/////////////////////////////////////
-#define OPENSPRINKLER_ARDUINO_DISCRETE      //:no shift registers
+///////////////////////////////test board/?with direct PCF8574 output?////////////////////////////////////
+#define OPENSPRINKLER_ARDUINO_DISCRETE      //:no shift registers pin definition is default?
 #define I2C_SHIFT_REG						//: stations on PCF8574 n.1...7  
-//#define BUTTON_ADC_PIN        A0                   //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
-#define LCDI2C								//: assign LCD address
+//#define BUTTON_ADC_PIN        A0          //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
+#define LCDI2C								//: assign LCD address---default
 #define SPIFFSDFAT							//:no SD
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0  
 #define PCF8574_M
@@ -180,7 +180,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define PIN_LCD_D7        7    // LCD d7 pin
 #define PIN_LCD_BACKLIGHT 3    // LCD backlight pin
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
-/////////////////////////////proto board 6//////////Swimming pool/////////////////////////////////////
+/////////////////////////////proto board 6//////////Swimming pool//PCF8574 with relay///////////////////////////////////
 #elif PROTO==6
 #define OPENSPRINKLER_ARDUINO_W5100        //only for MEGA (required for ESP8266 only when not using shift registers)
 //#define SHIFT_REG						   //: stations on PCF8574 n.1...7 connected to shift register                                                        
@@ -196,11 +196,11 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define PIN_STN_S07		0x23
 #define PIN_STN_S08		0x24
 
-#define STA_HIGH LOW     // low station output on
-#define STA_LOW HIGH     // high station output off
+#define STA_HIGH LOW     // low station output on for Relay
+#define STA_LOW HIGH     // high station output off for Relay
 //-------------------------buttons--------------------------------------------
 //#define BUTTON_ADC_PIN        A0       //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
-#define PIN_BUTTON_1 0x34		//button are on PCF8574 expaneder
+#define PIN_BUTTON_1 0x34		//button are on second PCF8574 expaneder
 #define PIN_BUTTON_2 0x35
 #define PIN_BUTTON_3 0x36
 #define BUT1_ON 1		//PIN input:1= Vcc, 0 =GND
