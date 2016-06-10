@@ -29,8 +29,12 @@ extern OpenSprinkler os;
 #ifndef ESP8266
 #include <avr/eeprom.h>
 #else
-#include "EEprom_mio.h"
-#endif
+#ifdef EEPROM_ESP
+#include "Eeprom_ESP.h"
+#else
+#include "eeprom_mio.h"
+#endif  //EEPROM_ESP
+#endif //ESP8266
 
 #ifdef ESP8266
 #include <FS.h>

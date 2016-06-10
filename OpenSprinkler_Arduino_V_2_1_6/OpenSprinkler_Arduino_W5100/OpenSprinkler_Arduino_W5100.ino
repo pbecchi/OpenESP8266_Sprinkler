@@ -58,6 +58,7 @@ Original Opensprinkler code commences below here
 * <http://www.gnu.org/licenses/>.
 */
 
+#include <EEPROM.h>
 #include <Arduino.h>
 #include "Config.h"
 #include "../Defines.h"
@@ -71,7 +72,7 @@ Original Opensprinkler code commences below here
 #include <FS.h>
 //#include "../SPIFFSdFat.h"
 #include "../PCF8574Mio.h"
-
+#include <ESP8266mDNS.h>
 #else 
 #include <SdFat.h>
 #endif
@@ -134,7 +135,12 @@ void do_loop();
 
 void setup()
 {
-	delay(19);
+	delay(2000);
+#ifdef EEPROM_ESP
+	EEPROM.begin(NVM_SIZE);
+	
+#endif
+
 #ifdef OPENSPRINKLER_ARDUINO_AUTOREBOOT // Added for Auto Reboot   
    Alarm.alarmRepeat ( REBOOT_HR, REBOOT_MIN, REBOOT_SEC, reboot );
 #endif // OPENSPRINKLER_ARDUINO_AUTOREBOOT

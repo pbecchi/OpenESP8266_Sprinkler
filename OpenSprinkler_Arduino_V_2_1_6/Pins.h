@@ -1,20 +1,16 @@
 #pragma once
-#include <Arduino.h>
-#include "Config.h"
-////////////////////////////////////////BASIC ESP DEF //////////////////////////////
-#ifdef ESP8266
-#define SDA_PIN          D2       //:this is standard....it may be changed
-#define SCL_PIN          D1       //:this is standard  ---it may be chaNGED
-#define OS_HW_VERSION    0.0
-#else // not compatible libraries ESP8266 
-#define SDFAT                                   // SD card on 
-#define MY_PING                                 // ping not available on ESP8266
-#endif
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define MEGA_W5100 1
-#define ESP8266_C 2
-#define PCF8574_C 3
-#define BUT_ON 0
+/*------------------------------------------------------------------------------------------------------
+The file details each pin used for your HW configuration. 
+You have first to define the configuration you are working on (ESP or other MCU) 
+and the type of peripheral you are using:see detailed table about it
+Then you have to select the pins (for I2c, station output, shift registers, rain ....all other functions)
+and assign it to a pin number, using following rule:
+    -pin <32 will be assigned to MCU (ESP8266) GPIO pin numbers( only few are available for ESP8266).
+    -pin >32 and <48 will be assigned to an first I2c extender (the one with the lowest address)
+    -pin >48 and <64 will be assigned to second I2c extender 
+    -so on 16 pin at the time
+This way you can use expander for all functions (interrupt donot work right now) and free most of the pins on MCU
+------------------------------------------------------------------------------------------------------------------*/
 // ===================================================================================================================
 // HARDWARE CONFIGURATIONS								GPIO channels                     #define
 //
@@ -31,7 +27,8 @@
 // SD                Std. SPI MicroSD					SPI channels +1					def SD_FAT	
 //					 SPIFFS (emulations in Flash mem)	none							def SPIFFSDFAT
 // EEPROM            Std. 2kB on board(Mega)			onboard							AUTOMATIC ON MEGA
-//					 I2C on RTC board	4kB				I2C channels					AUTOMATIC ON esp8266
+//					 I2C on RTC board	4kB				I2C channels					def esp8266 undef EEPROM_ESP
+//					 on ESP8266 flash mem				internal						def EEPROM_ESP
 //ETHERNET			 std ENC							SPI channels					undef OPENSPRINKLER_ARDUINO_DISCRETE
 //					 W5100 SHIELD						SPI channels					def OPENSPRINKLER_ARDUINO_W5100
 //					 ESP8266 onboard					none							ESP8266 & def OPENSPRINKLER_ARDUINO_W5100
@@ -39,13 +36,33 @@
 //					 FLUX_GAGE							GPIO 1 + interrupt				=MEGA_W5100   (ass.to mega GIO)
 //																						=PCF8574_C(ass.to PCF8574&ESP8266)
 //																						=ESP8266_C(ass.only to ESP8266)
+//===============================================additional options==============================================================
+//Hostname			you can access with http://NAME.local where name is OSxx=n.	HW		def HOST_NAM
+//
+
+#include <Arduino.h>
+#include "Config.h"
+////////////////////////////////////////BASIC ESP DEF //////////////////////////////
+#ifdef ESP8266
+#define SDA_PIN          D2       //:this is standard....it may be changed
+#define SCL_PIN          D1       //:this is standard  ---it may be chaNGED
+#define OS_HW_VERSION    0.0      // it will define releases
+#else // not compatible libraries ESP8266 
+#define SDFAT                                   // SD card on 
+#define MY_PING                                 // ping not available on ESP8266
+#endif
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define MEGA_W5100 1
+#define ESP8266_C 2
+#define PCF8574_C 3
+#define BUT_ON 0
 //
 //                       PIN    ASSIGNEMENT
 //
 //
-#define PROTO 1             ///////////////////
+#define PROTO 2             ///////////////////
 //////////////////////////////proto board 1//////////////////////////////////////////////
-#if PROTO==1
+#if PROTO==1 // shift register 
 #define SDA_PIN D5                         //:redefined 
 #define SCL_PIN D2                         //:redefined
 //#define OPENSPRINKLER_ARDUINO_W5100      //:required for ESP8266
@@ -64,6 +81,7 @@
 #define LCDI2C								//: assign LCD address
 #define SPIFFSDFAT							//:no SD
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0  
+//#define ACTIVE_LOW             //Invert output logic if using a active low relay board
 #endif
 
 

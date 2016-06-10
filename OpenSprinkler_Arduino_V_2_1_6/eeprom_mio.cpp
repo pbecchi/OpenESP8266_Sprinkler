@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "eeprom_mio.h"
+#ifndef EEPROM_ESP
 /*
 //#include <I2C_eeprom.h>
 uint8_t eeprom_read_byte(unsigned char * pos)
@@ -251,3 +252,4 @@ void eeprom_write_block(
 	}
 
 }
+#endif

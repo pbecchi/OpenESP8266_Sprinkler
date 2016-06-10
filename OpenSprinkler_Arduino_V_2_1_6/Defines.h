@@ -23,10 +23,11 @@
 
 #ifndef _DEFINES_H
 #define _DEFINES_H
+#define HOSTNAM
 
 #include <Arduino.h>
 #include "Config.h"
-
+#include "libsel.h"
 /** Firmware version, hardware version, and maximal values */
 #define OS_FW_VERSION			216		// Firmware version: 216 means 2.1.6
 										// if this number is different from the one stored in non-volatile memory
@@ -435,20 +436,20 @@ typedef enum
 #define 	wdt_reset()   __asm__ __volatile__ ("wdr")  // watchdog timer reset
 #endif
 #endif	// OPENSPRINKLER_ARDUINO_WDT
-
+#define DEBUG_BEGIN(x)   Serial.begin(x)
 #define SERIAL_DEBUG
 #if defined(SERIAL_DEBUG) /** Serial debug functions */
 extern byte DB;
 #define DB_MASK 0xFF
 #define DEBUG_COMMAND  if(Serial.available()){DB=Serial.read()-'0';DB=DB*10+Serial.read()-'0';Serial.print("->");Serial.println(DB);}
-#define DEBUG_BEGIN(x)   Serial.begin(x)
+
 #define DEBUG_PRINTF(x,y)   if(DB&DB_MASK) Serial.print(x,y)
 #define DEBUG_PRINT(x)  if(DB&DB_MASK) Serial.print(x)
 #define DEBUG_PRINTLN(x) if(DB&DB_MASK) Serial.println(x)  //;Serial.print(DB,DEC);Serial.println(DB_MASK,DEC);
 #else
 #define DEBUG_PRINTF {}
 #define DEBUG_COMMAND {}
-#define DEBUG_BEGIN(x)   {}
+//#define DEBUG_BEGIN(x)   {}
 #define DEBUG_PRINT(x)   {}
 #define DEBUG_PRINTLN(x) {}
 #endif

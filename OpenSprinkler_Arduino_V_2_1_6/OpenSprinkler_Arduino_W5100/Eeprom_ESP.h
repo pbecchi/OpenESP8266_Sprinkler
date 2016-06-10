@@ -1,13 +1,14 @@
-// eeprom_mio.h
+#pragma once
 #include "libsel.h"
-#ifndef EEPROM_ESP
-#ifndef _EEPROM_MIO_h
-#define _EEPROM_MIO_h
+
+#ifdef EEPROM_ESP
+#ifndef _EEPROM_ESP_h
+#define _EEPROM_ESP_h
 /*
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
+#include "arduino.h"
 #else
-	#include "WProgram.h"
+#include "WProgram.h"
 #endif
 */
 #include <stdio.h>
@@ -28,4 +29,5 @@ void eeprom_write_block(
 	const void * __src,
 	void * __dst,
 	unsigned int __n); //Write a block of __n bytes to EEPROM address __dst from __src.
+
 #endif

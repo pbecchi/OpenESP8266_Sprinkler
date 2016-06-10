@@ -24,7 +24,12 @@
 #include <avr/eeprom.h>
 #else
 #include <FS.h>
-#include "EEprom_mio.h"
+#include <ESP8266mDNS.h>
+#ifdef EEPROM_ESP
+#include "Eeprom_ESP.h"
+#else
+#include "eeprom_mio.h"
+#endif  //EEPROM_ESP
 char* SSID = "Vodafone-25873015";
 char* PASSWORD = "5ph87cmmjmm8cs9";
 #endif
@@ -506,10 +511,57 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 		result = WiFiconnect();
 	}
 	if (!result )return false;
+#ifdef HOSTNAM
+	// Set up mDNS responder:
+	// - first argument is the domain name, in this example
+	//   the fully-qualified domain name is "esp8266.local"
+	// - second argument is the IP address to advertise
+	//   we send our IP address on the WiFi network
+	char *  hostname = "OS";
+#define  DHCP_HOSTNAME_MAX_LEN 10
+	
 
+	//do not  Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
+	if (hname != NULL)
+	{
+		if (fromRam)
+		{
+			strncpy(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+		}
+		else
+		{
+			strncpy_P(hostname, hname, DHCP_HOSTNAME_MAX_LEN);
+		}
+	}
+	else
+	{
+		hostname = "OS";
+		// Set a unique hostname, use Arduino-?? with last octet of mac address
+		// ESP HW n. last 2 digit
+		long cod = ESP.getChipId();
+
+		hostname[3] = (cod%10+'0');
+		hostname[2] = (cod%100/10)+('0');
+		hostname[4] = 0;
+	
+	}
+	//hostname = "prova";
+	DEBUG_PRINT("Hostname:   ");
+	DEBUG_PRINTLN(hostname);
+
+
+	if (!MDNS.begin(hostname)) {
+		Serial.println("Error setting up MDNS responder!");
+		while (1) {
+			delay(1000);
+		}
+	}
+	Serial.println("mDNS responder started");
 
 #endif
-            // start listening for clients
+#endif
+    
+	// start listening for clients
     incoming_server.begin();
  //   udp_client.begin ( NTP_CLIENT_PORT );
 
@@ -521,57 +573,18 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 
     // print debug values
     printIPConfig();
-
+	delay(4000);
+#ifndef HOSTNAM
     return true;
-#ifndef ESP8266
-	/*
-	//do not  Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
-	if ( hname != NULL )
-	{
-	if ( fromRam )
-	{
-	strncpy ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
-	}
-	else
-	{
-	strncpy_P ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
-	}
-	}
-	else
-	{
-	// Set a unique hostname, use Arduino-?? with last octet of mac address
-	hostname[8] = toAsciiHex ( mymac[5] >> 4 );
-	hostname[9] = toAsciiHex ( mymac[5] );
-	}
-
-	*/
+#else
+#ifdef ESP8266	
+	// Add service to MDNS-SD
+	MDNS.addService("http", "tcp", 80);
+	return true;
+#else	
 	DEBUG_PRINT(F("Hostname:   "));
 	DEBUG_PRINT(hostname);
-	DEBUG_PRINTLN(F("(not implemented)"));
-	/*
-	//do not  Ignore the hostname - need to extend the standard Arduino ethernet library to implement this
-	if ( hname != NULL )
-	{
-	if ( fromRam )
-	{
-	strncpy ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
-	}
-	else
-	{
-	strncpy_P ( hostname, hname, DHCP_HOSTNAME_MAX_LEN );
-	}
-	}
-	else
-	{
-	// Set a unique hostname, use Arduino-?? with last octet of mac address
-	hostname[8] = toAsciiHex ( mymac[5] >> 4 );
-	hostname[9] = toAsciiHex ( mymac[5] );
-	}
-
-	*/
-	DEBUG_PRINT(F("Hostname:   "));
-	DEBUG_PRINT(hostname);
-	DEBUG_PRINTLN(F("(not implemented)"));
+	//DEBUG_PRINTLN(F("(not implemented)"));
 
 	dhcpState = DHCP_STATE_INIT;
 	uint16_t start = millis();
@@ -582,8 +595,9 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 	updateBroadcastAddress();
 	delaycnt = 0;
 	return dhcpState == DHCP_STATE_BOUND;
-#endif
 
+#endif //ESP8266
+#endif //HOSTNAM
 }
 
 /// <summary>

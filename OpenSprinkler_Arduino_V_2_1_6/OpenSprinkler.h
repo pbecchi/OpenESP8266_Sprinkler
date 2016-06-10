@@ -26,7 +26,7 @@
 
 #include "Config.h"
 #include "../Defines.h"
-
+#include "libsel.h"
 #if defined(ARDUINO) // heades for AVR
 
 	// OPENSPRINKLER_ARDUINO
@@ -34,7 +34,11 @@
 #ifndef ESP8266
 	#include <avr/eeprom.h>
 #else
-	#include "EEprom_mio.h"
+#ifdef EEPROM_ESP
+#include "Eeprom_ESP.h"
+#else
+	#include "eeprom_mio.h"
+#endif  //EEPROM_ESP
 #endif
 	#include <Wire.h>
 	#include <Time.h>
