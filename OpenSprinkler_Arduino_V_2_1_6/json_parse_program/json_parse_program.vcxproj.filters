@@ -51,6 +51,9 @@
     <ClInclude Include="..\..\..\TimeNTP_ESP8266WiFi\TimeNTP_ESP8266WiFi.ino\NPTtimeSync.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="ET_penmam.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Eeprom_ESP.cpp">

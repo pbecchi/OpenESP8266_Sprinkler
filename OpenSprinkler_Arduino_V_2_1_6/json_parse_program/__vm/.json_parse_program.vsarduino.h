@@ -104,6 +104,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <Config.h>
 #include <Def.h>
 #include <EEPROM.ino>
+#include <ET_penmam.h>
 #include <Eeprom_ESP.cpp>
 #include <Eeprom_ESP.h>
 #include <Glx_SWindows.cpp>

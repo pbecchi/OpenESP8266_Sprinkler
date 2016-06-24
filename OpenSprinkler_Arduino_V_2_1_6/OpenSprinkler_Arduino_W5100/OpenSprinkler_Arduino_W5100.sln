@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSprinkler_Arduino_W5100", "OpenSprinkler_Arduino_W5100.vcxproj", "{EF04BDF0-F67B-4C97-83C0-57BFAF0D3083}"
 EndProject
@@ -38,6 +38,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TFT_Terminal", "..\..\..\TFT_Terminal\TFT_Terminal.vcxproj", "{1158F8EA-38E9-4483-88D1-A194F75D4F06}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sketch1", "..\Sketch1\Sketch1.vcxproj", "{37A1B96F-3C60-4525-B90E-11EB5FDC1FB5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "datecalc", "..\..\..\libraries\RTClib-master\examples\datecalc\datecalc.vcxproj", "{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ds1307_analog_power", "..\..\..\ds1307_analog_power\ds1307_analog_power.vcxproj", "{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -185,6 +189,22 @@ Global
 		{37A1B96F-3C60-4525-B90E-11EB5FDC1FB5}.Release|x64.ActiveCfg = Release|Win32
 		{37A1B96F-3C60-4525-B90E-11EB5FDC1FB5}.Release|x86.ActiveCfg = Release|Win32
 		{37A1B96F-3C60-4525-B90E-11EB5FDC1FB5}.Release|x86.Build.0 = Release|Win32
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Debug|x64.ActiveCfg = Debug|x64
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Debug|x64.Build.0 = Debug|x64
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Debug|x86.ActiveCfg = Debug|Win32
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Debug|x86.Build.0 = Debug|Win32
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Release|x64.ActiveCfg = Release|x64
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Release|x64.Build.0 = Release|x64
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Release|x86.ActiveCfg = Release|Win32
+		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Release|x86.Build.0 = Release|Win32
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x64.ActiveCfg = Debug|x64
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x64.Build.0 = Debug|x64
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x86.ActiveCfg = Debug|Win32
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x86.Build.0 = Debug|Win32
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x64.ActiveCfg = Release|x64
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x64.Build.0 = Release|x64
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x86.ActiveCfg = Release|Win32
+		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

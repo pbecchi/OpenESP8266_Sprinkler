@@ -1988,7 +1988,8 @@ void OpenSprinkler::lcd_print_option ( int i )
     }
     break;
     case OPTION_STATION_DELAY_TIME:
-        lcd.print ( water_time_decode_signed ( options[i] ) );
+        lcd.print ( water_time_
+			_signed ( options[i] ) );
         break;
     case OPTION_LCD_CONTRAST:
         lcd_set_contrast();

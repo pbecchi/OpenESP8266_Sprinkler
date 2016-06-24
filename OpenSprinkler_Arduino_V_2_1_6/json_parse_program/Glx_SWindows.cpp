@@ -360,10 +360,11 @@ char Glx_keyborad::isPressed(uint16_t x, uint16_t y)
 void Glx_keyborad::end()
 {
 }
-void Glx_TWindows::charPos(byte nline, byte nchar,byte mode) //y pos, x pos , mode >0 clean mode lines to right border
+void Glx_TWindows::charPos(byte nline, byte nchar,byte mode) //y pos, x pos , mode >0 clean mode length to right border
 {
 	tft.setCursor(nchar, nline+yS);
-	if (mode>0)	tft.fillRect(0,nline+yS, tft.width(), mode, ILI9341_BLACK);
+	
+	if (mode>0)	tft.fillRect(0,nline+yS,mode, 10, ILI9341_BLACK); //char heigth 10 pix
 }
 void Glx_TWindows::init(int x0, int y0, int x1, int y1,byte textH, byte mode)
 {
