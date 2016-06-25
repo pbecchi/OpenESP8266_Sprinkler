@@ -1980,15 +1980,16 @@ void setup() {
 	}
 #define TIME_INT_JSON   3600000  // 1h
 #define TIME1_INT_JSON 43400000  //12 h
+#define TIME2_INT_JSON 14400000  //4h
 	byte ichange = 0;
 	byte change_prog_n[20];
-	unsigned long time_json = 0, time_json1 = 0;
+	unsigned long time_json = 0, time_json1 = 0, time_json2 = 0;
 	static bool json_flag = false;
 	static byte count;
 	byte countp = 0;
 	static 	bool noCon[] = { true,true,true,true,true },rest=false;
 	DateTime last_JP[5]; long timerest,m10000=60000;
-
+	boolean input_seq = false, input_pd = false;
 /////////////////////////////////////////////////////////////// loop /////////////////////////////////////////////////////
 	void loop() {
 #ifdef OTA
@@ -2054,9 +2055,32 @@ void setup() {
 		
 #endif
 		//a-----------------------change area
-		if (c == 'a') {
-			SP("modify Area "); byte valv = inputI("valv"); 
-			pd[valv / 10].area[valv % 10] = inputI("area");
+		if (input_pd||c == 'a') {
+			SP("Pd modify Area "); int valv = inputI("valv");
+			if (valv < 0) {
+				SPL_D("Save Pd!");
+				input_pd = false;
+				for (byte i=1;i<N_OS_STA;i++)
+				eeprom_write_block((void *)&pd[i], (void*)(PD_EEPROM_POS + i *PD_SIZE), PD_SIZE);
+			}
+			else {
+				pd[valv / 10].area[valv % 10] = inputI("area");
+				input_pd = true;
+				SP_D("pd["); SP_D(valv / 10); SP_D("].area["); SP_D(valv % 10); SP_D("]="); SPL_D(pd[valv / 10].area[valv % 10]);
+			}
+		}
+		//f-----------------------change flux
+		if (input_seq||c == 'f') {
+			SP("Seq modify Flux ");int iseq = inputI("seq");
+			if (iseq < 0) {
+				input_seq = false;
+				eeprom_write_block((void *)&seq, (void *)(SEQ_EE_START + 1), MAXSEQ * sizeof(sequence));
+			}
+			else {
+				seq[iseq].flux = inputI("flux");
+				input_seq = true;
+				SP_D("seq["); SP_D(iseq); SP_D("].flux="); SPL_D(seq[iseq].flux);
+			}
 		}
 		//n----------------------/jn API load names
 		if (c != 0||time_json>0||time_json1>0)
@@ -2272,6 +2296,11 @@ void setup() {
 	
 	bool plot_sequence()
 	{
+		float y[30] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+		int prec_time[30]= { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+		for (byte ic = 0; ic < N_OS_STA; ic++) {
+			eeprom_read_block(&pd[ic], (void*)(PD_EEPROM_POS + ic*PD_SIZE), PD_SIZE);
+		}
 		sequn = eeprom_read_byte(SEQ_EE_START);
 		Serial.println(sequn,DEC);
 		if (sequn == 0)return false;
@@ -2279,22 +2308,36 @@ void setup() {
 		byte day = 0;
 		DateTime oggi = adesso();
 		//if prog.check_day_match(oggi)
+		//int prev_time = 0; 
+		byte y00 = 0;
 		while (day++<MAX_PLOT_DAYS)
 		for (int i = 1; i < sequn+1 ; i++)
-		{   
+		{
+			if (y[seq[i].valv] == 0)y[seq[i].valv] = 2* y00++;
 			//loadGraph(seq[i].valv, 0, y0);
-			float y0 = (seq[i].valv/ 10)*.25;			 //  shift 0.25 each station present
-			float y1 = y0 + .20;						 //  0.20 for valve open
+			float y0 = 0;// int(seq[i].valv / 10) * 25;			 //  shift 0.25 each station present
+			//float y1 = y0 + 20;						 //  0.20 for valve open
 			
 			
 				if (seq[i].Check_day_match(  oggi.operator+(day * 24 * 3600) ))
-				{
-					SP_D("Match d."); SP_D(day); SP_D(" s."); SPL_D(i);
+				{ 
+					//SP_D("Match d."); SP_D(day); SP_D(" s."); SPL_D(i);
 					int dayStart = seq[i].start + day * 1440;
-					loadGraph(seq[i].valv, dayStart, y0);
-					loadGraph(seq[i].valv, dayStart, y1);
-					loadGraph(seq[i].valv, dayStart+ seq[i].dur / 60, y1);
-					loadGraph(seq[i].valv, dayStart + seq[i].dur / 60, y0);
+					
+					 y[seq[i].valv ] = y[seq[i].valv ] + (prec_time[seq[i].valv] - dayStart)*3.0/1440;
+					 loadGraph(seq[i].valv, dayStart, y[seq[i].valv ] + y0);
+					 SP_D(prec_time[seq[i].valv]); SPS_D(seq[i].valv); SPS_D(dayStart); SP(" "); SP_D(y[seq[i].valv] + y0);
+					 if(pd[seq[i].valv / 10].area[seq[i].valv % 10]>0)
+						 y[seq[i].valv] = y[seq[i].valv] + seq[i].flux *20.*seq[i].dur/ 3600./pd[seq[i].valv / 10].area[seq[i].valv % 10];
+					 else
+						 y[seq[i].valv] = y[seq[i].valv] + 2;
+					 loadGraph(seq[i].valv, dayStart+seq[i].dur/60, y[seq[i].valv] + y0);
+					 SPS_D(dayStart + seq[i].dur / 60); SP(" "); SPL_D(y[seq[i].valv] + y0);
+					 prec_time[seq[i].valv] = dayStart + seq[i].dur / 60;
+					 //loadGraph(seq[i].valv, dayStart, y+y0);
+					//loadGraph(seq[i].valv, dayStart, y1);
+					//loadGraph(seq[i].valv, dayStart+ seq[i].dur / 60, y1);
+				//	loadGraph(seq[i].valv, dayStart + seq[i].dur / 60, y0);
 				}
 			//loadGraph(seq[i].valv, 1440, y0);
 			//invece while day++<max_numero_days
@@ -2303,6 +2346,19 @@ void setup() {
 			//loadGraph(seq[i].valv, seq[i].start+day*1440, y1);
 			//etc.
 
+		}
+		for (byte j = 0; j < 10; j++)
+		{
+			for (byte i = 0; i < myGraph[j].nval; i++)
+
+			{
+				SPS_D(myGraph[j].x[i]);
+			}
+			SPL_D();
+			for (byte i = 0; i < myGraph[j].nval; i++)
+			{
+				SPS_D(myGraph[j].y[i]);
+			}
 		}
 		return true;
 	}
