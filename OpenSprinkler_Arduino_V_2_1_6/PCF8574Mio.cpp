@@ -15,9 +15,9 @@
 //        value() does not always reflect the latest state of the pins!
 // 0.1.00 initial version
 // 
-#define DEBU(p) Serial.print('U');Serial.print(p);
-#define DEBA(a) Serial.print('a');Serial.print(a);
-#define DEBD(p) Serial.print('D');Serial.print(p);
+#define DEBU(p) //Serial.print('U');Serial.print(p);
+#define DEBA(a) //Serial.print('a');Serial.print(a);
+#define DEBD(p) //Serial.print('D');Serial.print(p);
 #include "PCF8574Mio.h"
 
 #include <Wire.h>

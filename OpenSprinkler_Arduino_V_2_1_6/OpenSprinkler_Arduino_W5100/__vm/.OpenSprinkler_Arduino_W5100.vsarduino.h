@@ -103,6 +103,8 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <..\OpenSprinkler_Arduino_W5100\OpenSprinkler_Arduino_W5100.ino>
 #include <..\OpenSprinkler_Arduino_W5100\Config.h>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\Defines.h>
+#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.cpp>
+#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.h>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.cpp>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.h>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\Gpio.cpp>
@@ -123,4 +125,5 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\Weather.h>
 #include <..\..\OpenSprinkler_Arduino_V_2_1_6\eeprom_mio.cpp>
 #include <..\OpenSprinkler_Arduino_W5100\eeprom_mio.h>
+#include <..\OpenSprinkler_Arduino_W5100\libsel.h>
 #endif

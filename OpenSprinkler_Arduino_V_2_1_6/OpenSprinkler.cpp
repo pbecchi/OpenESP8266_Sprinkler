@@ -433,30 +433,32 @@ void ScanI2c()
 			Serial.print(addres, HEX);
 			Serial.print("\t");
 			byte id = 0;
-			while (id++ < 4) {
+			while (id < 4) {
 				if (addres >= ADR[id] && addres < ADR[id] + ADR_R[id]) {
 					Serial.println(ADR_DEV_NAME[id]); trov = true;
 					trova = id;
 
 				}
+				id++;
 			}
 			if (!trov) Serial.println(" unknown");
 		}
 		if (trova != 255&&trov)
 			if (ADR_TYP[trova]) {
-#ifdef LCD_ADDR            //do not count LCD controller if LCD i2c library is used
-				if (addres == LCD_ADDR)Serial.println("found LCD Controller");
+#ifdef LCD_ADDR                                               //do not count LCD controller if LCD i2c library is used
+		        if (addres == LCD_ADDR)Serial.println("found LCD Controller"); 
 				else
 #endif
-				address[nDevices] = addres;
-				nDevices++;
+				{
+					address[nDevices] = addres;
+					nDevices++;
 #ifdef PCF8574_M
-				
-			    PCF[nDevices-1].begin(addres);
-#else
-				Serial.println("error Pcf_dev found ???");
-#endif
 
+					PCF[nDevices - 1].begin(addres);
+#else
+					Serial.println("error Pcf_dev found ???");
+#endif
+				}
 			}
 			else if (error == 4)
 			{
@@ -467,7 +469,10 @@ void ScanI2c()
 			}
 	}
 	if (nDevices == 0)
-		Serial.println("No I2C devices found\n");
+	{
+		Serial.println("No I2C devices found\n cannot continue!");
+		delay(60000);
+	}
 	else
 		Serial.println("done\n");
 
@@ -986,8 +991,11 @@ void OpenSprinkler::apply_all_station_bits()
 
 				//	DEBUG_PRINT(station_pins[(bid * 8) + s]);
 				byte sBit = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
-						Serial.print(sBit,DEC);
-				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
+						DEBUG_PRINTF(sBit,DEC);
+				#ifdef ACTIVE_LOW  //invert output logic if using active low relay board
+				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], !sBit);
+                                #else digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
+                                #endif
 			}
 		}
     }
