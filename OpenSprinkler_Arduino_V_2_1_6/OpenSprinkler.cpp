@@ -461,7 +461,7 @@ void ScanI2c()
 					DEBUG_PRINT("PCF expander "); DEBUG_PRINT(nDevices - 1); DEBUG_PRINT("at"); DEBUG_PRINTLN(addres);
 					PCF[nDevices - 1].begin(addres);
 #else
-					Serial.println("error Pcf_dev found ???");
+					Serial.println("error Pcf_dev set PCF8574_M ");
 #endif
 				}
 			}
@@ -1988,8 +1988,7 @@ void OpenSprinkler::lcd_print_option ( int i )
     }
     break;
     case OPTION_STATION_DELAY_TIME:
-        lcd.print ( water_time_
-			_signed ( options[i] ) );
+        lcd.print ( water_time_decode_signed ( options[i] ) );
         break;
     case OPTION_LCD_CONTRAST:
         lcd_set_contrast();

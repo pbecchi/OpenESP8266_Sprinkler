@@ -7,6 +7,9 @@
 #define WIN_TEXT_SCROLL
 #define WIN_GRAPH
 #define WIN_BUTTONS
+
+#define STL_VECTOR
+#define PLOT_VECTOR_SIZE 40
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
 #else
@@ -41,7 +44,8 @@ class Glx_GWindowsClass
 
 public:
 	void init(byte type, int x0, int y0, int x1, int y1, uint16_t backColor);//screen pixels
-
+	int xpressed(int x,int y);
+	int ypressed(int x,int y);
 
 };
 
@@ -51,8 +55,12 @@ public:
 		//static int Xmax = winXmax; static int Xmin = winXmin; static int Ymax = winYmax;
 		void init( uint16_t col);
 		int nval;
-		std::vector<float> x;
-		std::vector<float> y;
+#ifdef STL_VECTOR
+		std::vector<int> x;
+		std::vector<int> y;
+#else
+		int  x[PLOT_VECTOR_SIZE], y[PLOT_VECTOR_SIZE];
+#endif
 //		float scax, scay;
 		float x0, y0;
 		int windowsH = 100, windowsW = 240, yGrafScr = 50;

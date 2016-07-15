@@ -28,13 +28,13 @@ void Graf::init( uint16_t col)
 	windowsH = winYmax - winYmin;
 	scay =  windowsH/(ymax-ymin);
 	// serial.println(x0);
-	// serial.println(y0);
-	// serial.println(scay);
-
+	Serial.println(y0);
+	Serial.println(scay);
+	Serial.println(winYmin);
 	scax =   windowsW/(xmax - xmin);
 	// serial.println(scax);
-	// serial.println(xmax);
-	// serial.println(xmin);
+	Serial.println(ymax);
+	//Serial.println(ymin);
 }
 
 boolean Graf::draw()
@@ -45,9 +45,9 @@ boolean Graf::draw()
 	for (int i = 1; i < nval; i++)
 		//if (x[i] >winXmin && x[i] < winXmax )
 			tft.drawLine(int((x[i - 1]  - x0)*scax+winXmin), 
-						int((YSign*y[i - 1] - y0)*scay+winYmin),
+						int((YSign*y[i - 1] - ymin)*scay+winYmin),
 						int((x[i ] - x0)*scax+winXmin),
-						int((YSign*y[i] - y0)*scay + winYmin),  color);
+						int((YSign*y[i] - ymin)*scay + winYmin),  color);
 	return true;
 	
 }
@@ -55,7 +55,7 @@ boolean Graf::draw()
 boolean Graf::drawAxX(float y,float xstep)
 {
 //	tft.drawPixel(Glx_GWindowsClass::winXmin, y*scay-y0, color);
-	tft.drawFastHLine(winXmin,(y- y0)*scay +winYmin,
+	tft.drawFastHLine(winXmin,(y- ymin)*scay +winYmin,
 		winXmax- winXmin, color);
 	byte ntics = (xmax - xmin) / xstep;
 	int i = 1;
@@ -69,9 +69,9 @@ boolean Graf::drawAxX(float y,float xstep)
 	   // serial.println(xstep);
 	for (byte i = 0; i < ntics; i++) {
 		int xp = (i*xstep+xmin-x0)*scax+winXmin;
-		tft.drawFastVLine(xp , (y - y0)*scay+winYmin - TICKSIZE, 2*TICKSIZE, color);
+		tft.drawFastVLine(xp , (y - ymin)*scay+winYmin - TICKSIZE, 2*TICKSIZE, color);
 		tft.setTextColor(ILI9341_BLACK);
-		tft.drawFloat(i*xstep+xmin,1, xp-6,int(( y - y0)*scay+winYmin)+1, 1);
+		tft.drawFloat(i*xstep+xmin,1, xp-6,int(( y - ymin)*scay+winYmin)+1, 1);
 }
 	return true;
 }
@@ -88,7 +88,7 @@ void Graf::scroll(float dx)
 boolean Graf::drawAxX(float  y,float xstep,byte ty)  //yaxis at screen pos 0 for left 320 for right
 {   
 	byte ntics = (xmax - xmin) / xstep;
-	tft.drawFastHLine(winXmin, (y - y0)*scay + winYmin, winXmax - winXmin, color);
+	tft.drawFastHLine(winXmin, (y - ymin)*scay + winYmin, winXmax - winXmin, color);
 
 	float substep;
 	int i, j = 0;
@@ -123,13 +123,13 @@ boolean Graf::drawAxX(float  y,float xstep,byte ty)  //yaxis at screen pos 0 for
 // serial.println(xstep);
 for (byte i = 0; i < ntics; i++) {
 	int xp = (i*substep + xmin - x0)*scax + winXmin;
-	tft.drawFastVLine(xp,(y - y0)*scay + winYmin - TICKSIZE,  2 * TICKSIZE, color);
+	tft.drawFastVLine(xp,(y - ymin)*scay + winYmin - TICKSIZE,  2 * TICKSIZE, color);
 	tft.setTextColor(ILI9341_BLACK);
 //	Serial.println(i*substep/xstep);
 	if (i*substep/xstep-int(i*substep/xstep)== 0) {
 		int ivalue(i*substep + xmin); if (ty == TIME_SCA)ivalue = ivalue / 60;
-		tft.drawFastVLine(xp,(y - y0)*scay + winYmin - TICKSIZEL,  2 * TICKSIZEL, color);
-		tft.drawNumber(ivalue, xp - 6, int((y - y0)*scay + winYmin), 1);
+		tft.drawFastVLine(xp,(y - ymin)*scay + winYmin - TICKSIZEL,  2 * TICKSIZEL, color);
+		tft.drawNumber(ivalue, xp - 6, int((y - ymin)*scay + winYmin), 1);
 	}
 
 	}
@@ -183,7 +183,20 @@ void Glx_GWindowsClass::init(byte type, int x0, int y0, int x1, int y1,uint16_t 
 	}
 }
 
+int Glx_GWindowsClass::xpressed(int x,int y)
+{
+	if (y>winYmin && y<winYmax) 
+return		  (x - winXmin) / scax + xmin;
+	else return -32000;
+}
 
+
+int Glx_GWindowsClass::ypressed(int x, int y)
+{
+	if (y>winYmin && y<winYmax)
+		return		  (y - winYmin) / scay +ymin;
+	else return -32000;
+}
 
 
 void Glx_MWindowsClass::init(int x0, int y0, int x1, int y1)
@@ -418,7 +431,7 @@ size_t Glx_TWindows::write(uint8_t data)
 int  Glx_TWindows::scroll_line() {
 	int yTemp = yStart; // Store the old yStart, this is where we draw the next line
 						// Use the record of line lengths to optimise the rectangle size we need to erase the top line
-	tft.fillRect(0, yStart, blank[(yStart - TOP_FIXED_AREA) / TEXT_HEIGHT], TEXT_HEIGHT, ILI9341_BLACK);
+	tft.fillRect(0, yStart, 280/*blank[(yStart - TOP_FIXED_AREA) / TEXT_HEIGHT]*/, TEXT_HEIGHT, ILI9341_BLACK);
 
 	// Change the top of the scroll area
 	yStart += TEXT_HEIGHT;

@@ -40,7 +40,7 @@
 //////////////////////////////////////////////////////////
 #define NC 1
 #define MAX_SRV_CLIENTS NC
-
+#define N_OS_STA 4
 File logfile;
 RTC_DS1307 RTC;
 int p = 0, pold;							//EEprom read pointer
@@ -92,17 +92,31 @@ Graf myGraph[N_Maxcurves];
 static	bool noClient = true;
 	WiFiServer server(23);
 	WiFiClient Tclient;
-	unsigned long TimeOUT,posFile=0;
+	unsigned long TimeOUT,posFile=0,oldpos=0;
 	
 #define MAXBYTES 100000
-#define POS posFile=logfile.position();if(posFile>MAXBYTES)reset_logfile()
-#define LOG {}//logfile.seek(0,SeekEnd)
+//#define POS posFile=logfile.position();if(posFile>MAXBYTES||oldpos==posFile)reset_logfile()
+//#define LOG oldpos=logfile.position()//logfile.seek(0,SeekEnd)
+
+#define POS {}
+#define LOG {}
+#define LOGFILE
+
+#ifdef LOGFILE
 #define SP(x) SERIAL.print(x);Serial.print(x);if(Tclient)(Tclient.print(x));LOG;logfile.print(x);POS
 #define SPL(x) SERIAL.println(x);Serial.println(x);if(Tclient)Tclient.println(x);TimeOUT = millis();LOG;logfile.println(x);POS
 #define SPLF(x,y) SERIAL.println(x,y);Serial.println(x,y);if(Tclient)(Tclient.println(x,y));TimeOUT = millis();LOG;logfile.println(x,y);POS
 #define SP_D(x) Serial.print(x);if(Tclient)(Tclient.print(x));LOG;logfile.print(x);POS
 #define SPL_D(x) Serial.println(x);if(Tclient)(Tclient.println(x));TimeOUT = millis();LOG;logfile.println(x);POS
 #define SPLF_D(x,y) Serial.println(x,y);if(Tclient)(Tclient.println(x,y));TimeOUT = millis();LOG;logfile.println(x,y);POS
+#else  //LOGFILE
+#define SP(x) SERIAL.print(x);Serial.print(x);if(Tclient)(Tclient.print(x))
+#define SPL(x) SERIAL.println(x);Serial.println(x);if(Tclient)Tclient.println(x)
+#define SPLF(x,y) SERIAL.println(x,y);Serial.println(x,y);if(Tclient)(Tclient.println(x,y))
+#define SP_D(x) Serial.print(x);if(Tclient)(Tclient.print(x))
+#define SPL_D(x) Serial.println(x);if(Tclient)(Tclient.println(x))
+#define SPLF_D(x,y) Serial.println(x,y);if(Tclient)(Tclient.println(x,y))
+#endif //LOGFILE
 #else
 #define SP(x) SERIAL.print(x);logf.print(x);Serial.print(x)
 #define SPL(x) SERIAL.println(x);logf.println(x);Serial.println(x)
@@ -253,9 +267,9 @@ static	bool noClient = true;
 #endif // LCD functions
 	};
 #endif
-///////////////////////////////////////////////////EEPROM MEMORY////////////////////////////////////////////
-// 0<sequn !1<-seq struct.45b*100 elements |1300 EEindex 1390<EEfill |1400<----- prog.structures variable size* total n.programs-|3800<-options[45,n.contr units<5]--|4080
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////EEPROM MEMORY/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 0<sequn !1<-seq struct.45b*100 elements |1300 EEindex 1390<EEfill |1400<----- prog.structures  size* n.programs|3200 programdata structures 148*N_OS_STA-|3800<-options[45,N_OS_STA<5]--|4080
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define EE_INDEX_POS 1300
 #define	OPTION_STATION_DELAY_TIME 17
 #define ADDR_EE_OPTIONS 3800
@@ -510,7 +524,7 @@ static	bool noClient = true;
 		SPS_D(rem_rel); SPS_D(inv); SPS_D((t.unixtime() / SECS_PER_DAY)); SPS_D(res);
 	}
 #define PD_EEPROM_POS 3200
-#define PD_SIZE sizeof(ProgramData)
+#define PD_SIZE 148 //sizeof(ProgramData)
 //#define PDN_SIZE sizeof(ProgramDataN)
 
 /*	class ProgramData {  //dimension 25 byte  *6->  EEPROM position 3600->3800
@@ -540,7 +554,8 @@ static	bool noClient = true;
 		byte Status;
 		byte area[8];
 		byte dummy[8];
-		String names[8];
+		 char   names[8][15];
+		 byte Kc[8];                   //  Crop coefficient
 
 	};
 	struct CurrentData {
@@ -548,7 +563,7 @@ static	bool noClient = true;
 		byte dummy[100];
 	};
 
-	ProgramData pd[4];
+	ProgramData pd[N_OS_STA];
 	CurrentData cD;
 	//ProgramDataN pdn[4];
 	ulong last_minute = 0;
@@ -594,9 +609,11 @@ static	bool noClient = true;
 			{
 				const char * nome = root["snames"][i];
 				//for(byte j=0;j<strlen(nome);j++)
-				String cs(nome);
-				pd[ic].names[i] = cs;
-				//pd[ic].names[i][strlen(nome) + 1] = 0;
+				//String cs(nome);
+
+				for (byte j=0;j<strlen(nome);j++)pd[ic].names[i][j] = nome[j];
+				byte len = strlen(nome); if (len > 14)len = 14;
+				pd[ic].names[i][len ] = 0;
 				SPS_D(pd[ic].names[i]);
 
 			}
@@ -889,7 +906,7 @@ static	bool noClient = true;
 						bool notF = true;
 						for (byte icc = 0; icc < sprintf(buf, "%d", pd[ic].valveUsed); icc++)
 							if (buf[icc] ==(char)( '0'+j)) { notF = false; break; }
-						if (notF) { pd[ic].valveUsed  = pd[ic].valveUsed*10+ j; }
+						if (notF) { pd[ic].valveUsed  = pd[ic].valveUsed*10+ j;}
 					}
 				}
 
@@ -1000,7 +1017,7 @@ static	bool noClient = true;
 	byte	N_curves = 0;// total number of graphics created  
 	byte  CurvesN[N_Maxcurves];//each curves defined by number CurvesN
 	int   CurveColor[N_Maxcurves] = {//color of the curves
-			ILI9341_BLACK,
+			ILI9341_DARKCYAN  ,
 			ILI9341_BLUE,
 			ILI9341_RED,
 			ILI9341_GREEN,
@@ -1009,7 +1026,13 @@ static	bool noClient = true;
 			ILI9341_YELLOW,
 			ILI9341_MAROON,
 			ILI9341_LIGHTGREY,
-			ILI9341_PURPLE};
+			ILI9341_PURPLE,
+			ILI9341_CYAN,
+			ILI9341_GREENYELLOW,
+			ILI9341_PINK,
+			ILI9341_OLIVE,
+			ILI9341_DARKGREEN
+	};
 	bool loadGraph(byte ig,float x, float y)
 	{                  // -------------------ig=valve & station number, x,y graph point coord.------
 		byte igraph = 255;
@@ -1024,11 +1047,13 @@ static	bool noClient = true;
 				return false;   //-----------------curves exceed max.
 		}          //-------------------------------load point data--------------------
 		int ipoint = myGraph[igraph].nval;
+#ifdef STL_VECTOR
 		if (myGraph[igraph].x.size() <= ipoint)
 		{
 			myGraph[igraph].x.resize(ipoint + 4);
 			myGraph[igraph].y.resize(ipoint + 4);
 		}
+#endif
 		myGraph[igraph].x[ipoint] = x;
 		myGraph[igraph].y[ipoint] = y;
 		myGraph[igraph].nval++;
@@ -1036,9 +1061,30 @@ static	bool noClient = true;
 		
 		
 	}
+#define HOR_AX 0.2
+	void graphInit(){
+		SP_D("mem.h."); SPL_D(ESP.getFreeHeap());
+		if (plot_sequence()) {
+			Gwin.init(0, 0, 21, 280, 150, ILI9341_WHITE);
+
+
+			for (byte i = 0; i < N_curves; i++)
+			{
+				Serial.print("Curve "); Serial.print(CurvesN[i]);
+				Serial.print(" n.points "); Serial.println(myGraph[i].nval);
+				myGraph[i].init(CurveColor[i]);
+			}
+			for (byte i = 0; i < N_curves; i++)
+				myGraph[i].draw();
+			//		myGraph[i].drawAxX(0, 0.1);  // X axis with proposed min step to be adjusted by code
+
+			myGraph[0].drawAxX(HOR_AX, 1., 0);
+			SP_D("mem.h."); SPL_D(ESP.getFreeHeap());
+		}
+	}
 	
 	
-#define HOR_AX 0.2	
+	
 	void setupLcdTouch() {
 		SPI.setFrequency(ESP_SPI_FREQ);
 
@@ -1070,28 +1116,15 @@ static	bool noClient = true;
 		//  Serial.println(MWin.menu[1].nbutton);
 #define GRAPH	//------------------------------init Graphics-------------------------------------
 #ifdef GRAPH
-		if (plot_sequence()) {
-			Gwin.init(0, 0, 21, 300, 150, ILI9341_WHITE);
-
-
-			for (byte i = 0; i < N_curves; i++)
-			{
-				Serial.print("Curve "); Serial.print(CurvesN[i]);
-				Serial.print(" n.points "); Serial.println(myGraph[i].nval);
-				myGraph[i].init(CurveColor[i]);
-
-				myGraph[i].draw();
-				//		myGraph[i].drawAxX(0, 0.1);  // X axis with proposed min step to be adjusted by code
-			}
-			myGraph[0].drawAxX(HOR_AX, 1., 0);
-
-		}
+		//graphInit();
+	
 #endif
 		//  --------------------------------init KEYBOARD-------------------------------
 		TWin.init(0, 240, tft.width(), tft.height(), 10, 0);
 		TFWin.init(0, 180, tft.width(), 239, 10, 1);
 	}
-
+	unsigned int plot_start_time;
+#define NPIXEL_TOUCH 6
 	char touch_control(char cc)
 	{
 		char c=cc;
@@ -1100,6 +1133,25 @@ static	bool noClient = true;
 		if (touch.isTouching())
 		{
 			touch.getPosition(x, y);
+			int x_true = Gwin.xpressed(x, y);
+			int y_true = Gwin.ypressed(x, y);
+			if (x_true != -32000) {
+		//			SP("x="); SP(x_true);		SP("y="); SPL(y_true);
+					for (byte i = 0; i < N_curves; i++)
+						for (byte j = 0; j < myGraph[i].nval - 1; j++)
+							if (myGraph[i].x[j] < x_true&&x_true < myGraph[i].x[j + 1]) {
+								int Yinterp = (myGraph[i].y[j + 1] - myGraph[i].y[j]) / float(myGraph[i].x[j + 1] - myGraph[i].x[j])*(x_true - myGraph[i].x[j]) + myGraph[i].y[j];
+								if (abs(Yinterp - y_true) < 100) {
+									time_t Xtime = (plot_start_time + x_true) * 60;
+									SP(month(Xtime)); SP("/"); SP(day(Xtime)); SP(" "); SP(hour(Xtime)); SP(":"); SP(minute(Xtime)); SP("  ");
+									SP(Yinterp); SP(" "); SP(CurvesN[i]); SPL(pd[CurvesN[i] / 10].names[CurvesN[i] % 10]); delay(1000); 
+								}
+							}
+				}
+			
+			
+
+
 			int ind = MWin.getPressed(x, y);
 			if (ind > 0) {
 			//	TWin.println(ind);//select menu function case of
@@ -1155,9 +1207,9 @@ static	bool noClient = true;
 					break; }//-
 
 		////////////////////////////////////////////////////////////////
-				case 21: {c = 'o'; break; }
-				case 22: {c = 'c'; break; }
-				case 23: {c = 'p'; break; }
+				case 21: {c = 'o'; TWin.textColor(ILI9341_WHITE); break; }
+				case 22: {c = 'c'; TWin.textColor(ILI9341_WHITE); break; }
+				case 23: {c = 'p'; TWin.textColor(ILI9341_WHITE); break; }
 		 /////////////////////////////////////////////////////////////////
 
 				
@@ -1259,31 +1311,37 @@ struct Weather
 		else
 			wfile = SPIFFS.open("/weather.log", "w+");
 
-		if (!wfile){Serial.println("Cannot open weather.log"); return 0;
-	}
+		if (!wfile) {
+			Serial.println("Cannot open weather.log"); return 0;
+		}
 		wfile.seek(0, SeekEnd);
-		//SPS_D(hour(timev)); SP_D(" "); SPL_D(timev);
 		long wfilepos = wfile.position();
 		wfile.seek(0, SeekSet);
 		while (time < timev&&wfile.available()) {
-			wfile.find(10);
-			n = wfile.readBytesUntil(',', buf, 20);
-			buf[n] = 0;
-			time = atol(buf);
-			//SP_D(buf);
+			if (wfile.find(10)) {
+				n = wfile.readBytesUntil(',', buf, 20);
+				buf[n] = 0;
+				time = atol(buf);
+		//		SPS_D(buf);
+			}
+			else {
+				 if (wfile.read()<0  ) { wfile.close(); return 0; }
+			}
+		
 		}
 		if (!wfile.available()) { wfile.close(); return false; }
 		n = wfile.readBytesUntil(',', buf, 20);
-		buf[n] = 0;// SPS_D(buf); 
+		
+		buf[n] = 0; //SPS_D(buf); 
 		temp = atoi(buf);
 		n = wfile.readBytesUntil(',', buf, 20);
-		buf[n] = 0;// SPS_D(buf); 
+		buf[n] = 0; //SPS_D(buf); 
 		humidity = atoi(buf);
 		n = wfile.readBytesUntil(',', buf, 20);
-		buf[n] = 0;// SPS_D(buf); 
+		buf[n] = 0; //SPS_D(buf); 
 		rain1h = atoi(buf);
 		n = wfile.readBytesUntil(',', buf, 20);
-		buf[n] = 0;// SPS_D(buf);
+		buf[n] = 0; //SPS_D(buf);
 		wind = atoi(buf);
 		n = wfile.readBytesUntil(',', buf, 20);
 		buf[n] = 0;// SPS_D(buf);
@@ -1294,9 +1352,11 @@ struct Weather
 		n = wfile.readBytesUntil(',', buf, 20);
 		buf[n] = 0;// SPS_D(buf);
 		sunrad = atoi(buf);
+	
 		n = wfile.readBytesUntil(',', buf, 20);
-		buf[n] = 0;// SPS_D(buf);
-		rain = atoi(buf);
+			buf[n] = 0;// SPS_D(buf);
+			rain = atoi(buf);
+		
 		
 		wfile.seek(wfilepos, SeekSet);
 		wfile.close();
@@ -1315,7 +1375,7 @@ Weather weather[MAX_WEATHER_READ]; byte iw = 0;
 Weather w_max, w_min, w_mean;
 //"/api/e409b2aeaa5e3ffe/conditions/q/Italy/Loano.json"
 Geo sta = { 44.124748,8.25445,23 };
-#define N_OS_STA 3
+
 //#define CLEAR_WEATHER
 
 void setup() {
@@ -1328,7 +1388,7 @@ void setup() {
 		Wire.begin();
 		RTC.begin();
 		SPIFFS.begin();
-
+	//	SPIFFS.format();
 
 #ifndef INIT_EEPROM
 		if (eeprom_read_byte(0) == 211)
@@ -1377,13 +1437,14 @@ void setup() {
 #ifdef PROVAEEPROM
 		provaEEprom();
 #endif
-
+	
 #ifdef LCD_TOUCH
 		setupLcdTouch();
 #endif
 		// We start by connecting to a WiFi network
-		SP("Sk_sp"); SP(ESP.getFreeSketchSpace()); SP("logf.");
-		SPL(posFile);
+		SP("Flash size "); SP(ESP.getFlashChipSizeByChipId());
+		SP(" flash free "); SP(ESP.getFreeSketchSpace());
+		SP("logf.");		SPL(posFile);
 		SP("Connected to ");
 		SPL(ssid);
 		SP(WiFi.SSID());
@@ -1423,7 +1484,9 @@ void setup() {
 		SP(WiFi.localIP());
 		SPL(" 23' to connect");
 #endif
-
+#ifdef GRAPH
+		graphInit();
+#endif
 #ifdef OTA
 		ArduinoOTA.onStart([]() {
 			
@@ -1531,6 +1594,7 @@ void setup() {
 			SP("connection failed ");// SPL(jsonserver);
 			return 0;
 		}
+		SP_D("mem.h."); SPL_D(ESP.getFreeHeap());
 		//	SP("Connect: "); SP(jsonserver);
 		String url = streamId;
 		//url += "?pw=";
@@ -1538,7 +1602,7 @@ void setup() {
 
 		//url += "&value=";
 		//url += value;
-		client.flush();
+	//	client.flush();
 		Serial.print(" Requesting URL: ");
 		Serial.print(url);
 		//	client.print(url);
@@ -1550,19 +1614,30 @@ void setup() {
 		int i = 0, json_try = 0; bool ISJSON = false; byte ii = 0;
 		Serial.println("Waiting Json");
 		long time_step = millis() + MIL_JSON_ANS;
-		char c, cp, cpp; bool obs;
+		char c, cp, cpp; bool obs=false;
+		
 		while (millis() < time_step)
 		{
 			// Read all the lines of the reply from server and print them to Serialbol 
-			while (millis() < time_step - MIL_JSON_ANS / 2)
+			while (millis() < time_step - MIL_JSON_ANS / 2&&!obs)
 				if (client.available()) {
-
+#ifdef VERIFY_WU_ANSWER
+					Serial.print(client.read());
+#else
 				//	obs = client.findUntil(nomi[0].c_str(), "}}}");
 					obs = client.findUntil("current_observation", "}}}");
-
-					if (obs)break;
-					else { SPL_D("error"); client.stop(); return 1; }
+#endif
+	//				if (obs)break;
+	//				else { SPL_D("error"); client.stop(); return 0; }
+				} else
+				{
+					Serial.print('.'); delay(100);
 				}
+			if (!obs) {
+				SPL_D("error");
+				while (client.available()) Serial.print(client.read());
+				client.stop(); return 0;
+			}
 			while (millis() < time_step&&c != '}'&&cp != '}'&&cpp != '}')
 
 				while (obs&&client.available() && i < MAX_JSON_STRING) {
@@ -1589,7 +1664,7 @@ void setup() {
 
                 DynamicJsonBuffer jsonBuffer;
 				JsonObject& root = jsonBuffer.parseObject(json);
-
+				SP_D("mem.h."); SPL_D(ESP.getFreeHeap());
 				// Test if parsing succeeds.
 				if (!root.success()) {
 					SPL("Weather parseObject() failed");
@@ -1621,16 +1696,21 @@ void setup() {
 
 		}
 		client.stop();
+		SP_D("mem.h."); SPL_D(ESP.getFreeHeap());
 		return 0;
 	}
-	float previous_factor = 1.;
+	float previous_factor = 1.; byte count_trial = 0;
 	byte APIweather(String streamId) {
-	
+
 		float val[8];
+		count_trial++;
+
 		String Str = "/api/e409b2aeaa5e3ffe/conditions/q/Italy/pws:ISAVONAL1.json";
 		String nomi[] = { "current_observation","local_epoch","temp_c","relative_humidity","precip_1h_metric","precip_today_metric","wind" };
-		if(!APIweatherV(Str, nomi, 6, val)) return 0;
+		if (!APIweatherV(Str, nomi, 6, val)) return 0;
 		SP_D("iw"); SPS_D(iw);
+		if (day((time_t)val[0]) < day(adesso()) - 1 || day((time_t)val[0]) > day(adesso()) + 1)return 0;
+		count_trial = 0;
 		iw++; if (iw > MAX_WEATHER_READ)iw = 0;
 		weather[iw].time = (time_t)val[0];//root["local_epoch"];
 		weather[iw].temp = val[1]; //root["temp_c"];
@@ -1640,11 +1720,12 @@ void setup() {
 		float rain = val[5];// root["precip_today_metric"];
 		weather[iw].rain = rain * 10;
 		weather[iw].wind = val[6];// root["wind_kph"];
+
 //-----------------end json decode-------------------------------------------
 
 		Str = "/api/e409b2aeaa5e3ffe/conditions/q/Italy/Savona.json";
 		String nomiS[] = { "current_observation","local_epoch","solarradiation" };
-		
+
 		bool savona_result = !APIweatherV(Str, nomiS, 2, val);
 		weather[iw].sunrad = int(val[1]);
 
@@ -1678,9 +1759,10 @@ void setup() {
 		w_min.rain = 0;
 		byte iel = 0;
 		for (byte j = 0; j < 24 / FREQ_WEATHER; j++) {
-			int i = iw - j; if (i < 0)i = MAX_WEATHER_READ +1- i;
-			if (weather[i].humidity != 0) {
+			int i = iw - j; if (i < 0)i = MAX_WEATHER_READ + 1 - i;
+			if (weather[i].humidity > 0 && weather[i].humidity < 100) {
 				iel++;
+				SPS_D(weather[i].temp); SPS_D(weather[i].humidity); SP_D(" "); SPL_D(weather[i].wind);
 				w_min.time = weather[i].time;					//------------starting time for averages
 				w_mean.temp += weather[i].temp;
 				if (w_max.temp < weather[i].temp)w_max.temp = weather[i].temp;
@@ -1697,9 +1779,9 @@ void setup() {
 #define SUN_START 300
 				if (day(weather[i].time) != day(w_max.time) && w_min.rain == 0)
 					w_min.rain = weather[i].rain;					//yesterday--------rain------
-			
+
 				//sunrad in kJoule/day
-				
+
 		//		if(weather[iwo].time+30000>(uint32_t)val[0])
 		//		w_mean.sunrad += (weather[iwo].sunrad + weather[iw].sunrad) / 2 * ((weather[iw].time - weather[iwo].time)/1000);
 		//		else
@@ -1715,69 +1797,118 @@ void setup() {
 		//		w_mean.atpres /= 24;
 		w_mean.humidity /= iel;
 		//compute expented sunrad
+		int iwo;
 		int doy = (month(w_max.time) - 1) * 30 + day(w_max.time);
-#define MID_DAY 12.30 //mid day sun hour
-		float time_angle =  (hour(weather[iw].time) +minute(weather[iw].time)/60.- MID_DAY + sta.lon/360.);
+#define MID_DAY (sunset_time!=0?(sunset_time-sunrise_time)/120:13.5) //mid day sun hour
+		float time_angle = (hour(weather[iw].time) + 2. + minute(weather[iw].time) / 60. - MID_DAY + sta.lon / 360.);
 		float visibility = 20;       //               _______________best visibility km
-		float sun_elevation = asin(sin(radians(sta.lat))*sin(-sol_dec(doy)) + cos(radians(sta.lat))*cos(sol_dec(doy))*cos(time_angle*3.1415 / 12));
+		float sun_elevation = asin(sin(radians(sta.lat))*sin(sol_dec(doy)) + cos(radians(sta.lat))*cos(sol_dec(doy))*cos(time_angle*3.1415 / 12));
 		float expected_sunrad = 0;
 		if (sun_elevation > 0)
 			expected_sunrad = 1352.*exp(-(39 / visibility + 0.85)*atmos_pres(sta.alt) / atmos_pres(0) / (0.9 + 9.4 * sin(sun_elevation)));
-		SPS_D(sol_dec(doy)); SPS_D(time_angle); SPS_D(sun_elevation); SPS_D("es"); SPL_D(expected_sunrad);
+		SPS_D(sol_dec(doy)); SPS_D(MID_DAY); SPS_D(time_angle); SPS_D(sun_elevation); SPS_D("es"); SPL_D(expected_sunrad);
+		static int nfactor;
+		if (expected_sunrad > 10) 
+			if (nfactor == 0) 
+				if (time_angle > 0)  // if is a restart and afternoon recompute previous_factor from records 
+					for (byte ii = 1; ii < 6; ii++) {
+						iwo = iw - ii; if (iwo < 0)iwo = MAX_WEATHER_READ - iwo;
+						time_angle = (hour(weather[iwo].time) + 2. + minute(weather[iwo].time) / 60. - MID_DAY + sta.lon / 360.);
+						sun_elevation = asin(sin(radians(sta.lat))*sin(sol_dec(doy)) + cos(radians(sta.lat))*cos(sol_dec(doy))*cos(time_angle*3.1415 / 12));
+						float expecte_sunrad = 0;
+						if (sun_elevation > 0)
+							expecte_sunrad = 1352.*exp(-(39 / visibility + 0.85)*atmos_pres(sta.alt) / atmos_pres(0) / (0.9 + 9.4 * sin(sun_elevation)));
+
+						previous_factor = (previous_factor*nfactor + weather[iwo].sunrad) / (nfactor + expecte_sunrad);
+						nfactor = nfactor + expecte_sunrad;
+					}
+
 		if (savona_result ||
-			(weather[iw].sunrad > expected_sunrad || weather[iw].sunrad < expected_sunrad*0.1) ) //error reading sunrad assume =previous reading
-			weather[iw].sunrad = expected_sunrad*previous_factor;														//apply expented sunrad
-		if(expected_sunrad>50) previous_factor = weather[iw].sunrad / expected_sunrad;
-	//compute day cumulative sun radiation
-		float day_sunrad = 0;
-		for (byte j = 0; j < 24 / FREQ_WEATHER; j++) {
-			int i = iw - j; if (i < 0)i = MAX_WEATHER_READ +1- i;
-			byte iwo = MAX_WEATHER_READ; if (i > 0)iwo = i - 1;
-			int dtime = (weather[i].time - weather[iwo].time);
-			if (dtime > 10000)dtime = 3600;
-			day_sunrad+= (weather[iwo].sunrad + weather[i].sunrad) / 2 * (dtime / 1000);
-			SPS_D(hour(weather[i].time)); SPS_D(weather[i].sunrad); SP_D(" "); SPL_D(day_sunrad);
+			(weather[iw].sunrad > expected_sunrad || weather[iw].sunrad < expected_sunrad*0.05)) //error reading sunrad assume =previous reading
+		{
+			SPS_D("apply cal. sunrad");
+			if (previous_factor < 1.) {
+			weather[iw].sunrad = expected_sunrad*previous_factor;
+			}
+			else weather[iw].sunrad = expected_sunrad;
 		}
-		w_mean.sunrad = int(day_sunrad );
-		SP_D("t"); SPS_D(w_max.temp); SPS_D(w_mean.temp); SPS_D(w_min.temp);
-		SP_D("h"); SPS_D(w_max.humidity); SPS_D(w_min.humidity);
-		SP_D("w"); SPS_D(w_mean.wind);
-		SP_D("s"); SPS_D(w_mean.sunrad);
-		SP_D("r"); SPS_D(w_max.rain); SPS_D(w_min.rain);
-		//__________________penman____________________________________________
-		int sunHours = 10;
-		float rad_clearsky = clear_sky_rad(
-			sta.alt,
-			et_rad(sta.lat, sta.lon,
-				sunset_hour_angle(sta.lat, sol_dec(doy)),
-				inv_rel_dist_earth_sun(doy)));
+		else			//----------------------compute previous_factor as average of sunrad/expected_sunrad
+			if (expected_sunrad > 10) {
+				 previous_factor = (previous_factor*nfactor + weather[iw].sunrad) /( nfactor+expected_sunrad);
+				nfactor=nfactor+expected_sunrad;
+			}
+			else nfactor = 0;
+		SPS_D("p_f"); SPS_D(previous_factor);
+		//compute day cumulative sun radiation
+		float day_sunrad = 0;
+		for (byte j = 1; j < 24 / FREQ_WEATHER; j++) {
+			int i = iw - j; if (i < 0)i = MAX_WEATHER_READ + 1 + i;
+			 iwo = i + 1; if (i > MAX_WEATHER_READ)iwo = 0;
+	//		if (j == 0)iwo = iw - 24 / FREQ_WEATHER + 1; if (iwo < 0)iwo = MAX_WEATHER_READ + iwo + 1;
+			if (weather[i].sunrad >= 0 && weather[i].sunrad < 1100 && weather[iwo].sunrad >= 0 && weather[iwo].sunrad < 1100) {
+				long dtime;
+				if (j == 0)
+					//		 dtime = -(weather[i].time - weather[iwo].time-SECS_PER_DAY);
+					dtime = (-hour(weather[iwo].time) * 3600 + minute(weather[iwo].time) * 60) + (hour(weather[i].time) * 3600 + minute(weather[iwo].time) * 60);
+				else
+					dtime = -(weather[i].time - weather[iwo].time);
 
-		float Sun = sol_rad_from_sun_hours(
-			daylight_hours(doy),
-			sunHours,
-			et_rad(sta.lat, sta.lon,
-				sunset_hour_angle(sta.lat, sol_dec(doy)),
-				inv_rel_dist_earth_sun(doy)));
-		if (iel>8)Sun = w_mean.sunrad / 1000;
-		SPS_D(rad_clearsky); SPS_D(Sun);
+				if (dtime > 40000)dtime = 12000;                              // missing data---max step 3.5 hours
+				day_sunrad += (weather[iwo].sunrad + weather[i].sunrad) / 2 * (dtime / 1000);
+				SPS_D(i); SPS_D(iwo); SPS_D(dtime); SPS_D(weather[i].time); SPS_D(weather[i].sunrad); SP_D(" "); SPL_D(day_sunrad);
+			}
+		}
+		if (day_sunrad > 28000.) {
+			byte	ix = iw-1;
+			if (ix < 0)ix = MAX_WEATHER_READ;
+			while (weather[ix].penman > 6.) {
+				ix--; if (ix < 0)ix = MAX_WEATHER_READ;
+			}
+			weather[iw].penman = weather[ix].penman;
+		}
+		else
+		{
+			w_mean.sunrad = int(day_sunrad);
+			SP_D("t"); SPS_D(w_max.temp); SPS_D(w_mean.temp); SPS_D(w_min.temp);
+			SP_D("h"); SPS_D(w_max.humidity); SPS_D(w_min.humidity);
+			SP_D("w"); SPS_D(w_mean.wind);
+			SP_D("s"); SPS_D(w_mean.sunrad);
+			SP_D("r"); SPS_D(w_max.rain); SPS_D(w_min.rain);
+			//__________________penman____________________________________________
+			int sunHours = 10;
+			float rad_clearsky = clear_sky_rad(
+				sta.alt,
+				et_rad(sta.lat, sta.lon,
+					sunset_hour_angle(sta.lat, sol_dec(doy)),
+					inv_rel_dist_earth_sun(doy)));
 
-		float net_radi = net_rad(net_in_sol_rad(Sun),
-			net_out_lw_rad(
-				w_min.temp, w_max.temp,
-				Sun,
-				rad_clearsky,
-				ea_from_tmin(w_min.temp)));
-		SPS_D(net_radi);
-		weather[iw].penman = penman_monteith_ETo(net_radi, w_mean.temp, w_mean.wind / 3.6,
-			mean_es(w_min.temp, w_max.temp),
-			ea_from_tmin(w_min.temp),
-			delta_sat_vap_pres(w_mean.temp),
-			psy_const(atmos_pres(sta.alt)),
-			0.10);
+			float Sun = sol_rad_from_sun_hours(
+				daylight_hours(doy),
+				sunHours,
+				et_rad(sta.lat, sta.lon,
+					sunset_hour_angle(sta.lat, sol_dec(doy)),
+					inv_rel_dist_earth_sun(doy)));
+			if (iel > 8)Sun = w_mean.sunrad / 1000;
+			SPS_D(rad_clearsky); SPS_D(Sun);
+
+			float net_radi = net_rad(net_in_sol_rad(Sun),
+				net_out_lw_rad(
+					w_min.temp, w_max.temp,
+					Sun,
+					rad_clearsky,
+					ea_from_tmin(w_min.temp)));
+			SPS_D(net_radi);
+			weather[iw].penman = penman_monteith_ETo(net_radi, w_mean.temp, w_mean.wind / 3.6,
+				mean_es(w_min.temp, w_max.temp),
+				ea_from_tmin(w_min.temp),
+				delta_sat_vap_pres(w_mean.temp),
+				psy_const(atmos_pres(sta.alt)),
+				0.10);
+		}
 		//--------------------------zone water balance------------------ precision of dummy(byte) ?????+penman/12!!!!
 		//					for (byte ic = 0; ic < N_OS_STA; ic++)
 		//						for (byte i = 0; i < 8; i++)pd[ic].dummy[i] += -weather[iw].penman  * FREQ_WEATHER/24;
-		byte iwo = MAX_WEATHER_READ; if (iw > 0)iwo = iw - 1;
+		 iwo = MAX_WEATHER_READ; if (iw > 0)iwo = iw - 1;
 		weather[iw].water = weather[iwo].water - weather[iw].penman  * FREQ_WEATHER / 24;
 		weather[iw].write();
 		SP(hour(weather[iw].time)); SP(":"); SP(minute(weather[iw].time)); SP(" t=");
@@ -1815,6 +1946,61 @@ void setup() {
 		}
 		for (byte ic=0;ic<N_OS_STA;ic++)
 		eeprom_write_block((void *)&pd[ic], (void*)(PD_EEPROM_POS + int(ic) *PD_SIZE), PD_SIZE);
+
+	}
+	bool SendMessage(char * message)
+	{
+		File messfile;
+		DateTime ora = adesso();
+		if (SPIFFS.exists("/messages.txt"))
+			messfile = SPIFFS.open("/messages.txt", "r+");
+		else
+			messfile = SPIFFS.open("/messages.txt", "w+");
+
+		if (!messfile) { Serial.println("Cannot open message fie"); return 0; }
+		messfile.seek(0, SeekEnd);
+		messfile.print(ora.day()); messfile.print('-'); messfile.print(ora.month()); messfile.print(' ');
+		messfile.print(ora.hour()); messfile.print(':'); messfile.print(ora.minute()); messfile.print(' ');
+		messfile.println(message);
+		SPL_D(message);
+		messfile.close();
+		return 1;
+
+	}
+	bool ReadMessage(int n_day)
+	{
+		File messfile;
+		DateTime ora = RTC.now();
+		if (SPIFFS.exists("/messages.txt"))
+			messfile = SPIFFS.open("/messages.txt", "r+");
+		else
+			messfile = SPIFFS.open("/messages.txt", "w+");
+
+		if (!messfile) { Serial.println("Cannot open message file"); return 0; }
+		messfile.seek(0, SeekSet);
+/*
+		messfile.seek(0, SeekEnd);
+
+		long pos=messfile.position();
+		if (pos == 0)return 0;
+		pos--;
+		messfile.seek(--pos, SeekSet);
+		char c = messfile.read();
+		byte  giorno = 32, mese = 12; char buff[10];
+		while (ora.day()+ora.month()*31-n_day <= giorno+mese*31&&pos>0) {
+			while (c != 10) { messfile.seek(pos--, SeekSet); c = messfile.read(); }
+			buff[messfile.readBytesUntil('-', buff,10)]=0;
+			giorno = atoi(buff);
+			buff[messfile.readBytesUntil(' ', buff, 10) ] = 0;
+			mese = atoi(buff);
+			
+		}
+		
+		if (pos == 0)return 0;
+		*/
+		while (messfile.available())SP_D((char)messfile.read());
+		messfile.close();
+		return 1;
 
 	}
 	byte API_command(String streamId, String command, byte ic) {
@@ -1989,17 +2175,17 @@ void setup() {
 	byte countp = 0;
 	static 	bool noCon[] = { true,true,true,true,true },rest=false;
 	DateTime last_JP[5]; long timerest,m10000=60000;
-	boolean input_seq = false, input_pd = false;
+	boolean input_seq = false, input_pd = false,input_kc=false;
 /////////////////////////////////////////////////////////////// loop /////////////////////////////////////////////////////
 	void loop() {
 #ifdef OTA
 		ArduinoOTA.handle();
 #endif
-	/*	if (millis() > m10000) {
-			m10000 = millis() + 60000;	Serial.print('P'); Serial.println(posFile);
-			logfile.close(); logfile = SPIFFS.open("/logs.txt", "r+");
+		/*	if (millis() > m10000) {
+				m10000 = millis() + 60000;	Serial.print('P'); Serial.println(posFile);
+				logfile.close(); logfile = SPIFFS.open("/logs.txt", "r+");
 
-		}*/
+			}*/
 		char c, cc;
 
 		/////////////////////////////////////////monitor edit intervals///////////////////////////////////////////////////////////////
@@ -2009,24 +2195,33 @@ void setup() {
 		//password HASHED=a6d82bced638de3def1e9bbb4983225c
 		DateTime ora = adesso();
 
-	  //  if(cc!=' ')SPL_D(cc);
-		//s---------------------------------print sequence---------------------------
+		//  if(cc!=' ')SPL_D(cc);
+		  //s---------------------------------print sequence---------------------------
 		if (cc == 's') { print_seq(0); if (Tclient.available())print_seq(Tclient.read() - '0'); }
 		if (cc == ' ')cc = 0;
 		//#ifdef LCD_TOUCH
 		c = touch_control(cc);
+		if (c == 'P') {
+			int arr[N_Maxcurves];
+			int val = inputI("time?");
+			plot_interp(arr, val);
+			SP_D(hour(plot_start_time + val * 60)); SPS_D(minute(plot_start_time + val * 60)); SPL_D();
+			for (byte i = 0; i < N_curves; i++) {
+				SPS_D(CurvesN[i]); SPS_D(arr[i]); SPL_D();
+			}
+		}
 		//r---------------------------------restart/reset--------------------
-		if (c == 'r'){
-			rest = true; 
+		if (c == 'r') {
+			rest = true;
 			timerest = millis();
 			SPL("Restart 0-no rest,1-no reset,2-reset,3-logFileReset");
 		}
-		if (rest&&c=='1')
+		if (rest&&c == '1')
 		{
 			SPL("Restarting..");
 			ESP.restart();
 		}
-		else if(rest&&c=='2')
+		else if (rest&&c == '2')
 		{
 			eeprom_write_byte(0, 211);
 			SPL("Resetting");
@@ -2037,31 +2232,65 @@ void setup() {
 			SPL_D("resetting logFile");
 			reset_logfile();
 		}
-		if (c == 'W') { weather[iw].water = 0; SP(" reset  wather "); }
+		if (c == 'W') { weather[iw].water = 0; SP(" reset  wather "); SendMessage("reset water"); }
 #ifdef FREQ_WEATHER		
-		
-	
-			
-		if (next_ora >= 24&& ora.hour()==0)next_ora -= 24;
+		static bool status_printed;
+		if (ora.minute() == 0)
+		{
+			if (!status_printed) { status_printed = true; print_status(); }
+		}
+		else status_printed = false;
+
+		if (next_ora >= 24 && ora.hour() == 0)next_ora -= 24;
 		if (ora.hour() >= next_ora)
 		{
-			if (APIweather("/api/e409b2aeaa5e3ffe/conditions/q/Italy/pws:ISAVONAL1.json") == 2)
+			if (count_trial < 10)
 			{
-				if (weather[iw].rain > 0)for (byte i = 0; i < N_OS_STA; i++)if (weather_control(i)) { SP("Delayed"); SPL(i); }
+				if (APIweather("/api/e409b2aeaa5e3ffe/conditions/q/Italy/pws:ISAVONAL1.json") == 2)
+				{
+					if (weather[iw].rain > 0) {
+						for (byte i = 0; i < N_OS_STA; i++)if (weather_control(i)) {
+							SP("Delayed"); SPL(i);
+						}
+						SendMessage("rain delay");
+					}
+					next_ora = ora.hour() + FREQ_WEATHER;
+					SP_D("next w.h."); SPL_D(next_ora);
+				}
+			}
+			else
+			{
+				count_trial = 0;
+				SP_D("no Wu reached ");
 				next_ora = ora.hour() + FREQ_WEATHER;
-				SPL_D(next_ora);
+				SP_D("next w.h."); SPL_D(next_ora);
 			}
 		}
-		
+
 #endif
+		//k-----------------------change crop cooef.
+		if (input_kc || c == 'k') {
+			SP("Pd modify Kc: "); int valv = inputI("valv?");
+			if (valv < 0) {
+				SPL_D("Save Pd!");
+				input_pd = false;
+				for (byte i = 1; i < N_OS_STA; i++)
+					eeprom_write_block((void *)&pd[i], (void*)(PD_EEPROM_POS + i *PD_SIZE), PD_SIZE);
+			}
+			else {
+				pd[valv / 10].Kc[valv % 10] = inputI("Kc?");
+				input_pd = true;
+				SP_D("pd["); SP_D(valv / 10); SP_D("].Kc["); SP_D(valv % 10); SP_D("]="); SPL_D(pd[valv / 10].Kc[valv % 10]);
+			}
+		}
 		//a-----------------------change area
-		if (input_pd||c == 'a') {
+		if (input_pd || c == 'a') {
 			SP("Pd modify Area "); int valv = inputI("valv");
 			if (valv < 0) {
 				SPL_D("Save Pd!");
 				input_pd = false;
-				for (byte i=1;i<N_OS_STA;i++)
-				eeprom_write_block((void *)&pd[i], (void*)(PD_EEPROM_POS + i *PD_SIZE), PD_SIZE);
+				for (byte i = 0; i < N_OS_STA; i++)
+					eeprom_write_block((void *)&pd[i], (void*)(PD_EEPROM_POS + i *PD_SIZE), PD_SIZE);
 			}
 			else {
 				pd[valv / 10].area[valv % 10] = inputI("area");
@@ -2070,8 +2299,8 @@ void setup() {
 			}
 		}
 		//f-----------------------change flux
-		if (input_seq||c == 'f') {
-			SP("Seq modify Flux ");int iseq = inputI("seq");
+		if (input_seq || c == 'f') {
+			SP("Seq modify Flux "); int iseq = inputI("seq");
 			if (iseq < 0) {
 				input_seq = false;
 				eeprom_write_block((void *)&seq, (void *)(SEQ_EE_START + 1), MAXSEQ * sizeof(sequence));
@@ -2082,123 +2311,179 @@ void setup() {
 				SP_D("seq["); SP_D(iseq); SP_D("].flux="); SPL_D(seq[iseq].flux);
 			}
 		}
-		//n----------------------/jn API load names
-		if (c != 0||time_json>0||time_json1>0)
-		{   
-			if (c == 'n') { for (byte ic = 0; ic < N_OS_STA; ic++)if (APIcall("/jn", ic) == 2)Json_Extract_jn(ic); }
-			else
-			if (c == 'p'&&time_json > 0)time_json = 0;
-			else
-			if (c == 'c'&&time_json1 > 0)time_json1 = 0;
-			else
-			{
-		//p-----------------------/jp API programs		
-				if(c=='p'&&time_json==0||time_json>0)
-					if (millis() >= time_json)
-					{
-						time_json = millis() + TIME_INT_JSON;
-					
-						bool noConFlag = false;
-						for (byte ic = 0; ic < N_OS_STA; ic++)
-							if(noCon[ic])
-							{
-		
-								SP_D(ora.hour()); SP_D(":"); SP_D(ora.minute()); SP_D("  ");
-							if (APIcall("/jp", ic)<2 && countp++ < 10) {
-								time_json = millis() + 60000;
-								noCon[ic] = true;
-								noConFlag = true;
-								//delay(3000); 
-							}
-							else
-								//int connTime[5],progChangTime[10], progChang[10];
-									if (countp <= 10)
-									{
-										pd[ic].connTime = ora.hour()*60+ora.minute();
-								noCon[ic] = false;
-								byte pmod[10];
-								Json_Extract_jp(ic, pmod);
-								
-								for (int i = 0; i < pd[ic].nprogs; i++)
-								{
-									if (pmod[i] != 0)
-									{
-										Encode_jp(i, ic); SPL();
-										SP("Sta."); SP(ic); SP("prog."); SP(i);
-				
-									}
-									if (pmod[i] != 0)
-									{
-										if (pmod[i] == 1) 
-										{
-											SPL(" new!");
-											program_put_sequence(ic, i);
-											pd[ic].progChang = pd[ic].progChang*10+i+1;
-											pd[ic].progChangTime = ora.hour() * 60 + ora.minute();
-									
-										}
-										else
-										{
-											SPL("Modif.");
-											program_rem_sequence(ic, i);
-											program_put_sequence(ic, i);
-											pd[ic].progChang = pd[ic].progChang * 10+i+1;
-											pd[ic].progChangTime = ora.hour() * 60 + ora.minute();
-									
+		// print stations names---------------------------------------------------
+		if (c == 'n') {
+			byte j = 0;
+			for (byte k = 0; k < N_OS_STA; k++)
+				for (byte i = 0; i < 8; i++){
+					byte plot_n = 0;
+					// ---------print only if plot of valve exist--------------------------
+					while (CurvesN[plot_n++] != k * 10 + i&&plot_n<N_curves);
+					if (plot_n < N_curves) {
+						SP(k); SP(" "); SP(i); SP(" ");
+						TFWin.textColor(CurveColor[plot_n]);
+						//const char* nome= pd[seq[i].valv / 10].names[seq[i].valv % 10].c_str();
+						//nome[strlen(nome) + 1] = 0;
+						for (byte jj = 0; jj < strlen(pd[seq[i].valv / 10].names[seq[i].valv % 10]); jj++)
+						{
+							SP(pd[k].names[i][jj]);
+						}
 
-										}
+						SPL();
+
+						TFWin.textColor(ILI9341_WHITE);
+					}
+				}
+
+		}
+
+		//n----------------------/jn API load names
+	//	if (c != 0||time_json>0||time_json1>0)
+	//	{   
+		if (c == 'o') {
+			if (time_json1 == 0) { time_json1 = TIME1_INT_JSON; SP("json /jo /jn on"); }
+			else {
+				time_json1 = 0; SP("json /jo /jn off");
+			}
+		}
+		if (c == 'p') {
+			if (time_json2 == 0) { time_json2 = TIME2_INT_JSON; SP("json /jp on"); }
+			else { time_json2 = 0; SP("json /jp off"); }
+		}
+		if (c == 'c') {
+			if (time_json == 0) { time_json = TIME_INT_JSON; SP("json /jc /jn on"); }
+			else { time_json = 0; SP("json /jc /jn off"); }
+		}
+
+		//		if (c == 'p'&&time_json > 0)time_json = 0;
+		//		else
+		//		if (c == 'c'&&time_json1 > 0)time_json1 = 0;
+		//		else
+		//		{
+			//p-----------------------/jp API programs		
+		//			if(c=='p'&&time_json2==0||time_json2>0)   //4h
+		
+
+		if (c=='p'||(millis() >= time_json2&&time_json2!=0))
+		{
+			time_json2 = millis() + TIME2_INT_JSON;
+
+			bool noConFlag = false;
+			for (byte ic = 0; ic < N_OS_STA; ic++)
+				if (noCon[ic])
+				{
+
+					SP_D(ora.hour()); SP_D(":"); SP_D(ora.minute()); SP_D("  ");
+					if (APIcall("/jp", ic) < 2 && countp++ < 10) {
+						time_json2 = millis() + 60000;
+						noCon[ic] = true;
+						noConFlag = true;
+						//delay(3000); 
+					}
+					else
+						//int connTime[5],progChangTime[10], progChang[10];
+						if (countp <= 10)
+						{
+							pd[ic].connTime = ora.hour() * 60 + ora.minute();
+							noCon[ic] = false;
+							byte pmod[10];
+							Json_Extract_jp(ic, pmod);
+
+							for (int i = 0; i < pd[ic].nprogs; i++)
+							{
+								if (pmod[i] != 0)
+								{
+									Encode_jp(i, ic); SPL();
+									SP("Sta."); SP(ic); SP("prog."); SP(i);
+
+								}
+								if (pmod[i] != 0)
+								{
+									if (pmod[i] == 1)
+									{
+										SPL(" new!");
+										program_put_sequence(ic, i);
+										pd[ic].progChang = pd[ic].progChang * 10 + i + 1;
+										pd[ic].progChangTime = ora.hour() * 60 + ora.minute();
+
+									}
+									else
+									{
+										SPL("Modif.");
+										program_rem_sequence(ic, i);
+										program_put_sequence(ic, i);
+										pd[ic].progChang = pd[ic].progChang * 10 + i + 1;
+										pd[ic].progChangTime = ora.hour() * 60 + ora.minute();
+
+
 									}
 								}
 							}
-
-
-
-							//  if (!json_flag)time_json = millis() + TIME_INT_JSON;
-							//	SP("try again in s."); SPL((time_json - millis()) / 1000);
-							//else { SP("192.168.1."); SP(20 + ic); SPL(" not reachable!"); }
 						}
-						if (!noConFlag) 
-							for(byte jj=0;jj<5;jj++)noCon[jj]= true;
-						print_status();
+
+
+
+					//  if (!json_flag)time_json = millis() + TIME_INT_JSON;
+					//	SP("try again in s."); SPL((time_json - millis()) / 1000);
+					else { SP("192.168.1."); SP(20 + ic); SPL(" not reachable!"); 
+					char buff[20]; sprintf(buff, "/jp Cannot reach 192.168.1.%d", 20 + ic);
+					SendMessage(buff);
 					}
+				}
+			if (!noConFlag)
+				for (byte jj = 0; jj < 5; jj++)noCon[jj] = true;
+			print_status();
+		}
 		//c-----------------------jc API control-----------------------		
-				
-				if (c == 'c'&&time_json1 == 0 || time_json1>0)
 
-					if (millis() >= time_json1)
-					{
-						time_json1 = millis() + TIME1_INT_JSON;
-						for (byte ic = 0; ic < N_OS_STA; ic++)
-						{
-							byte count = 0;
-							//wait 6 sec for 10 time to get connection
-							while (!APIcall("/jc", ic) && count++ < 10) { delay(6000); }
-							if (count <=5)
-							{
-								Json_Extract_jc(ic);
-							}
-							else { SP(20 + ic); SPL(" not reachable!"); }
+		//		if (c == 'c'&&time_json1 == 0 || time_json1>0)
 
-						}
-					}
-				//o----------------------------------jo options--------------------------
-				if (c == 'o')
-					for (byte ic = 0; ic < N_OS_STA; ic++)
-					{
-						 byte count2 = 0;
-						//wait 6 sec for 10 time to get connection
-						while (!APIcall("/jo", ic) && count2++ < 10) { delay(6000); }
-						if (count2 <= 5)
-						{
-							Json_Extract_jo(ic);
-						}
-						else { SP(20 + ic); SPL(" not reachable!"); }
-					}
-
-				
+		if (c=='c'||(millis() >= time_json&&time_json != 0))
+		{
+			time_json = millis() + TIME_INT_JSON;
+			for (byte ic = 0; ic < N_OS_STA; ic++)
+			{
+				byte count = 0;
+				//wait 6 sec for 10 time to get connection
+				while (!APIcall("/jc", ic) && count++ <=5) { delay(2000); }
+				if (count <= 5)
+				{
+					Json_Extract_jc(ic);
+				}
+				else { SP(20 + ic); SPL(" not reachable!"); 
+				char buff[20]; sprintf(buff, "/jc Cannot reach 192.168.1.%d", 20 + ic);
+				SendMessage(buff);
+				}
 
 			}
 		}
+		//o----------------------------------jo jn options--------------------------
+		if (c=='o'||(millis() > time_json1&&time_json1 != 0))
+		{
+			time_json1 = millis() + TIME1_INT_JSON;
+
+
+			for (byte ic = 0; ic < N_OS_STA; ic++)
+			{
+				byte count2 = 0;
+				//wait 6 sec for 10 time to get connection
+				while (!APIcall("/jo", ic) && count2++ <= 5) { delay(1000); }
+				if (count2 <= 5)
+				{
+					Json_Extract_jo(ic);
+					if (APIcall("/jn", ic) == 2)Json_Extract_jn(ic);
+
+				}
+				else { SP(20 + ic); SPL(" not reachable!");
+				char buff[20]; sprintf(buff, "/jn Cannot reach 192.168.1.%d", 20 + ic);
+				SendMessage(buff);
+				}
+			}
+
+
+		}
+		//		}
+		//	}
 	}
 	
 //	void blPr(void * pointer,byte size) {
@@ -2227,9 +2512,10 @@ void setup() {
 		eeprom_read_block(&seq, (void *)(SEQ_EE_START + 1), MAXSEQ * sizeof(sequence));
 		//byte day = 0;
 		DateTime oggi = adesso();
-		SPL_D("day+\tstart\tdur.\tnprog\tvalve\tday[0]\tday[1]\tflags\tflux.\tarea\twaterB");
-		bool confirmed[3][10] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-
+		SPL_D("day+\tstart\tdur.\tnprog\tvalve\tday[0]\tday[1]\tflags\tflux.\tarea\tmm_eq");
+		bool confirmed[4][8];
+		byte MMeq[4][8];
+		for (byte i = 0; i < 4; i++)for (byte j = 0; j < 8; j++) { confirmed[i][j] = true; MMeq[i][j] = 0; }
 		for (int i = 1; i < sequn + 1; i++)
 		{
 		//	bool prin = false;
@@ -2258,8 +2544,12 @@ void setup() {
 				SP_D(seq[i].flags); SP_D("\t");
 				SP_D(seq[i].flux); SP_D("\t");
 				SP_D(pd[seq[i].valv / 10].area[seq[i].valv % 10]); SP_D("\t");
-				SPL_D(pd[seq[i].valv/10].dummy[seq[i].valv%10]-weather[iw].water*pd[seq[i].valv / 10].area[seq[i].valv % 10]);
-
+//				SPL_D(pd[seq[i].valv/10].dummy[seq[i].valv%10]-weather[iw].water*pd[seq[i].valv / 10].area[seq[i].valv % 10]);
+				if (pd[seq[i].valv / 10].area[seq[i].valv % 10] > 0) {
+					MMeq[seq[i].valv / 10][seq[i].valv % 10] += seq[i].flux*(seq[i].dur / 18.) / pd[seq[i].valv / 10].area[seq[i].valv % 10];
+					SPL_D(MMeq[seq[i].valv / 10][seq[i].valv % 10]);
+				}
+				else SPL_D();
 			}
 		}
 		for (byte ic = 0; ic < N_OS_STA; ic++) {
@@ -2293,11 +2583,56 @@ void setup() {
 		}
 	}
 #define MAX_PLOT_DAYS 7
-	
+#define EEPOS_PLOT 4021
+#define EEPOS_COMMAND 4000
+#define EESIZE_W 80
+#define PLOT_START_DAY -3
+	struct Working_Set {
+		byte ncommand;
+		char commands[20];
+		byte N_curves;
+		unsigned plotStartTime; 
+		int plotStartValue[20];
+		void savePlot() {
+			int Epos = EEPOS_PLOT;
+			eeprom_write_byte((unsigned char *)Epos++, N_curves);
+			eeprom_write_int(Epos++, plotStartTime>>16);
+			Epos++;
+			eeprom_write_int(Epos++, plotStartTime & 0xFFFF);
+			Epos++;
+			for (byte i = 0; i < N_curves; i++){
+				eeprom_write_int(Epos++, plotStartValue[i]); 
+				Epos++;
+		}
+		}
+		void saveCommand() {
+			int Epos = EEPOS_COMMAND;
+			for (byte i = 0; i < ncommand; i++)eeprom_write_byte((unsigned char *)Epos++, commands[i]);
+		}
+	};
+	Working_Set w;
+	void plot_interp(int Yinterp[],int x_true)
+	{
+		for (byte i = 0; i < N_curves; i++)
+			for (byte j = 0; j < myGraph[i].nval - 1; j++)
+				if (myGraph[i].x[j] < x_true&&x_true < myGraph[i].x[j + 1]) {
+					 Yinterp[i]=(myGraph[i].y[j + 1] - myGraph[i].y[j]) / float(myGraph[i].x[j + 1] - myGraph[i].x[j])*(x_true - myGraph[i].x[j]) + myGraph[i].y[j];
+				}
+	}
+/*
+#define SPS_DD SPS_D
+#define SPL_DD SPL_D
+#define SP_DD SP_D
+*/
+#define SPS_DD(x) Serial.print(x);Serial.print(' ')
+#define SPL_DD(x) Serial.println(x)
+#define SP_DD(x) Serial.print(x)
+#define SHIFT_PLOT_MM 1
 	bool plot_sequence()
 	{
-		float y[30] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-		int prec_time[30]= { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+		int y[40];// = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+		int prec_time[40];// = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+		for (byte i = 0; i < 40; i++) { y[i] = 0; prec_time[i] = 0; }
 		for (byte ic = 0; ic < N_OS_STA; ic++) {
 			eeprom_read_block(&pd[ic], (void*)(PD_EEPROM_POS + ic*PD_SIZE), PD_SIZE);
 		}
@@ -2305,60 +2640,112 @@ void setup() {
 		Serial.println(sequn,DEC);
 		if (sequn == 0)return false;
 		eeprom_read_block(&seq, (void *)(SEQ_EE_START + 1), MAXSEQ*sizeof(sequence));
-		byte day = 0;
+		int day = PLOT_START_DAY;
 		DateTime oggi = adesso();
+
+		eeprom_read_block(&w, (void*)(EEPOS_COMMAND), EESIZE_W);
+		SPS_DD(w.commands); SPS_DD("NC"); SPS_DD(w.N_curves);
+		for (byte i = 0; i < w.N_curves; i++) {
+			SPS_DD(w.plotStartValue[i]);// SPS_DD(CurvesN[i]);
+		}
+
+
+#ifdef newCode
+		if (w.plotStartTime < oggi.unixtime() + day*SECS_PER_DAY) {
+			plot_start_time = w.plotStartTime / 60;
+			for (byte i = 0; i < w.N_curves; i++) {
+				y[CurvesN[i]] = w.plotStartValue[i]; SPS_DD(CurvesN[i]); SPS_DD(y[CurvesN[i]]);
+		}
+		else
+#endif
+		plot_start_time = oggi.unixtime() / 60;
 		//if prog.check_day_match(oggi)
 		//int prev_time = 0; 
 		byte y00 = 0;
-		while (day++<MAX_PLOT_DAYS)
-		for (int i = 1; i < sequn+1 ; i++)
-		{
-			if (y[seq[i].valv] == 0)y[seq[i].valv] = 2* y00++;
-			//loadGraph(seq[i].valv, 0, y0);
-			float y0 = 0;// int(seq[i].valv / 10) * 25;			 //  shift 0.25 each station present
-			//float y1 = y0 + 20;						 //  0.20 for valve open
+		byte month_penman[12] = { 10,11,20,25,33,39,46,39,26,18,11,10 };//monthly average Savona *10
+		while (day++ < MAX_PLOT_DAYS) {
+			SPS_DD(day);
+// compute using recorded ETo values
+			float day_penman = month_penman[oggi.month()]/10.;
+				if (day < 0) {
+				Weather Wu;
+				SPS_DD("+");
+				Wu.read(oggi.unixtime() + (day * 24 * 3600L));
+				SPS_DD("/");
+				if (Wu.penman <5 && Wu.penman >= 0)
+					day_penman = Wu.penman; // = read_penman(oggi.operator+(day * 24 * 3600));
+
+			}
+				SP_DD("ETo"); SPL_DD(day_penman);
 			
-			
-				if (seq[i].Check_day_match(  oggi.operator+(day * 24 * 3600) ))
-				{ 
-					//SP_D("Match d."); SP_D(day); SP_D(" s."); SPL_D(i);
+			for (int i = 1; i < sequn + 1; i++)
+			{
+				if (y[seq[i].valv] == 0)y[seq[i].valv] = SHIFT_PLOT_MM * y00++;
+				//loadGraph(seq[i].valv, 0, y0);
+				int y0 = 0;// int(seq[i].valv / 10) * 25;			 //  shift 0.25 each station present
+				//float y1 = y0 + 20;						 //  0.20 for valve open
+
+
+				if (seq[i].Check_day_match(oggi.operator+(day * 24 * 3600)))
+				{
+					//SP_DD("Match d."); SP_DD(day); SP_DD(" s."); SPL_DD(i);
 					int dayStart = seq[i].start + day * 1440;
-					
-					 y[seq[i].valv ] = y[seq[i].valv ] + (prec_time[seq[i].valv] - dayStart)*3.0/1440;
-					 loadGraph(seq[i].valv, dayStart, y[seq[i].valv ] + y0);
-					 SP_D(prec_time[seq[i].valv]); SPS_D(seq[i].valv); SPS_D(dayStart); SP(" "); SP_D(y[seq[i].valv] + y0);
-					 if(pd[seq[i].valv / 10].area[seq[i].valv % 10]>0)
-						 y[seq[i].valv] = y[seq[i].valv] + seq[i].flux *20.*seq[i].dur/ 3600./pd[seq[i].valv / 10].area[seq[i].valv % 10];
-					 else
-						 y[seq[i].valv] = y[seq[i].valv] + 2;
-					 loadGraph(seq[i].valv, dayStart+seq[i].dur/60, y[seq[i].valv] + y0);
-					 SPS_D(dayStart + seq[i].dur / 60); SP(" "); SPL_D(y[seq[i].valv] + y0);
-					 prec_time[seq[i].valv] = dayStart + seq[i].dur / 60;
-					 //loadGraph(seq[i].valv, dayStart, y+y0);
-					//loadGraph(seq[i].valv, dayStart, y1);
-					//loadGraph(seq[i].valv, dayStart+ seq[i].dur / 60, y1);
-				//	loadGraph(seq[i].valv, dayStart + seq[i].dur / 60, y0);
+					float kappaC = 1;
+					//if (pd[seq[i].valv / 10].Kc[seq[i].valv % 10] > 10)kappaC = pd[seq[i].valv / 10].Kc[seq[i].valv % 10]/100;
+					y[seq[i].valv] = y[seq[i].valv] + (prec_time[seq[i].valv] - dayStart)*kappaC*day_penman / 14.40;
+					loadGraph(seq[i].valv, dayStart, y[seq[i].valv] + y0);
+					SP_DD(prec_time[seq[i].valv]); SPS_DD(seq[i].valv); SPS_DD(dayStart); SP_DD(" "); SP_DD(y[seq[i].valv] + y0);
+					if (pd[seq[i].valv / 10].area[seq[i].valv % 10] > 0)
+						y[seq[i].valv] = y[seq[i].valv] + seq[i].flux *20.*seq[i].dur / 36.00 / pd[seq[i].valv / 10].area[seq[i].valv % 10];
+					else
+						y[seq[i].valv] = y[seq[i].valv] + 100;
+					loadGraph(seq[i].valv, dayStart +int( seq[i].dur / 60), y[seq[i].valv] + y0);
+					SPS_DD(dayStart +int( seq[i].dur / 60)); SP_DD(" "); SPL_DD(y[seq[i].valv] + y0);
+					prec_time[seq[i].valv] = dayStart +int( seq[i].dur / 60);
+					//loadGraph(seq[i].valv, dayStart, y+y0);
+				   //loadGraph(seq[i].valv, dayStart, y1);
+				   //loadGraph(seq[i].valv, dayStart+ seq[i].dur / 60, y1);
+			   //	loadGraph(seq[i].valv, dayStart + seq[i].dur / 60, y0);
 				}
-			//loadGraph(seq[i].valv, 1440, y0);
-			//invece while day++<max_numero_days
-			//continue to next day if prog.check_day_match(day*3600*24+oggi)==0
-			//loadGraph(seq[i].valv, seq[i].start+day*1440, y0);
-			//loadGraph(seq[i].valv, seq[i].start+day*1440, y1);
-			//etc.
+				//loadGraph(seq[i].valv, 1440, y0);
+				//invece while day++<max_numero_days
+				//continue to next day if prog.check_day_match(day*3600*24+oggi)==0
+				//loadGraph(seq[i].valv, seq[i].start+day*1440, y0);
+				//loadGraph(seq[i].valv, seq[i].start+day*1440, y1);
+				//etc.
 
+			}
 		}
-		for (byte j = 0; j < 10; j++)
 		{
-			for (byte i = 0; i < myGraph[j].nval; i++)
+			// --------------- save computed water balance at 12:00 AM-------------------------------
+			w.plotStartTime = oggi.unixtime() - oggi.hour() * 3600 - oggi.minute() * 60 - oggi.second();
+			SPS_DD("Pl st"); SPS_DD(1440-oggi.hour() * 60 - oggi.minute());
+			plot_interp(w.plotStartValue, (1440-oggi.hour() * 60 - oggi.minute()));
+			w.N_curves = N_curves;
+			for (byte i = 0; i < w.N_curves; i++) {
+				SPS_DD(w.plotStartValue[i]);// SPS_DD(CurvesN[i]);
+			}
+			w.savePlot();
+			SPL_DD();
+		}
+			for (byte j = 0; j < N_curves;j++)
+			{
+#ifdef STL_VECTOR
+				myGraph[j].x.shrink_to_fit();
+				myGraph[j].y.shrink_to_fit();
+#endif
+				for (byte i = 0; i < myGraph[j].nval; i++)
 
-			{
-				SPS_D(myGraph[j].x[i]);
-			}
-			SPL_D();
-			for (byte i = 0; i < myGraph[j].nval; i++)
-			{
-				SPS_D(myGraph[j].y[i]);
-			}
+				{
+					SPS_DD(myGraph[j].x[i]);
+				}
+				SPL_DD();
+				for (byte i = 0; i < myGraph[j].nval; i++)
+				{
+					SPS_DD(myGraph[j].y[i]);
+				}
+				SPL_DD();
+			
 		}
 		return true;
 	}
@@ -2391,7 +2778,7 @@ void setup() {
 				FluxDiff = seq[i].Check_Flux(startime, duration, fluxp);			//cycle match in startime and duration
 				if (FluxDiff != 0)
 				{
-					if (seq[i].flux == 0) seq[i].flux = abs(-FluxDiff / 20);  //fisrt time : add flux info to seq
+					if (seq[i].flux == 0) seq[i].flux = abs(-FluxDiff / 20);        //fisrt time : add flux info to seq
 					else
 					{
 						byte fluxInd = 5;
@@ -2399,13 +2786,17 @@ void setup() {
 							if (seq[i].flux * fluxSteps[j] > abs(FluxDiff)) {
 								fluxInd = j + 1; break;
 							}
+						if (fluxInd>4){
+							char buff[30]; sprintf(buff, "Valve %d has flux difference of %d",seq[i].valv, FluxDiff);
+							SendMessage(buff);
+						}
 						pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = fluxInd;  //valveStatus contain fluxInd
 			//		else
 			//			pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)] = NUM_FLUX_COLOR; //
 						SP_D("fluxI"); SP_D(fluxInd); SPS_D((seq[i].valv % 10)); 
 						SPS_D(seq[i].valv / 10); SPS_D(pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)]);
 					}
-//---------------------recalculate zone water balance----[mm]--------------------
+//---------------------recalculate zone water balance if is still 0 ----[mm]--------------------
 					if(pd[seq[i].valv / 10].area[seq[i].valv % 10]>0)
 					pd[seq[i].valv / 10].dummy[seq[i].valv % 10] += seq[i].flux * seq[i].dur / pd[seq[i].valv / 10].area[seq[i].valv % 10] / 180;
 //---------------------------------------------------------------------------
@@ -2795,7 +3186,8 @@ int check_collision(byte flags,byte days[], int start0, byte thisprog, int tspan
 		if (start0 < seq[lower_bound].start + seq[lower_bound].dur / 60)starttime_correction = -start0 + (seq[lower_bound].start + seq[lower_bound].dur / 60);
 		if (start0 + tspan > seq[upper_bound].start)starttime_correction = -start0 - tspan + (seq[upper_bound].start);
 		SP(" adj. collision interval moving");  SP(" min "); SPL(starttime_correction);
-
+		char buff[30]; sprintf(buff, "Move program. %d, %d minute to avoid collision ",thisprog,starttime_correction);
+		SendMessage(buff);
 		return starttime_correction;
 	}
 	else          //-------------------------check other intervals

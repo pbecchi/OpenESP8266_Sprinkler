@@ -101,11 +101,10 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portOutputRegister(P)
 #define portInputRegister(P)
 #define portModeRegister(P)
-#include <OpenSprinkler_Arduino_W5100.ino>
-#include <Config.h>
+#include <..\OpenSprinkler_Arduino_W5100\Config.h>
 #include <..\Defines.h>
-#include <Eeprom_ESP.cpp>
-#include <Eeprom_ESP.h>
+#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.cpp>
+#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.h>
 #include <..\EtherCardW5100.cpp>
 #include <..\EtherCardW5100.h>
 #include <..\Gpio.cpp>
@@ -117,6 +116,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <..\OpenSprinklerProgram.h>
 #include <..\OpenSprinklerServer.cpp>
 #include <..\OpenSprinklerServer.h>
+#include <..\OpenSprinkler_Arduino_W5100\OpenSprinkler_Arduino_W5100.ino>
 #include <..\PCF8574Mio.cpp>
 #include <..\PCF8574Mio.h>
 #include <..\Pins.h>

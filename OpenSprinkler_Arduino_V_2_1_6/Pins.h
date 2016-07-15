@@ -186,23 +186,23 @@ This way you can use expander for all functions (interrupt donot work right now)
 //#define SHIFT_REG						   //: stations on PCF8574 n.1...7 connected to shift register                                                        
 #define OPENSPRINKLER_ARDUINO_DISCRETE     //:no shift registers each station to different pin (on PCF8574 if I2C_SHIFT_REG defined)
 #define I2C_SHIFT_REG                      //output to stations are connected to PCF8574 PINS
-// PCF8574 pin out  ----connected to relay module------------------------------
-#define PIN_STN_S01		0x27
-#define PIN_STN_S02		0x26
-#define PIN_STN_S03		0x25
-#define PIN_STN_S04		0x20
-#define PIN_STN_S05		0x21
-#define PIN_STN_S06		0x22
-#define PIN_STN_S07		0x23
-#define PIN_STN_S08		0x24
-
+// PCF8574 pin out  ----connected to relay module------------------------------ addr 0x3B
+#define PIN_STN_S01		0x37
+#define PIN_STN_S02		0x36
+#define PIN_STN_S03		0x35
+#define PIN_STN_S04		0x30
+#define PIN_STN_S05		0x31
+#define PIN_STN_S06		0x32
+#define PIN_STN_S07		0x33
+#define PIN_STN_S08		0x34
+#define PCF8574_M        //PCF8574 are used for i/o
 #define STA_HIGH LOW     // low station output on for Relay
 #define STA_LOW HIGH     // high station output off for Relay
 //-------------------------buttons--------------------------------------------
 //#define BUTTON_ADC_PIN        A0       //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
-#define PIN_BUTTON_1 0x34		//button are on second PCF8574 expaneder
-#define PIN_BUTTON_2 0x35
-#define PIN_BUTTON_3 0x36
+#define PIN_BUTTON_1 0x21		//button are on second PCF8574 expaneder adr 0x39
+#define PIN_BUTTON_2 0x22
+#define PIN_BUTTON_3 0x23
 #define BUT1_ON 1		//PIN input:1= Vcc, 0 =GND
 #define BUT2_ON 1		//PIN input:1= Vcc, 0 =GND
 #define BUT3_ON 1		//PIN input:1= Vcc, 0 =GND
