@@ -83,7 +83,7 @@ Graf myGraph[N_Maxcurves];
 	// It's better to use a char[] as shown here.
 	// If you use a const char* or a String, ArduinoJson will
 	// have to make a copy of the input in the JsonBuffer.
-	char json[MAX_JSON_STRING];
+char json[ MAX_JSON_STRING];
 
 #define SEQ_EE_START 0
 #ifdef TELNET
@@ -1114,7 +1114,6 @@ static	bool noClient = true;
 		MWin.menu[0].draw();
 		//  Serial.println(MWin.menu[1].menuName[3]);
 		//  Serial.println(MWin.menu[1].nbutton);
-#define GRAPH	//------------------------------init Graphics-------------------------------------
 #ifdef GRAPH
 		//graphInit();
 	
@@ -1226,7 +1225,7 @@ static	bool noClient = true;
 	}
 //#define INIT_EEPROM /////////////////////////////only for reset run
 #define INIT_TIME
-#define PAGE_TELNET 500
+#define PAGE_TELNET 1000
 void	logView(char c) {
 		if(c=='<'){
 			Tclient.print("--------------------------");
@@ -1238,7 +1237,7 @@ void	logView(char c) {
 			delay(1000);
 			while (Tclient.available()) {
 				char cc = Tclient.read(); 
-				if (cc > '0'&&cc < '9')offset = offset + (cc - '0')*PAGE_TELNET;
+				if (cc > '0'&&cc <= '9')offset = offset + (cc - '0')*PAGE_TELNET;
 			}
 			Tclient.println(offset);
 				
@@ -1419,7 +1418,7 @@ void setup() {
 			File f = dir.openFile("r"); SPL_D(f.size());
 		}
 	
-
+		
 #endif
 
 
@@ -1582,10 +1581,9 @@ void setup() {
 	//--------------------------------------------------------------------------
 	byte APIweatherV(String streamId, String nomi[], byte Nval, float val[]) {
 
-		//va_list args;
-		//va_start(args, Nval);
+		
 		SP_D("connecting to WU");
-
+		//char json1[2500];
 		const int httpPort = 80;
 		if (!client.connect("api.wunderground.com", 80))
 		{
@@ -1661,10 +1659,10 @@ void setup() {
 				SP_D("Connected ! "); //SPL(jsonserver);
 									  //SP_D(json);
 				SPL_D(" Json read!"); SPL_D(i);
-
+				SP_D("m.b.h."); SPL_D(ESP.getFreeHeap());
                 DynamicJsonBuffer jsonBuffer;
 				JsonObject& root = jsonBuffer.parseObject(json);
-				SP_D("mem.h."); SPL_D(ESP.getFreeHeap());
+				SP_D("m.a.h."); SPL_D(ESP.getFreeHeap());
 				// Test if parsing succeeds.
 				if (!root.success()) {
 					SPL("Weather parseObject() failed");
@@ -1720,6 +1718,15 @@ void setup() {
 		float rain = val[5];// root["precip_today_metric"];
 		weather[iw].rain = rain * 10;
 		weather[iw].wind = val[6];// root["wind_kph"];
+		//------------call local sensors---------------------
+		char buff[20]; char * ii; int ival[4]; byte i = 1;
+		if (ServerCall(buff, "//", 77) > 1) {
+			ival[0]= atoi(strtok(buff, " "));
+			ii = strtok(NULL, " ");
+			while (ii != NULL) { ival[i++] = atoi(ii); ii = strtok(NULL, " "); }
+			SP_D("KWh="); SPL_D(ival[2]);
+			weather[iw].water = ival[2];
+		}
 
 //-----------------end json decode-------------------------------------------
 
@@ -1909,7 +1916,7 @@ void setup() {
 		//					for (byte ic = 0; ic < N_OS_STA; ic++)
 		//						for (byte i = 0; i < 8; i++)pd[ic].dummy[i] += -weather[iw].penman  * FREQ_WEATHER/24;
 		 iwo = MAX_WEATHER_READ; if (iw > 0)iwo = iw - 1;
-		weather[iw].water = weather[iwo].water - weather[iw].penman  * FREQ_WEATHER / 24;
+//		weather[iw].water = weather[iwo].water - weather[iw].penman  * FREQ_WEATHER / 24;
 		weather[iw].write();
 		SP(hour(weather[iw].time)); SP(":"); SP(minute(weather[iw].time)); SP(" t=");
 		SP(weather[iw].temp); SP(" S=");
@@ -1967,7 +1974,7 @@ void setup() {
 		return 1;
 
 	}
-	bool ReadMessage(int n_day)
+	bool ReadMessage(int n)
 	{
 		File messfile;
 		DateTime ora = RTC.now();
@@ -1978,9 +1985,9 @@ void setup() {
 
 		if (!messfile) { Serial.println("Cannot open message file"); return 0; }
 		messfile.seek(0, SeekSet);
-/*
-		messfile.seek(0, SeekEnd);
 
+		messfile.seek(n*100, SeekEnd);
+/*
 		long pos=messfile.position();
 		if (pos == 0)return 0;
 		pos--;
@@ -1998,7 +2005,7 @@ void setup() {
 		
 		if (pos == 0)return 0;
 		*/
-		while (messfile.available())SP_D((char)messfile.read());
+		while (messfile.available())Tclient.print((char)messfile.read());
 		messfile.close();
 		return 1;
 
@@ -2033,6 +2040,39 @@ void setup() {
 		if (res)if (client.read() != '1')res = false;
 		client.stop();
 		return res;
+	}
+	byte ServerCall( char buff[],char command[], byte ic) {
+
+		//String privateKey = "a6d82bced638de3def1e9bbb4983225c"; //MD5 hashed
+		const int httpPort = 80;
+		IPAddress jsonserver = IPAddress(192, 168, 1, ic);
+
+		if (!client.connect(jsonserver, 80))
+		{
+			client.stop();
+
+			SP("connection failed "); SPL(jsonserver);
+			return 0;
+		}
+		//	SP("Connect: "); SP(jsonserver);
+		//client.print("GET ");
+		client.println(command);
+		//client.print(" HTTP/1.1\r\n Host: 192.168.1.20 \r\n Connection: close\r\n\r\n");
+		byte i = 0;
+		while (!client.available()&&i<255) {
+			i++; delay(50); Serial.print('.');
+		}
+		SPS_D("resp=");
+		if (i == 255)return 0;
+		i = 0;
+		while (client.available()) {
+			buff[i++] = client.read(); Serial.print(buff[i - 1]); delay(100);
+				
+		}
+		buff[i++] = 0;
+		client.stop();
+		SPL_D(i);
+		return i;
 	}
 #define RAIN_NOWATER72 10
 #define RAIN_NOWATER24 3
@@ -2145,7 +2185,7 @@ void setup() {
 			SP_D("valves "); SP_D(buf); SP_D(" status "); for (byte ix = 0; ix < nchar; ix++) {SP_D(pd[i].valveStatus[buf[ix]-'0']); SP_D(" ");}
 			SPL_D();
 			if(pd[i].valveUsed!=0)
-				for (byte ic = 0; ic < nchar; ic++) {
+				for (byte ic = 0; ic < nchar-1; ic++) {
 					if (pd[i].valveStatus[buf[ic] - '0'] != 0)
 						TFWin.textColor(color[pd[i].valveStatus[buf[ic] - '0']]);
 					TFWin.print(buf[ic]);

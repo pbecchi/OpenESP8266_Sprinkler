@@ -11,6 +11,7 @@ int eeprom_read_word(
 	const unsigned int * pointer) {
 	return EEPROM.read(int(pointer++)) << 8 + EEPROM.read(int(pointer));
 }
+
 void eeprom_write_byte(
 	unsigned char * pointer,
 	unsigned char value)

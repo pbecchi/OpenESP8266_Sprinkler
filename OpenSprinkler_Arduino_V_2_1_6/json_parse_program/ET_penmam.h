@@ -664,3 +664,17 @@ float  wind_speed_2m(float meas_ws, float  z) {
 	return ws2m;
 }
 
+float ETo_hourly(float rad, float t, float ws, float es, float ea,  float delta_es, float psy) {
+	//calculating Rn-G net radiation-soil heat flux per hour
+	float Rn = 0.0036*(0.76*rad - 38.5);   //radiation in mm/h
+	float g;
+	if (rad > 1)
+		g = 0.1*Rn;				//during day
+	else
+		g = 0.5*Rn;				//during nigth
+
+	float term1 = psy * 37 / (t + 273.2)*ws*(es - ea);
+	float ETo = (0.408*delta_es*(Rn - g) + term1) / (delta_es + psy*(1 + 0.34*ws));
+	Serial.printf(" ET %d term %d Rn %d g %d ", ETo, term1, Rn, g);
+	return ETo;
+}

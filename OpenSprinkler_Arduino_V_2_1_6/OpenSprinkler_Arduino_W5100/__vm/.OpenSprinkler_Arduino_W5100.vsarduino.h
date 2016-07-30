@@ -15,47 +15,46 @@
 #define __ets__
 #define ICACHE_FLASH
 #define F_CPU 80000000L
+#define DEBUG_ESP_PORT Serial
+#define DEBUG_ESP_OTA
+#define DEBUG_ESP_UPDATER
 #define ARDUINO 10608
 #define ARDUINO_ESP8266_ESP01
 #define ARDUINO_ARCH_ESP8266
 #define ESP8266
 #define __cplusplus 201103L
+#undef __cplusplus
+#define __cplusplus 201103L
 #define __STDC__
 #define __ARM__
+#define __arm__
 #define __inline__
 #define __asm__(x)
 #define __extension__
 #define __ATTR_PURE__
 #define __ATTR_CONST__
-#define __inline__
-#define __asm__ 
 #define __volatile__
 
-#define __builtin_va_list
-typedef int __gnuc_va_list;
 
-#define __ICCARM__
 #define __ASM
 #define __INLINE
 #define __attribute__(noinline)
 
-#define _STD_BEGIN
-#define EMIT
+//#define _STD_BEGIN
+//#define EMIT
 #define WARNING
 #define _Lockit
 #define __CLR_OR_THIS_CALL
 #define C4005
-
-typedef int uint8_t;
-#define __ARMCC_VERSION 400678
-#define PROGMEM
-#define string_literal
-
-#define prog_void
-#define PGM_VOID_P int
-
-#define _GLIBCXX_CONSTEXPR  ([=] () {int _a = (1), _b = (2); return _a > _b ? _a : _b; }())
-
+//
+//typedef int uint8_t;
+//#define __ARMCC_VERSION 400678
+//#define PROGMEM
+//#define string_literal
+//
+//#define prog_void
+//#define PGM_VOID_P int
+//
 
 typedef int _read;
 typedef int _seek;
@@ -63,24 +62,24 @@ typedef int _write;
 typedef int _close;
 typedef int __cleanup;
 
-#define inline 
+//#define inline 
+
 #define __builtin_clz
+#define __builtin_clzl
+#define __builtin_clzll
+#define __builtin_labs
+#define __builtin_va_list
+typedef int __gnuc_va_list;
+
+#define __ATOMIC_ACQ_REL
+
 #define __CHAR_BIT__
 #define _EXFUN()
-#define __builtin_labs
-
-//MSVC++ 14.0 _MSC_VER == 1900 (Visual Studio 2015)
-//MSVC++ 12.0 _MSC_VER == 1800 (Visual Studio 2013)
-//MSVC++ 11.0 _MSC_VER == 1700 (Visual Studio 2012)
-//MSVC++ 10.0 _MSC_VER == 1600 (Visual Studio 2010)
-//#if (_MSC_VER == 1600)
-//	#undef __cplusplus
-//#endif
 
 typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
-
+#include "new"
 
 #include <arduino.h>
 #include <common.h> 
@@ -89,41 +88,34 @@ extern "C" void __cxa_pure_virtual() {;}
 #define F(string_literal) ((const PROGMEM char *)(string_literal))
 #undef PSTR
 #define PSTR(string_literal) ((const PROGMEM char *)(string_literal))
-#undef cli
-#define cli()
-#define pgm_read_byte(address_short)
-#define pgm_read_word(address_short)
-#define pgm_read_word2(address_short)
-#define digitalPinToPort(P)
-#define digitalPinToBitMask(P) 
-#define digitalPinToTimer(P)
-#define analogInPinToBit(P)
-#define portOutputRegister(P)
-#define portInputRegister(P)
-#define portModeRegister(P)
-#include <..\OpenSprinkler_Arduino_W5100\Config.h>
-#include <..\Defines.h>
-#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.cpp>
-#include <..\OpenSprinkler_Arduino_W5100\Eeprom_ESP.h>
-#include <..\EtherCardW5100.cpp>
-#include <..\EtherCardW5100.h>
-#include <..\Gpio.cpp>
-#include <..\Gpio.h>
-#include <..\OpenSprinkler.cpp>
-#include <..\OpenSprinkler.h>
-#include <..\OpenSprinklerMain.cpp>
-#include <..\OpenSprinklerProgram.cpp>
-#include <..\OpenSprinklerProgram.h>
-#include <..\OpenSprinklerServer.cpp>
-#include <..\OpenSprinklerServer.h>
-#include <..\OpenSprinkler_Arduino_W5100\OpenSprinkler_Arduino_W5100.ino>
-#include <..\PCF8574Mio.cpp>
-#include <..\PCF8574Mio.h>
-#include <..\Pins.h>
-#include <..\Utils.cpp>
-#include <..\Utils.h>
-#include <..\Weather.cpp>
-#include <..\Weather.h>
-#include <..\eeprom_mio.cpp>
-#include <..\eeprom_mio.h>
+//current vc++ does not understand this syntax so use older arduino example for intellisense
+//todo:move to the new clang/gcc project types.
+#define interrupts() sei()
+#define noInterrupts() cli()
+
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_W5100\Config.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Defines.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_W5100\Eeprom_ESP.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_W5100\Eeprom_ESP.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\EtherCardW5100.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Gpio.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Gpio.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerMain.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerProgram.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinklerServer.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\OpenSprinkler_Arduino_W5100\OpenSprinkler_Arduino_W5100.ino>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\PCF8574Mio.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\PCF8574Mio.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Pins.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Utils.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Utils.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Weather.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Weather.h>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\eeprom_mio.cpp>
+#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\eeprom_mio.h>
 #endif

@@ -1,3 +1,5 @@
 #pragma once
 #define TELNET
-#define OTA
+//#define OTA
+#define GRAPH	//------------------------------init Graphics-------------------------------------
+
