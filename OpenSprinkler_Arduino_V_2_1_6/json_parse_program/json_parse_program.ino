@@ -1703,7 +1703,7 @@ void setup() {
 		float val[8];
 		count_trial++;
 
-		String Str = "/api/e409b2aeaa5e3ffe/conditions/q/Italy/pws:ISAVONAL1.json";
+		String Str = "/api/48dfa951428393ba/conditions/q/Italy/pws:ISAVONAL1.json";
 		String nomi[] = { "current_observation","local_epoch","temp_c","relative_humidity","precip_1h_metric","precip_today_metric","wind" };
 		if (!APIweatherV(Str, nomi, 6, val)) return 0;
 		SP_D("iw"); SPS_D(iw);
@@ -1730,7 +1730,7 @@ void setup() {
 
 //-----------------end json decode-------------------------------------------
 
-		Str = "/api/e409b2aeaa5e3ffe/conditions/q/Italy/Savona.json";
+		Str = "/api/48dfa951428393ba/conditions/q/Italy/Savona.json";
 		String nomiS[] = { "current_observation","local_epoch","solarradiation" };
 
 		bool savona_result = !APIweatherV(Str, nomiS, 2, val);
@@ -2286,7 +2286,7 @@ void setup() {
 		{
 			if (count_trial < 10)
 			{
-				if (APIweather("/api/e409b2aeaa5e3ffe/conditions/q/Italy/pws:ISAVONAL1.json") == 2)
+				if (APIweather("/api/48dfa951428393ba/conditions/q/Italy/pws:ISAVONAL1.json") == 2)
 				{
 					if (weather[iw].rain > 0) {
 						for (byte i = 0; i < N_OS_STA; i++)if (weather_control(i)) {
