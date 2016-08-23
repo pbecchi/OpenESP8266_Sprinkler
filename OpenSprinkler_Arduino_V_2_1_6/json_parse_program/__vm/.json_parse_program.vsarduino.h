@@ -27,6 +27,7 @@
 #define __arm__
 #define __inline__
 #define __asm__(x)
+#define __asm__
 #define __extension__
 #define __ATTR_PURE__
 #define __ATTR_CONST__
@@ -76,7 +77,10 @@ typedef int __gnuc_va_list;
 typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
+
 #include "new"
+#include "Esp.h"
+
 
 #include <arduino.h>
 #include <pins_arduino.h> 
@@ -89,21 +93,8 @@ extern "C" void __cxa_pure_virtual() {;}
 #define interrupts() sei()
 #define noInterrupts() cli()
 
-#include <json_parse_program.ino>
-#include <Config.h>
-#include <Def.h>
-#include <EEPROM.ino>
-#include <ET_penmam.h>
-#include <Eeprom_ESP.cpp>
-#include <Eeprom_ESP.h>
-#include <Glx_SWindows.cpp>
-#include <Glx_SWindows.h>
-#include <..\..\..\EE\EElogger_9_1_ESP_2.ino\INTERRUPT.ino>
-#include <..\..\..\TimeNTP_ESP8266WiFi\TimeNTP_ESP8266WiFi.ino\NPTtimeSync.cpp>
-#include <..\..\..\TimeNTP_ESP8266WiFi\TimeNTP_ESP8266WiFi.ino\NPTtimeSync.h>
-#include <..\OpenSprinkler.h>
-#include <..\OpenSprinklerProgram.h>
-#include <..\..\..\EE\EElogger_9_1_ESP_2.ino\Telnet.ino>
-#include <..\Utils.h>
-#include <libsel.h>
+#include "json_parse_program.ino"
+#include "EEPROM.ino"
+#include "..\..\..\EE\EElogger_9_1_ESP_2.ino\INTERRUPT.ino"
+#include "..\..\..\EE\EElogger_9_1_ESP_2.ino\Telnet.ino"
 #endif

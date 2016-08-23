@@ -89,5 +89,5 @@ extern "C" void __cxa_pure_virtual() {;}
 #define interrupts() sei()
 #define noInterrupts() cli()
 
-#include <..\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\Sketch1\Sketch1.ino>
+#include <Sketch1.ino>
 #endif
