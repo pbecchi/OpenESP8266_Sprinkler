@@ -70,7 +70,7 @@ Graf myGraph[N_Maxcurves];
 #endif
 
 //--------------------------------------------------------------------------eelogger-------------------------------
-#define APIWU
+//#define APIWU
 
 #ifdef APIWU
 #define MAX_JSON_STRING 2600
@@ -361,12 +361,12 @@ static	bool noClient = true;
 		}
 		int Check_Flux(uint16_t startime, int duration, int  fluxp) 
 		{					//check flux reading ret 0 no match 1 full match 2 flux change
-				SP_D(" daycheck "); SP_D(int(startime / 30 - start));//comp. days
-				if (abs(int((startime-15) / 30.-start) ) < 1)					//->15*2 sec delay for startup aquisition
+				SP_D(" daych start "); SP_D(int(startime  - start*30));//comp. days
+				if (abs(int((startime-15) -start*30) ) < 30)	//->15*2 sec delay for startup aquisition
 				{
-					SP_D(" startime "); SP_D(duration); SP_D(" ");SP_D (dur); SP_D(" ");                         //comp.minutes
+					SP_D(" dur1 "); SP_D(duration); SP_D(" dur2 ");SP_D (dur); SP_D(" ");                         //comp.minutes
 					if (abs(int(duration) - int(dur)) < TOL_DUR_SEQ) {     //comp.seconds
-						SP_D("duration "); SP(flux*20); SP("F");  SPL(fluxp);
+						SP_D(" Fold "); SP(flux*20); SP(" Fnew ");  SPL(fluxp);
 						if (abs(int(flux*20) - fluxp) > TOL_FLUX_SEQ)
 						{
 							
@@ -2401,7 +2401,7 @@ void setup() {
 		if (c == 'W') {
 			SPL(ET_POS + (now() % MYSECS_PER_YEAR) / SECS_PER_DAY - 1);
 			SPL_D(float(eeprom_read_byte((byte *)(ET_POS + (now() % MYSECS_PER_YEAR) / SECS_PER_DAY - 1))) / 40.); 
-			int dayBack = inputI("day back?");
+			int dayBack = inputI("day back?-0_exit");
 			SPL();
 			if (dayBack > 0) {
 				ET = readET0(dayBack, 30) * 40;
@@ -2417,6 +2417,7 @@ void setup() {
 		{
 			if (ET == 0) {
 				ET = readET0(0, 30) * 40;
+				SP("ETtoday="); SPL(ET);
 				//____________________________________save ET0  to EEPROM_________________________
 
 					int day = (now() % MYSECS_PER_YEAR) / SECS_PER_DAY;
@@ -3034,8 +3035,9 @@ void setup() {
 					}
 				
 			}
-			iprec = i;
+			
 			i++;
+			iprec = i;
 			if (i >= sequn + 1){
 				i = 1;
 				precTime = 0;
@@ -3151,52 +3153,7 @@ bool program_put_sequence(byte icontr, byte pid) // put in sequence stack OS sta
 /////////////////////////////////////////////////////////////////////////////////////////////
 //if(start0+interv<1440)seq[k + 1].start = (start0 + interv);
 //else seq[k + 1].start = (start0 + interv) - 1440; //going to next day ------------------check prog days??
-/*
-								int starttime_correction = 0;
-								if (day_match(prog.days,k+1)&&tspan / 60 < seq[k + 1].start - seq[k].start - seq[k].dur / 60)//starttime can be adjusted
-								{    //adjust startime inside interval 
-									if (start0 + interv<seq[k].start + seq[k].dur / 60)//new start inside cicle k 
-									{
-										SP_D(" start collide inteval"); SP_D(seq[k].start); SP_D(' '); SPL_D(seq[k].dur / 60);
-										//delay startime________________________________________
 
-										starttime_correction = -start0 - interv + seq[k].start + seq[k].dur / 60;
-									}
-									if (start0 + interv + tspan / 60>seq[k + 1].start)//new end overlap following cycle
-									{ //anticipate starttime endtime before seq[k+1].start
-										SP_D("end collide:"); SPL_D(start0 + interv + prog.durations[sid] / 60);
-										starttime_correction = -start0 - interv - tspan / 60 + seq[k + 1].start;
-									}
-									SP_D("startime corr."); SPL_D(starttime_correction);
-
-
-								}
-								else //no adjustement possible within this interval k------k+1
-								{  //CHECKK other intervals
-									byte dk = 0; //relative interval
-									byte max_diff = 0;
-									byte dkp;
-									while (k + dk < sequn)
-									{
-										dk++;
-										if (day_match(prog.days, k + dk) && day_match(prog.days, k + dkp))
-										{
-											byte diff = seq[k + dk].start - seq[k + dkp].start - seq[k + dkp].dur / 60;
-											dkp = dk;
-											if (diff > max_diff)max_diff = diff;
-											if (tspan < diff)//starttime can be adjusted
-											{
-												starttime_correction = seq[k + dkp].start + seq[k + dkp].dur / 60 - start0 + interval;
-												SP("startime corr."); SPL(starttime_correction);
-												break;
-											}
-											ichange++;
-											change_prog_n[ichange] = icontr * 10 + pid;
-										}
-									}
-									if (starttime_correction == 0) SP("req."); SP(tspan); SP("avail."); SP(max_diff); SPL("no solution found");
-								}
-*/								/////////////////////////////////////////////////////////////////////////////////////////////
 							 	k++;
 								//if (sequn > MAXSEQ) return false;
 								seq[k].start = (start0 + interv);
@@ -3435,190 +3392,6 @@ int check_collision(byte flags,byte days[], int start0, byte thisprog, int tspan
 				return  -10000;
 			}
 		}
-		//	if (day_match(days, k)) av_span = seq[k_macth(days, +k)].start - seq[k].start - seq[k].dur / 60;
-		//	if (day_match(days, k + 1)) av_span = seq[k + 1].start - seq[k_macth(days, -k)].start - seq[k_macth(days, -k)].dur / 60;
-		//	if (av_span != 0) {
 
-		//		if (tspan / 60 < av_span)//starttime can be adjusted
-		/*
-				{    //adjust startime inside interval
-					if (day_match(prog.days, k) && start0 < seq[k].start + seq[k].dur / 60)//new start inside cicle k
-					{
-						SP(" start collide inteval"); SP(seq[k].start); SP(' '); SPL(seq[k].dur / 60);
-						//delay startime________________________________________
-						starttime_correction = -start0 - interv + seq[k].start + seq[k].dur / 60;
-					}
-					if (start0 + interv + tspan / 60 > seq[k + 1].start)//new end overlap following cycle
-					{ //anticipate starttime endtime before seq[k+1].start
-						SP("end collide:"); SPL(start0 + interv + prog.durations[sid] / 60);
-						starttime_correction = -start0 - interv - tspan / 60 + seq[k + 1].start;
-					}
-					SP("startime corr."); SPL(starttime_correction);
-
-
-				}
-
-				else //no adjustement possible within this interval k------k+1
-				{  //CHECKK other intervals
-					byte dk = 0; //relative interval
-					byte max_diff = 0;
-					byte dkp;
-					while (k + dk < sequn)
-					{
-						dk++;
-						if (day_match(days, k + dk) && day_match(days, k + dkp))
-						{
-							byte diff = seq[k + dk].start - seq[k + dkp].start - seq[k + dkp].dur / 60;
-							dkp = dk;
-							if (diff > max_diff)max_diff = diff;
-							if (tspan < diff)//starttime can be adjusted
-							{
-								starttime_correction = seq[k + dkp].start + seq[k + dkp].dur / 60 - start0;
-								SP("startime corr."); SPL(starttime_correction);
-								break;
-							}
-							ichange++;
-							change_prog_n[ichange] = icontr * 10 + pid;
-						}
-					}
-					if (starttime_correction == 0) SP("req."); SP(tspan); SP("avail."); SP(max_diff); SPL("no solution found");
-				}
-			}
-			*/
 	}
 }
-
-//Check overlap of programs ----------------------------------------------------------
-//	over contain sequence of programs & OS stations that overlap
-// day0 == 0 check week day program (may conflict only with weekprograms containing day1 mask  days eg for (0001010) (xxx1x1x)
-// day0 >0 check interval programs (conflict with all week days(everyday) and higher freq. seq.day0<day0 should check also remainder value :
-// check    same freq same rem
-// check    high freq excl sub multiple with diff rem
-//
-// check only higher ferquency 
-/*
-bool check_seq_overlap(byte over[][], byte kk, byte day0, byte day1)
-{//read 
-
-	sequence seq[100];
-	sequn = eeprom_read_byte(SEQ_EE_START);
-	eeprom_read_block(seq, (void*)(SEQ_EE_START + 1), 100);
-	for (byte i = 0; i < sequn; i++) {
-		if (seq[i].day1 == 0)					//weekday-------------------------------
-			if (seq[i].day0 == day0)			//same weekday //bitmask--------------------------------------------------------- 
-			{
-				int st = seq[i].start;
-				int end = seq[i].start + seq[i].dur;
-				for (byte j = 0; j < sequn; j++)
-					if (day1 == 0)				//weekday-------------------------------
-						if (seq[j].day0 == day0)	//same weekday //bitmask--------------------------------------------------------- 
-							if (j != i)
-							{
-								if ((seq[j].start + seq[j].dur<st) || (seq[j].start>end))
-									continue;
-								else
-								{
-									SP("Overl  ");
-									SP(i, DEC);
-									SP(" prog ");
-									SP(seq[i].progIndex);
-									SP(" with ");
-									SP(j, DEC);
-									SP(" prog ");
-									SP(seq[j].progIndex);
-									SPL();
-									over[kk++][0] = seq[i].progIndex;
-									over[kk++][1] = seq[j].progIndex;
-								}
-							}
-				if (day1 != 0 && seq[i].day1 == day1)// daycount------------------------
-					if (seq[i].day0 == day0) //same dayfrequence --------------------------------------------------------- 
-					{
-						int st = seq[i].start;
-						int end = seq[i].start + seq[i].dur;
-						for (byte j = 0; j < sequn; j++)
-							if (day1 != 0 && seq[j].day1 == day1)// daycount------------------------
-								if (seq[j].day0 == day0) //same dayfrequence --------------------------------------------------------- 
-									if (j != i)
-									{
-										if ((seq[j].start + seq[j].dur<st) || (seq[j].start>end))
-											continue;
-										else
-										{
-											SP("Overl  ");
-											SP(i, DEC);
-											SP(" prog ");
-											SP(seq[i].progIndex);
-											SP(" with ");
-											SP(j, DEC);
-											SP(" prog ");
-											SP(seq[j].progIndex);
-											SPL();
-											over[kk++][0] = seq[i].progIndex;
-											over[kk++][1] = seq[j].progIndex;
-										}
-									}
-					}
-			}
-	}
-}
-*/
-/*find active programs
-	if (curr_time/60 != last_minute)
-	{
-		last_minute = curr_time/60;
-		// check through all programs
-		for (int pid = 0; pid < pd.nprograms; pid++)
-		{
-			pd.read(pid, &prog);
-			if (prog.check_match(curr_time))
-			{
-				// program match found
-				// process all selected stations
-				for (int sid = 0; sid < os.nstations; sid++)
-				{
-					byte bid = sid >> 3;
-					byte s = sid & 0x07;
-					// skip if the station is a master station (because master cannot be scheduled independently
-					if ((os.status.mas == sid + 1) || (os.status.mas2 == sid + 1))
-						continue;
-
-					// if station has non-zero water time and the station is not disabled
-					if (prog.durations[sid] && !(os.station_attrib_bits_read(ADDR_NVM_STNDISABLE + bid) & (1 << s)))
-					{
-						// water time is scaled by watering percentage
-						ulong water_time = water_time_resolve(water_time_decode(prog.durations[sid]));
-						// if the program is set to use weather scaling
-						if (prog.use_weather)
-						{
-							byte wl = os.options[OPTION_WATER_PERCENTAGE];
-							water_time = water_time * wl / 100;
-							if (wl < 20 && water_time < 10) // if water_percentage is less than 20% and water_time is less than 10 seconds
-															// do not water
-								water_time = 0;
-						}
-
-						if (water_time)
-						{
-							// check if water time is still valid
-							// because it may end up being zero after scaling
-							q = pd.enqueue();
-							if (q)
-							{
-								q->st = 0;
-								q->dur = water_time;
-								q->sid = sid;
-								q->pid = pid + 1;
-								match_found = true;
-							}
-							else
-							{
-								// queue is full
-							}
-						}// if water_time
-					}// if prog.durations[sid]
-				}// for sid
-			}// if check_match
-		}// for pid
-	}
-	*/
