@@ -265,8 +265,8 @@ void loop() {
 #ifdef OTA
 	ArduinoOTA.handle();
 #endif
-	static ulong mymillis = 0;
-	if (millis() > mymillis) { prova(); mymillis = millis() + 600000; }
+	static ulong mymillis = 60000;
+	if (millis() > mymillis) { prova(); mymillis = millis() + 120000; }
 
 #ifdef PROVAOLD
 	++value;

@@ -361,12 +361,12 @@ static	bool noClient = true;
 		}
 		int Check_Flux(uint16_t startime, int duration, int  fluxp) 
 		{					//check flux reading ret 0 no match 1 full match 2 flux change
-				SP_D(" daych start "); SP_D(int(startime  - start*30));//comp. days
+			SP_D(" daych start "); SP_D(int(startime - start * 30)); SP_D(" ");//comp. days
 				if (abs(int((startime-15) -start*30) ) < 30)	//->15*2 sec delay for startup aquisition
 				{
 					SP_D(" dur1 "); SP_D(duration); SP_D(" dur2 ");SP_D (dur); SP_D(" ");                         //comp.minutes
 					if (abs(int(duration) - int(dur)) < TOL_DUR_SEQ) {     //comp.seconds
-						SP_D(" Fold "); SP(flux*20); SP(" Fnew ");  SPL(fluxp);
+						SP_D(" Fold "); SP_D(flux*20); SP_D(" Fnew ");  SPL_D(fluxp);
 						if (abs(int(flux*20) - fluxp) > TOL_FLUX_SEQ)
 						{
 							
@@ -2030,6 +2030,7 @@ void setup() {
 		long time_d = 500;
 		if (hour(now()) < 20 && days == 0) return -1;
 		time_d = SECS_PER_DAY*days;
+		if (time_d == 0)time_d = 450;
 		time_t tim = now() - time_d;
 		if (hour(tim) < 20)time_d -= (21 - hour(tim)) * 3600;
 		SP(hour(tim)); SP(":"); SP(minute(tim));
@@ -2086,7 +2087,7 @@ void setup() {
 		if (SPIFFS.exists("/messages.txt"))
 			messfile = SPIFFS.open("/messages.txt", "r+");
 		else
-			{ SPL("Cannot open message file"); return 0; }
+			{ Serial.println("Cannot open message file"); return 0; }
 		messfile.seek(0, SeekSet);
 
 //		messfile.seek(n*100, SeekEnd);
@@ -2356,7 +2357,8 @@ void setup() {
 
 		//  if(cc!=' ')SPL_D(cc);
 		  //s---------------------------------print sequence---------------------------
-		if (cc == 's') { print_seq(0); if (Tclient.available())print_seq(Tclient.read() - '0'); }
+		if (cc == 's') { print_seq(0);			//          if (Tclient.available())print_seq(Tclient.read() - '0');
+		}
 		if (cc == ' ')cc = 0;
 		//#ifdef LCD_TOUCH
 		c = touch_control(cc);
@@ -2956,11 +2958,12 @@ void setup() {
 #define Flux_Correction false
 #define Valve_Correction 0
 	byte iprec = 0,nextValv=0,nextIndex=0;
-	int precTime = 0,nextSeqStart=0,nextSeqEnd=0;
+
+	int precTime = 0, nextSeqStart = 0, nextSeqEnd = 0;
 	boolean startFlag = true;
-	bool check_sequence(uint16_t startime, int duration, int  fluxp) //startime in 2s steps,duration in sec,flux in Lt/h
-		// check sequences loaded from OS units versus water usage and 
-		// check missing watering cycles and flux under or over target flux
+	bool check_sequence(uint16_t startf[], int durf[], int  fluxf[],int ff) //startime in 2s steps,duration in sec,flux in Lt/h
+																	 // check sequences loaded from OS units versus water usage and 
+																	 // check missing watering cycles and flux under or over target flux
 	{
 		//	sequence seq[MAXSEQ];
 		sequn = eeprom_read_byte(SEQ_EE_START);
@@ -2969,20 +2972,28 @@ void setup() {
 		int FluxDiff;
 		byte fluxSteps[] = { 2,7,15,30,60 };
 		DateTime ora = adesso();
+		byte newFlux = 0;
 		byte	i = iprec;			// -------start from previous checked cycle
-		
-		while (seq[i].start < ora.hour() * 60 + ora.minute() ||		//seq[i] start		before   actual time
+		SP_D("PrecT"); SPL_D(precTime);
+		while (seq[i].start+seq[i].dur/60-1 < ora.hour() * 60 + ora.minute() ||		//seq[i] e	before   actual time
 			(ora.hour() * 60 + ora.minute() < precTime))			//seq[i] start     on previous day
 		{
-			FluxDiff = 0;
+			FluxDiff = -10000;
 
-			SP_D(seq[i].start / 60); SP_D(":"); SP_D(seq[i].start % 60);
-			if (cD.rain_delay[seq[i].valv / 10] <ora.unixtime())					//rain delay condition
-			if (seq[i].Check_day_match(ora) ) {										//cycle match day restrictions
-				FluxDiff = seq[i].Check_Flux(startime, duration, fluxp);			//cycle match in startime and duration
+			SP_D(seq[i].start / 60); SP_D(":"); SP_D(seq[i].start % 60); SP_D(" ");
+			if (cD.rain_delay[seq[i].valv / 10] > ora.unixtime()) { SP_D("R_D"); }     //rain delay condition
+			else
+				if (!seq[i].Check_day_match(ora)) { SP_D("noDayMach"); }
+	
+				else
+			{									//cycle match day restrictions
+				for (byte jf = 0; jf < ff; jf++) {
+					FluxDiff = seq[i].Check_Flux(startf[jf], durf[jf], fluxf[jf]);	//cycle match in startime and duration
+					if (FluxDiff!= -10000)break;
+				}
 				if (FluxDiff != -10000)											// it means interval match
 				{
-					byte newFlux = seq[i].flux - FluxDiff / 20;
+					 newFlux = seq[i].flux - FluxDiff / 20;
 					if (seq[i].flux == 0) seq[i].flux = abs(-FluxDiff / 20);        //fisrt time : add flux info to seq
 					else
 					{
@@ -3013,8 +3024,9 @@ void setup() {
 					//SPS_D(pd[seq[i].valv / 10].valveStatus[(seq[i].valv % 10)]); SP_D(" read ");
 
 					if (seq[i].valv==Valve_Correction&&Flux_Correction)seq[i].flux += FluxDiff / 2;
-					iprec = i;
-					break;
+		//			iprec = i;
+		//			break;
+					precTime = ora.hour() * 60 + ora.minute();
 				}
 				else																	//FluxDiff==0 no interval match
 					if (!startFlag) {											//---not fisrt time
@@ -3046,7 +3058,7 @@ void setup() {
 			
 		}
 	
-			i++; 
+		//	i++; 
 
 		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))|| cD.rain_delay[seq[i].valv / 10] >ora.unixtime()+timeSpan) { i++; if (i >= sequn+1 ) { i = 1; timeSpan += 24 * 3600; } }
 		nextSeqStart = seq[i].start;

@@ -27,6 +27,7 @@
 #define __arm__
 #define __inline__
 #define __asm__(x)
+#define __asm__
 #define __extension__
 #define __ATTR_PURE__
 #define __ATTR_CONST__
@@ -76,7 +77,10 @@ typedef int __gnuc_va_list;
 typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
+
 #include "new"
+#include "Esp.h"
+
 
 #include <arduino.h>
 #include <pins_arduino.h> 
@@ -89,5 +93,5 @@ extern "C" void __cxa_pure_virtual() {;}
 #define interrupts() sei()
 #define noInterrupts() cli()
 
-#include <Sketch1.ino>
+#include "Sketch1.ino"
 #endif
