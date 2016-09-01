@@ -125,142 +125,7 @@ static	bool noClient = true;
 #define MAXSEQ 100
 #define NUM_OPTIONS 45
 #define PD root["pd"]
-#ifdef oscalss
-	class OpenSprinkler {
-	public:
 
-		// data members
-#if defined(ARDUINO)
-
-#ifdef LCDI2C
-		static	LiquidCrystal_I2C lcd;
-#else
-		static	LiquidCristal lcd;
-#endif
-		
-#else
-		// todo: LCD define for RPI
-#endif
-
-#if defined(OSPI)
-		static byte pin_sr_data;    // RPi shift register data pin
-									// to handle RPi rev. 1
-#endif
-
-		static NVConData nvdata;
-		static ConStatus status;
-		static ConStatus old_status;
-		static byte nboards, nstations;
-		static byte hw_type;            // hardware type
-
-		static byte options[];		  // option values, max, name, and flag
-
-		static byte station_bits[];     // station activation bits. each byte corresponds to a board (8 stations)
-										// first byte-> master controller, second byte-> ext. board 1, and so on
-
-#ifdef OPENSPRINKLER_ARDUINO_DISCRETE 
-		static int station_pins[];
-#endif // OPENSPRINKLER_ARDUINO_DISCRETE
-
-		// variables for time keeping
-		static ulong sensor_lasttime;  // time when the last sensor reading is recorded
-		static ulong flowcount_time_ms;// time stamp when new flow sensor click is received (in milliseconds)
-		static ulong flowcount_rt;     // flow count (for computing real-time flow rate)
-		static ulong flowcount_log_start; // starting flow count (for logging)
-		static ulong raindelay_start_time;  // time when the most recent rain delay started
-		static byte  button_timeout;        // button timeout
-		static ulong checkwt_lasttime;      // time when weather was checked
-		static ulong checkwt_success_lasttime; // time when weather check was successful
-											   // member functions
-											   // -- 
-
-		static void update_dev();   // update software for Linux instances
-		static void reboot_dev();   // reboot the microcontroller
-		static void begin();        // initialization, must call this function before calling other functions
-		static byte start_network();  // initialize network with the given mac and port
-#if defined(ARDUINO)
-		static bool read_hardware_mac();  // read hardware mac address
-#endif
-		static time_t now_tz();
-		// -- station names and attributes
-		static void get_station_name(byte sid, char buf[]); // get station name
-		static void set_station_name(byte sid, char buf[]); // set station name
-		static uint16_t parse_rfstation_code(byte *code, ulong *on, ulong *off); // parse rf code into on/off/time sections
-		static void switch_rfstation(byte *code, bool turnon);  // switch rf station
-		static void switch_remotestation(byte *code, bool turnon); // switch remote station
-		static void station_attrib_bits_save(int addr, byte bits[]); // save station attribute bits to nvm
-		static void station_attrib_bits_load(int addr, byte bits[]); // load station attribute bits from nvm
-		static byte station_attrib_bits_read(int addr); // read one station attribte byte from nvm
-
-														// -- options and data storeage
-		static void nvdata_load();
-		static void nvdata_save();
-
-		static void options_setup();
-		static void options_load();
-		static void options_save();
-
-		static byte password_verify(char *pw);  // verify password
-
-												// -- controller operation
-		static void enable();           // enable controller operation
-		static void disable();          // disable controller operation, all stations will be closed immediately
-		static void raindelay_start();  // start raindelay
-		static void raindelay_stop();   // stop rain delay
-		static void rainsensor_status();// update rainsensor status
-#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
-		static uint16_t read_current(); // read current sensing value
-#endif
-		static int detect_exp();        // detect the number of expansion boards
-		static byte weekday_today();    // returns index of today's weekday (Monday is 0)
-
-		static byte set_station_bit(byte sid, byte value); // set station bit of one station (sid->station index, value->0/1)
-		static void switch_special_station(byte sid, byte value); // swtich special station
-		static void clear_all_station_bits(); // clear all station bits
-		static void apply_all_station_bits(); // apply all station bits (activate/deactive values)
-
-											  // -- LCD functions
-#if defined(ARDUINO) // LCD functions for Arduino
-		static void lcd_print_pgm(PGM_P /* PROGMEM*/ str);           // print a program memory string
-		static void lcd_print_line_clear_pgm(PGM_P /*PROGMEM*/ str, byte line);
-		static void lcd_print_time(time_t t);                  // print current time
-		static void lcd_print_ip(const byte *ip, byte endian);    // print ip
-		static void lcd_print_mac(const byte *mac);             // print mac
-		static void lcd_print_station(byte line, char c);       // print station bits of the board selected by display_board
-		static void lcd_print_version(byte v);                   // print version number
-
-																 // -- UI and buttons
-		static byte button_read(byte waitmode); // Read button value. options for 'waitmodes' are:
-												// BUTTON_WAIT_NONE, BUTTON_WAIT_RELEASE, BUTTON_WAIT_HOLD
-												// return values are 'OR'ed with flags
-												// check defines.h for details
-#ifdef OPENSPRINKLER_ARDUINO_FREETRONICS_LCD 
-		static byte button_sample();			  // new function to sample analog button input
-#endif // OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
-#ifdef ESP8266 
-		static byte button_sample();			  // new function to sample analog button input
-#endif 
-
-												  // -- UI functions --
-		static void ui_set_options(int oid);    // ui for setting options (oid-> starting option index)
-		static void lcd_set_brightness(byte value = 1);
-		static void lcd_set_contrast();
-
-#ifdef OPENSPRINKLER_ARDUINO_FREEMEM       // Added for debugging
-		static void lcd_print_memory(byte line); // print current free memory and an animated character to show activity
-#endif
-
-	private:
-		static void lcd_print_option(int i);  // print an option to the lcd
-		static void lcd_print_2digit(int v);  // print a integer in 2 digits
-		static void lcd_start();
-		static byte button_read_busy(byte pin_butt, byte waitmode, byte butt, byte is_holding);
-#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
-		static byte engage_booster;
-#endif
-#endif // LCD functions
-	};
-#endif
 ///////////////////////////////////////////////////EEPROM MEMORY/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 0<sequn !1<-seq struct.45b*100 elements |1300 EEindex 1390<EEfill |1400<----- prog.structures  size* n.programs|3200 programdata structures 148*N_OS_STA-|3800<-options[45,N_OS_STA<5]--|4080
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,7 +227,7 @@ static	bool noClient = true;
 		int Check_Flux(uint16_t startime, int duration, int  fluxp) 
 		{					//check flux reading ret 0 no match 1 full match 2 flux change
 			SP_D(" daych start "); SP_D(int(startime - start * 30)); SP_D(" ");//comp. days
-				if (abs(int((startime-15) -start*30) ) < 30)	//->15*2 sec delay for startup aquisition
+				if (abs(int((startime-15) -start*30) ) < 40)	//->15*2 sec delay for startup aquisition
 				{
 					SP_D(" dur1 "); SP_D(duration); SP_D(" dur2 ");SP_D (dur); SP_D(" ");                         //comp.minutes
 					if (abs(int(duration) - int(dur)) < TOL_DUR_SEQ) {     //comp.seconds
@@ -554,7 +419,8 @@ static	bool noClient = true;
 	};
 	struct CurrentData {
 		time_t rain_delay[4];
-		byte dummy[100];
+		float cumulRain = 0;
+		byte dummy[96];
 	};
 
 	ProgramData pd[N_OS_STA];
@@ -1394,7 +1260,7 @@ void setup() {
 		RTC.begin();
 		SPIFFS.begin();
 	//	SPIFFS.format();
-
+		
 #ifndef INIT_EEPROM
 		if (eeprom_read_byte(0) == 211)
 #endif			//initialise EEprom
@@ -2024,7 +1890,7 @@ void setup() {
 		return 0;
 
 	}
-	float readET0(byte days, byte ip) {
+	float readET0(byte days, byte ip,float *rain) {
 		char  buff[500];
 		char command[20];
 		long time_d = 500;
@@ -2046,6 +1912,7 @@ void setup() {
 			JsonDecode(2, buff, nomi, val,1);
 			SPL(val[0]);
 			SPL(val[1]);
+			*rain = val[1];
 			return val[0];
 			/*StaticJsonBuffer<500> jsonBuffer;
 
@@ -2114,12 +1981,48 @@ void setup() {
 		return 1;
 
 	}
+	static unsigned long timeTry[5];
+	static String storedCommand[5];
+	static String storedStream[5];
+	static byte ipStored[5];
+	static byte nTry;
+
+	void API_repeat(String streamId,String command,byte ic,long timeDel){
+		if (timeDel > 0) {
+
+			timeTry[nTry] = millis() + timeDel;
+			storedCommand[nTry] = command;
+			storedStream[nTry] = streamId;
+			ipStored[nTry] = ic + 20;
+			nTry++;
+			return ;
+		}
+		for (byte k = 0; k < nTry; k++)
+			if (millis() < timeTry[k])return;
+			else {
+				streamId = storedStream[k];
+				command = storedCommand[k];
+				ic = ipStored[k] - 20;
+				timeTry[k] = millis() + timeDel;
+				if (API_command(streamId, command, ic)) {
+					for (byte j = k + 1; j < nTry; j++) {
+						streamId[j - 1] = streamId[j];
+						storedCommand[j - 1] = storedCommand[j];
+						timeTry[j - 1] = timeTry[j];
+						ipStored[j - 1] = ipStored[j];
+					}
+					k--;
+					nTry--;
+				}
+			}
+			return;
+	}
 	byte API_command(String streamId, String command, byte ic) {
 
 		String privateKey = "a6d82bced638de3def1e9bbb4983225c"; //MD5 hashed
 		const int httpPort = 80;
+		
 		IPAddress jsonserver = IPAddress(192, 168, 1, ic + 20);
-
 		if (!client.connect(jsonserver, 80))
 		{
 			client.stop();
@@ -2190,19 +2093,24 @@ void setup() {
 		SPL_D(j);
 		return j;
 	}
-#define RAIN_NOWATER72 10
-#define RAIN_NOWATER24 3
+#define RAIN_LOST 0.5
 #define WEATHER_DAYS 3
-	byte weather_control(byte ic) {//set water delay reading 
-		int rain_tot=0;         //calculate total rain over weathre days
-#ifndef NO_ET0
-		for (byte i = 0; i < WEATHER_DAYS; i++)rain_tot += weather[iw-i].rain;
-#endif
-		SP_D("total rain "); SPL_D(rain_tot);
-		if (rain_tot > RAIN_NOWATER72)
-			return API_command("/cv", "&rd=48",ic);
-		if (rain_tot > RAIN_NOWATER24)
-			return API_command("/cv", "&rd=24", ic);
+	byte weather_control(float day_rain ,float ET0) {//set water delay reading 
+									       //calculate total rain over weathre days
+
+		cD.cumulRain -= ET0;
+		if (cD.cumulRain < 0)cD.cumulRain = 0;
+		if (day_rain > 20)day_rain = 20 + (day_rain - 20)*RAIN_LOST;
+		cD.cumulRain += day_rain;
+		if (cD.cumulRain > 10) {
+			SP("total-day rain "); SP(cD.cumulRain); SP(" "); SP(day_rain); SP("to");
+			float rain_delay = cD.cumulRain / ET0;
+			char rainCommand[10];
+			sprintf(rainCommand, "&rd=%d", int(rain_delay * 24));
+			SPL_D(rainCommand);
+			for (byte ic = 0; ic < N_OS_STA; ic++)if (API_command("/cv", rainCommand, ic)) { SP(ic); SP("_"); }
+			else API_repeat("/cv", rainCommand, ic,100000);
+		}
 		return 0;
 	}
 
@@ -2336,6 +2244,49 @@ void setup() {
 	DateTime last_JP[5]; long timerest,m10000=60000;
 	boolean input_seq = false, input_pd = false,input_kc=false;
 	static byte ET = 0;
+////////rain//////
+#define RAIN_POS 2900
+	class rain {
+		byte rainD = 0;
+	public:
+		 rain() {
+			rainD = EEPROM.read(RAIN_POS - 1);
+			if (rainD > 60)rainD = 0;
+		//rainD = 1;
+
+		}
+		void store(float rain, int day) {
+			if (rain > 128)rain = 128;
+			byte rainB = int(rain) *2+ int(day / 256);
+			byte dayB = day % 256;
+			SP_D("Store Rain D"); SPS_D(rainD);
+			SPS_D(rainB); SPS_D(dayB); SPL_D();
+			if (rainD > 60) {
+				SPL("toomany rainy days!"); return;
+			}   
+			EEPROM.write(RAIN_POS + rainD * 2, rainB);
+			EEPROM.write(RAIN_POS + rainD * 2+1, dayB);
+			rainD++;
+			EEPROM.write(RAIN_POS - 1, rainD);
+
+			EEPROM.commit();
+		}
+		float get(int day) {
+			rainD = EEPROM.read(RAIN_POS - 1);
+			SP_D(day); SP_D("Rd"); SPL_D(rainD);
+			for (byte i = 0; i < rainD; i++) {
+				byte rainB = EEPROM.read(RAIN_POS + i * 2);
+				byte dayB = EEPROM.read(RAIN_POS + i * 2 + 1);
+				SPS_D(rainB); SPS_D(dayB); SPS_D(rainB & 1); SPL_D();
+				if ((rainB & 1) * 256 + dayB != day)return 0;
+				else return rainB / 2.;
+			}
+		return 0;
+
+		}
+
+	};
+	rain r;
 /////////////////////////////////////////////////////////////// loop /////////////////////////////////////////////////////
 	void loop() {
 #ifdef OTA
@@ -2401,30 +2352,44 @@ void setup() {
 #define RAIN_POS 3020
 		
 		if (c == 'W') {
-			SPL(ET_POS + (now() % MYSECS_PER_YEAR) / SECS_PER_DAY - 1);
-			SPL_D(float(eeprom_read_byte((byte *)(ET_POS + (now() % MYSECS_PER_YEAR) / SECS_PER_DAY - 1))) / 40.); 
+			SPL(ET_POS + (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY - 1);
+			SPL_D(float(eeprom_read_byte((byte *)(ET_POS + (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY - 1))) / 40.); 
+			SP_D("rain"); SPL_D(r.get( (now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY - 1));
 			int dayBack = inputI("day back?-0_exit");
 			SPL();
 			if (dayBack > 0) {
-				ET = readET0(dayBack, 30) * 40;
+				float rain;
+				ET = readET0(dayBack, 30,&rain) * 40;
 				//____________________________________save ET0  to EEPROM_________________________
 
-				int day = (now() % MYSECS_PER_YEAR) / SECS_PER_DAY;
+				int day = (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY;
 				SPL(ET_POS + day - dayBack);
 				eeprom_write_byte((byte *)(ET_POS + day - dayBack), ET);
+				int rainBack = inputI("rain_b?-0_exit");
+				SPL();
+				if (rainBack > 0) {
+					r.store(rainBack, (now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY-1);
+				}
+				if (rainBack < 0)EEPROM.write(RAIN_POS, 0);
+				EEPROM.commit();
 			}
 
 		}
+		//____________________________________before MidNight ____________________________________________________
 		if (hour() == 23 && minute() > 55)
 		{
-			if (ET == 0) {
-				ET = readET0(0, 30) * 40;
-				SP("ETtoday="); SPL(ET);
+			if (ET == 0) {								//first time ET0 is 0
+				float day_rain;
+				ET = readET0(0, 30,&day_rain) * 40;
+				
+				SP("storedET*40="); SPL(ET);
 				//____________________________________save ET0  to EEPROM_________________________
 
 					int day = (now() % MYSECS_PER_YEAR) / SECS_PER_DAY;
+					r.store(day_rain, day);
 					eeprom_write_byte((byte *)(ET_POS + day), ET);
 //					rain.k++;rain.day[rain.k]=day;rain.mm[rain.k]=rain;eeprom_write_block(&rain,RAIN_POS,sizeof(rain));
+					weather_control(day_rain, ET);
 			}
 		}
 		else ET = 0;
@@ -2850,13 +2815,17 @@ void setup() {
 			SPS_DD(w.plotStartValue[i]);// SPS_DD(CurvesN[i]);
 		}
 
-
-#ifdef newCode
-		if (w.plotStartTime < oggi.unixtime() + day*SECS_PER_DAY) {
-			plot_start_time = w.plotStartTime / 60;
+#ifdef newCode  //TO BE TESTED plot continue previous plot???
+		//__________________________________shift days previous plot_________________________________
+		byte shift = -PLOT_START_DAY - 1;
+		day = w.plotStartTime - oggi.unixtime() / 60.;
+		if (oggi.unixtime()/60>plot_start_time+shift*1440) {
+			//if (w.plotStartTime < oggi.unixtime() + day*SECS_PER_DAY) {
+			plot_start_time +=shift*1440;
 			for (byte i = 0; i < w.N_curves; i++) {
 				y[CurvesN[i]] = w.plotStartValue[i]; SPS_DD(CurvesN[i]); SPS_DD(y[CurvesN[i]]);
 		}
+			loadGraph(w.plotStarTime-oggi.unixtime()/60.,y[i],)
 		else
 #endif
 		plot_start_time = oggi.unixtime() / 60;
@@ -2866,60 +2835,79 @@ void setup() {
 		byte month_penman[12] = { 10,11,20,25,33,39,46,39,26,18,11,10 };//monthly average Savona *10
 		while (day++ < MAX_PLOT_DAYS) {
 			SPS_DD(day);
-// compute using recorded ETo values
-			float day_penman = month_penman[oggi.month()]/10.;
+			// compute using recorded ETo values
+			float day_penman = month_penman[oggi.month()-1] / 10.;
 #ifndef NO_ET0
-				if (day < 0) {
+			if (day < 0) {
 				Weather Wu;
 				SPS_DD("+");
 				Wu.read(oggi.unixtime() + (day * 24 * 3600L));
 				SPS_DD("/");
-				if (Wu.penman <5 && Wu.penman >= 0)
+				if (Wu.penman < 5 && Wu.penman >= 0)
 					day_penman = Wu.penman; // = read_penman(oggi.operator+(day * 24 * 3600));
 
 			}
-				SP_DD("ETo"); SPL_DD(day_penman);
+			SP_DD("ETo"); SPL_DD(day_penman);
 #else			
-				if (day < 0)day_penman = (float(eeprom_read_byte((byte *)(ET_POS + (now() % MYSECS_PER_YEAR) / SECS_PER_DAY +day))) / 40.);
-				SPL_D(day_penman); 
-				if(day_penman>6.) day_penman = month_penman[oggi.month()] / 10.;
+			float dayrain = 0;
+			if (day < 0) {
+				SP_D("EEPOS"); SPL_D((ET_POS + (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY + day));
+				day_penman = (float(eeprom_read_byte((byte *)(ET_POS + (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY + day))) / 40.);
+				dayrain = r.get((now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY + day);
+			}
+			SP_D(dayrain); SP_D(" ");		SPL_D(day_penman);
+			if (day_penman > 6.) day_penman = month_penman[oggi.month()] / 10.;
 #endif
-				for (int i = 1; i < sequn + 1; i++)
+			float kappaC = 1;
+			for (int i = 1; i < sequn + 1; i++)
 			{
 				if (y[seq[i].valv] == 0)y[seq[i].valv] = SHIFT_PLOT_MM * y00++;
-				//loadGraph(seq[i].valv, 0, y0);
-				int y0 = 0;// int(seq[i].valv / 10) * 25;			 //  shift 0.25 each station present
-				//float y1 = y0 + 20;						 //  0.20 for valve open
+				int y0 = 0;
+				if (seq[i].Check_day_match(oggi.operator+(day * 24 * 3600))){
 
-
-				if (seq[i].Check_day_match(oggi.operator+(day * 24 * 3600)))
-				{
-					//SP_DD("Match d."); SP_DD(day); SP_DD(" s."); SPL_DD(i);
-					int dayStart = seq[i].start + day * 1440;
-					float kappaC = 1;
-					//if (pd[seq[i].valv / 10].Kc[seq[i].valv % 10] > 10)kappaC = pd[seq[i].valv / 10].Kc[seq[i].valv % 10]/100;
-					y[seq[i].valv] = y[seq[i].valv] + (prec_time[seq[i].valv] - dayStart)*kappaC*day_penman / 14.40;
-					loadGraph(seq[i].valv, dayStart, y[seq[i].valv] + y0);
-					SP_DD(prec_time[seq[i].valv]); SPS_DD(seq[i].valv); SPS_DD(dayStart); SP_DD(" "); SP_DD(y[seq[i].valv] + y0);
-					if (pd[seq[i].valv / 10].area[seq[i].valv % 10] > 0)
-						y[seq[i].valv] = y[seq[i].valv] + seq[i].flux *20.*seq[i].dur / 36.00 / pd[seq[i].valv / 10].area[seq[i].valv % 10];
-					else
-						y[seq[i].valv] = y[seq[i].valv] + 100;
-					loadGraph(seq[i].valv, dayStart +int( seq[i].dur / 60), y[seq[i].valv] + y0);
-					SPS_DD(dayStart +int( seq[i].dur / 60)); SP_DD(" "); SPL_DD(y[seq[i].valv] + y0);
-					prec_time[seq[i].valv] = dayStart +int( seq[i].dur / 60);
-					//loadGraph(seq[i].valv, dayStart, y+y0);
-				   //loadGraph(seq[i].valv, dayStart, y1);
-				   //loadGraph(seq[i].valv, dayStart+ seq[i].dur / 60, y1);
-			   //	loadGraph(seq[i].valv, dayStart + seq[i].dur / 60, y0);
-				}
-				//loadGraph(seq[i].valv, 1440, y0);
-				//invece while day++<max_numero_days
-				//continue to next day if prog.check_day_match(day*3600*24+oggi)==0
-				//loadGraph(seq[i].valv, seq[i].start+day*1440, y0);
-				//loadGraph(seq[i].valv, seq[i].start+day*1440, y1);
-				//etc.
-
+					if (prec_time[seq[i].valv] < day * 1440)  //________last interval_____previous day
+					{//
+						//SP_DD("Match d."); SP_DD(day); SP_DD(" s."); SPL_DD(i);
+						int dayStart = seq[i].start + day * 1440;
+						//if (pd[seq[i].valv / 10].Kc[seq[i].valv % 10] > 10)kappaC = pd[seq[i].valv / 10].Kc[seq[i].valv % 10]/100;
+					//_________________________dcompute beginning of the day MM variation_____draw segment up to irrigation start___________					
+						y[seq[i].valv] = y[seq[i].valv] - (dayStart - day * 1440)*(kappaC*day_penman - dayrain) / 14.40;
+						loadGraph(seq[i].valv, dayStart, y[seq[i].valv] + y0);
+						//_____________________draw irrigation interval______________________________________________________________________
+						SP_DD(prec_time[seq[i].valv]); SPS_DD(seq[i].valv); SPS_DD(dayStart); SP_DD(" "); SP_DD(y[seq[i].valv] + y0);
+						if (pd[seq[i].valv / 10].area[seq[i].valv % 10] > 0)
+							y[seq[i].valv] = y[seq[i].valv] + seq[i].flux *20.*seq[i].dur / 36.00 / pd[seq[i].valv / 10].area[seq[i].valv % 10];
+						else
+							y[seq[i].valv] = y[seq[i].valv] + 100;
+						loadGraph(seq[i].valv, dayStart + int(seq[i].dur / 60), y[seq[i].valv] + y0);
+						//____________________________compute rest of the day mm variation_____________________________________________________________
+						y[seq[i].valv] = y[seq[i].valv] - (1440 - dayStart + day * 1440)*(kappaC*day_penman - dayrain) / 14.40;
+						SPS_DD(dayStart + int(seq[i].dur / 60)); SP_DD(" "); SPL_DD(y[seq[i].valv] + y0);
+						prec_time[seq[i].valv] = dayStart + int(seq[i].dur / 60);
+					}
+					else //__________________________PREVIOUS INTERVAL SAME DAY_________________________________________
+					{//_________________________dcompute  MM variation_____draw segment up to irrigation start___________
+						int dayStart = seq[i].start + day * 1440;
+						y[seq[i].valv] = y[seq[i].valv] - (-(1440  + day * 1440) + dayStart )*(kappaC*day_penman - dayrain) / 14.40;
+						loadGraph(seq[i].valv, dayStart, y[seq[i].valv] + y0);
+						//_____________________draw irrigation interval______________________________________________________________________
+						SP_DD(prec_time[seq[i].valv]); SPS_DD(seq[i].valv); SPS_DD(dayStart); SP_DD(" "); SP_DD(y[seq[i].valv] + y0);
+						if (pd[seq[i].valv / 10].area[seq[i].valv % 10] > 0)
+							y[seq[i].valv] = y[seq[i].valv] + seq[i].flux *20.*seq[i].dur / 36.00 / pd[seq[i].valv / 10].area[seq[i].valv % 10];
+						else
+							y[seq[i].valv] = y[seq[i].valv] + 100;
+						loadGraph(seq[i].valv, dayStart + int(seq[i].dur / 60), y[seq[i].valv] + y0);
+						//____________________________compute rest of the day mm variation_____________________________________________________________
+						y[seq[i].valv] = y[seq[i].valv] - (1440 - dayStart + day * 1440)*(kappaC*day_penman - dayrain) / 14.40;
+						SPS_DD(dayStart + int(seq[i].dur / 60)); SP_DD(" "); SPL_DD(y[seq[i].valv] + y0);
+						prec_time[seq[i].valv] = dayStart + int(seq[i].dur / 60);
+					}
+			}
+				else  //______________________compute day mm variation____________________________________________________
+					y[seq[i].valv] = y[seq[i].valv] - (1440)*(kappaC*day_penman - dayrain) / 14.40;
+#ifdef newCode
+			if(day==-1)w.plotStartValue[CurvesN[seq[i].valv]]=y[seq[i].valv];-------------------------------------------store values at midnigth day=-1
+#endif
 			}
 		}
 		{
@@ -2975,7 +2963,7 @@ void setup() {
 		byte newFlux = 0;
 		byte	i = iprec;			// -------start from previous checked cycle
 		SP_D("PrecT"); SPL_D(precTime);
-		while (seq[i].start+seq[i].dur/60-1 < ora.hour() * 60 + ora.minute() ||		//seq[i] e	before   actual time
+		while (seq[i].start+seq[i].dur/60-1 <= ora.hour() * 60 + ora.minute() ||		//seq[i] e	before   actual time
 			(ora.hour() * 60 + ora.minute() < precTime))			//seq[i] start     on previous day
 		{
 			FluxDiff = -10000;
@@ -3034,6 +3022,8 @@ void setup() {
 						{
 							pd[seq[i].valv / 10].dummy[seq[i].valv % 10] = 0;
 							pd[seq[i].valv / 10].valveStatus[seq[i].valv % 10] = 5;    //5 red means expected watering not executed
+							eeprom_write_block((void *)&pd[seq[i].valv / 10], (void*)(PD_EEPROM_POS + int(seq[i].valv / 10) *PD_SIZE), PD_SIZE);
+
 	//---?					pd[seq[i].valv / 10].Status = pd[seq[i].valv / 10].Status * 10 + seq[i].valv % 10;
 						}							//OS unit status=0 OK
 					//		if (pd[seq[i].valv / 10].Status>=Alarm_Times)				//if more times valves are not working
@@ -3060,7 +3050,8 @@ void setup() {
 	
 		//	i++; 
 
-		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))|| cD.rain_delay[seq[i].valv / 10] >ora.unixtime()+timeSpan) { i++; if (i >= sequn+1 ) { i = 1; timeSpan += 24 * 3600; } }
+		while ( !seq[i].Check_day_match(ora.operator+(timeSpan))|| cD.rain_delay[seq[i].valv / 10] >ora.unixtime()+timeSpan)
+			{ i++; if (i >= sequn+1 ) { i = 1; timeSpan += 24 * 3600; } }
 		nextSeqStart = seq[i].start;
 		nextValv = seq[i].valv;
 		nextIndex = i;
