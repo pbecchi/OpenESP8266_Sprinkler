@@ -39,8 +39,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sketch1", "..\Sketch1\Sketc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "datecalc", "..\..\..\libraries\RTClib-master\examples\datecalc\datecalc.vcxproj", "{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ds1307_analog_power", "..\..\..\ds1307_analog_power\ds1307_analog_power.vcxproj", "{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SensorServer", "..\..\..\SensorServer\SensorServer.vcxproj", "{F5D70E46-38F5-486E-9770-48C9D938E414}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DS18x20_Temperature", "..\..\..\libraries\OneWire\examples\DS18x20_Temperature\DS18x20_Temperature.vcxproj", "{6D3FDA7B-228B-4E2A-A46A-40EDCA1ECC7F}"
@@ -54,6 +52,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Multiple", "..\..\..\libraries\DallasTemperature\examples\Multiple\Multiple.vcxproj", "{7BA943F0-6B16-4D8B-B6BD-290272C44DAF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Progetto1", "..\Progetto1\Progetto1.vcxproj", "{3002EF19-8FD1-4552-B8E1-F94D7E4C3827}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FTPServerSample", "..\..\..\FTPServerSample\FTPServerSample.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SMTPGO_example", "..\..\..\SMTPGO_example\SMTPGO_example.vcxproj", "{54F8EC25-4568-433F-B039-BDA750E4F0C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -203,14 +205,6 @@ Global
 		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Release|x64.Build.0 = Release|x64
 		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Release|x86.ActiveCfg = Release|Win32
 		{6D896C43-81C3-43AA-B9C1-FEB4E60A1ACE}.Release|x86.Build.0 = Release|Win32
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x64.ActiveCfg = Debug|x64
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x64.Build.0 = Debug|x64
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x86.ActiveCfg = Debug|Win32
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Debug|x86.Build.0 = Debug|Win32
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x64.ActiveCfg = Release|x64
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x64.Build.0 = Release|x64
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x86.ActiveCfg = Release|Win32
-		{E9134C6E-4C48-4DEB-9FA7-FA3B85104212}.Release|x86.Build.0 = Release|Win32
 		{F5D70E46-38F5-486E-9770-48C9D938E414}.Debug|x64.ActiveCfg = Debug|x64
 		{F5D70E46-38F5-486E-9770-48C9D938E414}.Debug|x64.Build.0 = Debug|x64
 		{F5D70E46-38F5-486E-9770-48C9D938E414}.Debug|x86.ActiveCfg = Debug|Win32
@@ -267,6 +261,18 @@ Global
 		{3002EF19-8FD1-4552-B8E1-F94D7E4C3827}.Release|x64.Build.0 = Release|x64
 		{3002EF19-8FD1-4552-B8E1-F94D7E4C3827}.Release|x86.ActiveCfg = Release|Win32
 		{3002EF19-8FD1-4552-B8E1-F94D7E4C3827}.Release|x86.Build.0 = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x64.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x64.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Debug|x64.ActiveCfg = Debug|Win32
+		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Debug|x86.ActiveCfg = Debug|Win32
+		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Debug|x86.Build.0 = Debug|Win32
+		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Release|x64.ActiveCfg = Release|Win32
+		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Release|x86.ActiveCfg = Release|Win32
+		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

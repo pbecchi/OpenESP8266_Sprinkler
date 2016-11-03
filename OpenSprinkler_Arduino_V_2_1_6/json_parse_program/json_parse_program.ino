@@ -12,6 +12,9 @@
 #include <TimeLib.h> 
 #include <WiFiUdp.h>
 #include <FS.h>
+
+//#define FTP
+
 //////////////////////////////////////   OTA/////////////////////////////////////////
 #define OTA
 #ifdef OTA
@@ -42,6 +45,16 @@
 #define NC 1
 #define MAX_SRV_CLIENTS NC
 #define N_OS_STA 4
+/*
+#ifdef FTP
+
+#include <ESP8266WebServer.h>
+#include <ESP8266FtpServer.h>
+
+FtpServer ftpSrv;
+
+#endif
+*/
 File logfile;
 RTC_DS1307 RTC;
 int p = 0, pold;							//EEprom read pointer
@@ -88,8 +101,8 @@ static	bool noClient = true;
 	WiFiClient Tclient;
 	unsigned long TimeOUT,posFile=0,oldpos=0;
 	
-#define MAXBYTES 100000
-//#define POS posFile=logfile.position();if(posFile>MAXBYTES||oldpos==posFile)reset_logfile()
+#define MAXBYTES 1000000
+//#define POS posFile=logfile.position();if(posFile>MAXBYTES)reset_logfile()
 //#define LOG oldpos=logfile.position()//logfile.seek(0,SeekEnd)
 
 #define POS {}
@@ -127,8 +140,11 @@ static	bool noClient = true;
 #define PD root["pd"]
 
 ///////////////////////////////////////////////////EEPROM MEMORY/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// 0<sequn !1<-seq struct.45b*100 elements |1300 EEindex 1390<EEfill |1400<----- prog.structures  size* n.programs|3200 programdata structures 148*N_OS_STA-|3800<-options[45,N_OS_STA<5]--|4080
+// 0<sequn !1<-seq struct.45b*100 elements |1300 EEindex 1390<EEfill |1400<----- prog.structures  size* n.programs|2500 rain |2650 ET0 |3050 cD |
+//  3200 programdata structures 148*N_OS_STA-|3800<-options[45,N_OS_STA<5]--|4080
+//
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define CURRENT_DATA_POS 3050
 #define EE_INDEX_POS 1300
 #define	OPTION_STATION_DELAY_TIME 17
 #define ADDR_EE_OPTIONS 3800
@@ -179,7 +195,7 @@ static	bool noClient = true;
 			byte day_t = t.day();
 			byte month_t = t.month();
 			byte days[] = { day0,day1 };
-	//		if (cD.rain_delay[valv / 10] >t.unixtime()) return false; //----- rain delay;
+//			if (cD.rain_delay[valv / 10] >t.unixtime()) return false; //----- rain delay;
 			byte wd = (weekday_t + 5) % 7;
 			byte dt = day_t;
 			byte type = (flags & 0B0110000) >> 4;
@@ -600,6 +616,7 @@ static	bool noClient = true;
 					status.station[sid].startime = root["ps"][sid][1];
 					status.station[sid].remain = root["ps"][sid][2];
 				}
+				eeprom_write_block(&cD, (void *)CURRENT_DATA_POS, sizeof(CurrentData));
 			}
 		
 		}
@@ -607,7 +624,7 @@ static	bool noClient = true;
 	bool Encode_jp(byte pid, byte icontr) 
 	{
 
-		StaticJsonBuffer<1000> jsonBuffer;
+		StaticJsonBuffer<1300> jsonBuffer;
 		JsonArray& jarray = jsonBuffer.createArray();
 		eeprom_read_block(EEindex, (void*)EE_INDEX_POS, 80);
 		ProgramStruct prog;
@@ -689,7 +706,7 @@ static	bool noClient = true;
 	Change Program Data [Keyword /cp] 7
 	*/
 	bool Json_Extract_jp(byte ic, byte pmod[]) {
-		StaticJsonBuffer<1000> jsonBuffer;
+		StaticJsonBuffer<1600> jsonBuffer;
 		ProgramStruct prog;
 
 		int EEfill = eeprom_read_int(EE_PROG_POS);
@@ -1259,7 +1276,8 @@ void setup() {
 		Wire.begin();
 		RTC.begin();
 		SPIFFS.begin();
-	//	SPIFFS.format();
+//		SPIFFS.format();
+	
 		
 #ifndef INIT_EEPROM
 		if (eeprom_read_byte(0) == 211)
@@ -1280,18 +1298,7 @@ void setup() {
 		Serial.begin(115200);
 		Serial.println("Starting Json Parser/controller...");
 
-#define DIR
-
-#ifdef DIR
-		Dir dir = SPIFFS.openDir("/");
-		while (dir.next())
-		{
-			SP_D(">>"); SP_D(dir.fileName()); SP_D("  ");
-			File f = dir.openFile("r"); SPL_D(f.size());
-		}
-	
-		
-#endif
+//#define DIR
 
 
 		if(SPIFFS.exists("/logs.txt"))
@@ -1303,12 +1310,16 @@ void setup() {
 	//	 while (logfile.available())Serial.print((char)logfile.read());
 		logfile.seek(0,SeekEnd);
 		posFile = logfile.position();
+		if (posFile > MAXBYTES)reset_logfile();
 //#define PROVAEEPROM
 
 #ifdef PROVAEEPROM
 		provaEEprom();
 #endif
-	
+		eeprom_read_block(&cD, (void *)CURRENT_DATA_POS, sizeof(CurrentData));
+		
+		for (byte i = 0; i < 5; i++) { SPS_D(cD.rain_delay[i]); }
+		SPL_D("=rain_delay");
 #ifdef LCD_TOUCH
 		setupLcdTouch();
 #endif
@@ -1344,10 +1355,31 @@ void setup() {
 		setSyncInterval(28800);//every 8 h
 		if(SyncNPT(1)) SPL("...OK!");
 #endif
+		DateTime ora = adesso();
+
+#ifdef DIR
+		Dir dir = SPIFFS.openDir("/");
+		while (dir.next())
+		{
+			SP_D(">>"); SP_D(dir.fileName()); SP_D(" \t ");
+			File f = dir.openFile("r"); SPL_D(f.size());
+		}
+
+
+#endif
+	//	SPIFFS.remove("/waterlog.txt");
+#ifdef WATERLOG
+		if (!SPIFFS.exists("/waterlog.txt")) {
+			
+			File f = SPIFFS.open("/waterlog.txt", "w+");
+			SPL("new waterlog");
+			f.print(ora.day()); f.print('-'); f.print(ora.month());
+			f.close();
+		}
+#endif
 		// Telnet Client
 
 #ifdef TELNET
-		DateTime ora = adesso();
 		SP(ora.hour()); SP(":"); SP(ora.minute());
 		server.begin();
 		server.setNoDelay(true);
@@ -1420,6 +1452,9 @@ void setup() {
 			
 		}*/
 		/////////////////////////////////// START INTERRUPTS 
+#ifdef FTP
+		ftpSrv.begin("esp8266", "esp8266");    //username, password for ftp.  set ports in ESP8266FtpServer.h  (default 21, 50009 for PASV)
+#endif
 		startUpEdit();
 		startUpFluxMonitor();
 		// read Pd structure
@@ -1890,6 +1925,19 @@ void setup() {
 		return 0;
 
 	}
+	float readFromSensor(char * nome, byte ip) {
+		char buff[500];
+		char command[20];
+		SP("reading ET0 from 192.168.1."); SPL(ip);
+		sprintf(command, "/sensor?t=%d", 400);
+		SPL(command);
+		ServerCall(buff, command, ip);
+		float val[2];
+		String nomi[1] = nome;
+		JsonDecode(1, buff, nomi, val, 1);
+		SPL(val[0]);
+		return val[0];
+	}
 	float readET0(byte days, byte ip,float *rain) {
 		char  buff[500];
 		char command[20];
@@ -1914,18 +1962,7 @@ void setup() {
 			SPL(val[1]);
 			*rain = val[1];
 			return val[0];
-			/*StaticJsonBuffer<500> jsonBuffer;
-
-			JsonObject& root = jsonBuffer.parseObject(buff);
-			// Test if parsing succeeds.
-			if (!root.success()) {
-				SPL("Et0 parseObject() failed");
-				SPL(buff);
-				return -1;
-			}
-			ET0 = root["ET0"]["avg_var"];
-			SP("ET0="); SPL(ET0);
-*/		//	time_d = time_d + 60000L;
+	//	time_d = time_d + 60000L;
 		
 	}
 	bool SendMessage(char * message)
@@ -1981,35 +2018,44 @@ void setup() {
 		return 1;
 
 	}
+	//--------------------------------------------command queue-----------------------------
 	static unsigned long timeTry[5];
 	static String storedCommand[5];
 	static String storedStream[5];
 	static byte ipStored[5];
-	static byte nTry;
+	static byte ntrial[5];
+	static byte nTry=0;
 
-	void API_repeat(String streamId,String command,byte ic,long timeDel){
+	void API_repeat(String streamId, String command, byte ic, long timeDel) {
 		if (timeDel > 0) {
 
 			timeTry[nTry] = millis() + timeDel;
 			storedCommand[nTry] = command;
 			storedStream[nTry] = streamId;
 			ipStored[nTry] = ic + 20;
+			ntrial[nTry] = 0;
 			nTry++;
-			return ;
+			SPS_D(ic); SPS_D(command); SPL_D(nTry);
+			return;
 		}
+	}
+	void API_repeat(long timeDel){
+		
 		for (byte k = 0; k < nTry; k++)
-			if (millis() < timeTry[k])return;
-			else {
-				streamId = storedStream[k];
-				command = storedCommand[k];
-				ic = ipStored[k] - 20;
+			if (millis() >timeTry[k]&&ntrial[k]<10) {
+				String streamId = storedStream[k];
+				String command = storedCommand[k];
+				byte ic = ipStored[k] - 20;
 				timeTry[k] = millis() + timeDel;
+				ntrial[k]++;
 				if (API_command(streamId, command, ic)) {
+					SP_D(command); SPL_D(ic);
 					for (byte j = k + 1; j < nTry; j++) {
-						streamId[j - 1] = streamId[j];
+						storedStream[j - 1] = storedStream[j];
 						storedCommand[j - 1] = storedCommand[j];
 						timeTry[j - 1] = timeTry[j];
 						ipStored[j - 1] = ipStored[j];
+						ntrial[j - 1] = ntrial[j];
 					}
 					k--;
 					nTry--;
@@ -2023,11 +2069,12 @@ void setup() {
 		const int httpPort = 80;
 		
 		IPAddress jsonserver = IPAddress(192, 168, 1, ic + 20);
+		SP(jsonserver);
 		if (!client.connect(jsonserver, 80))
 		{
 			client.stop();
 
-			SP("connection failed "); SPL(jsonserver);
+			SPL(" connection failed ");
 			return 0;
 		}
 		//	SP("Connect: "); SP(jsonserver);
@@ -2041,10 +2088,19 @@ void setup() {
 		client.print(String("GET ") + url + " HTTP/1.1\r\n" +
 			"Host: " + "192.168.1.20" + "\r\n" +
 			"Connection: close\r\n\r\n");
-		delay(300); 
-		bool res = false;
-		if(client.available())res = client.find(':');
-		if (res)if (client.read() != '1')res = false;
+		byte count = 0; bool res = false;
+		while (!client.available()&&count<240) { delay(100); count++; }
+		if (count == 240)return 0;
+		while (client.available()) {
+			char c = client.read();
+			SP_D(c);
+			if (c == ':') {
+				c = client.read();
+				SP_D(c);
+				if (c == '1')res = true;
+			}
+		}
+		//if (res)if (client.read() != '1'&&client.read()!='1')res = false;
 		client.stop();
 		return res;
 	}
@@ -2095,21 +2151,38 @@ void setup() {
 	}
 #define RAIN_LOST 0.5
 #define WEATHER_DAYS 3
-	byte weather_control(float day_rain ,float ET0) {//set water delay reading 
-									       //calculate total rain over weathre days
-
+	byte month_penman[12] = { 10,11,20,25,33,39,46,39,26,18,11,10 };//monthly average Savona *10
+	byte weather_control(float day_rain ,float ET0) {	//set water delay reading 
+														//calculate total rain over weathre days
+		if (cD.cumulRain == 0 && day_rain <= 1.)return 0;
 		cD.cumulRain -= ET0;
+		SP_D("CuRain"); SPL_D(cD.cumulRain);
 		if (cD.cumulRain < 0)cD.cumulRain = 0;
 		if (day_rain > 20)day_rain = 20 + (day_rain - 20)*RAIN_LOST;
 		cD.cumulRain += day_rain;
-		if (cD.cumulRain > 10) {
+		long max_rain_delay = 0;
+		for (byte i = 0; i < 5; i++) if (cD.rain_delay[i] > max_rain_delay)max_rain_delay = cD.rain_delay[i];
+		SPL_D( (max_rain_delay - now()) / SECS_PER_DAY*month_penman[month()]);
+		// change raindelay if today rain>1 and total cumulated>5 or if cumulated rain is less than day delay interval * penman
+		if ((cD.cumulRain >=5&&day_rain>1)||cD.cumulRain+2<(max_rain_delay-now())/SECS_PER_DAY*month_penman[month()]) {
 			SP("total-day rain "); SP(cD.cumulRain); SP(" "); SP(day_rain); SP("to");
-			float rain_delay = cD.cumulRain / ET0;
+			float rain_delay = cD.cumulRain / month_penman[month()]*10;
 			char rainCommand[10];
-			sprintf(rainCommand, "&rd=%d", int(rain_delay * 24));
-			SPL_D(rainCommand);
-			for (byte ic = 0; ic < N_OS_STA; ic++)if (API_command("/cv", rainCommand, ic)) { SP(ic); SP("_"); }
-			else API_repeat("/cv", rainCommand, ic,100000);
+			time_t rain_del = now() + rain_delay*SECS_PER_DAY;
+			rain_del = rain_del - hour(rain_del) * 3600;						 // __________________________stop at midmnight
+			sprintf(rainCommand, "&rd=%d", int(rain_delay * 24) - hour(rain_del));
+			SP_D(rain_del); SP_D(" "); SPL_D(rainCommand);
+
+			for (byte ic = 0; ic < N_OS_STA; ic++) {
+		// correct rain delay if greater or smaller	
+		//		if (rain_del > cD.rain_delay[ic])
+				{
+					cD.rain_delay[ic] = rain_del;
+					if (API_command("/cv", rainCommand, ic)) { SP(ic); SP("_"); }
+					else API_repeat("/cv", rainCommand, ic, 100000);
+				}
+			}
+			eeprom_write_block(&cD, (void *)CURRENT_DATA_POS, sizeof(CurrentData));
 		}
 		return 0;
 	}
@@ -2121,13 +2194,13 @@ void setup() {
 		String privateKey = "a6d82bced638de3def1e9bbb4983225c"; //MD5 hashed
 		const int httpPort = 80;
 		IPAddress jsonserver = IPAddress(192, 168, 1, ic + 20);
-
+		SP(jsonserver);
 		//	delay(2000);
 		if (!client.connect(jsonserver, 80))
 		{
 			client.stop();
 
-			SP("connection failed "); SPL(jsonserver);
+			SPL("connection failed "); 
 			return 0;
 		}
 //	SP("Connect: "); SP(jsonserver);
@@ -2155,6 +2228,7 @@ void setup() {
 
 				SP("Connected to:"); SPL(jsonserver);
 				SPL(" Json read!");
+				SPL_D(json);
 				return 2;
 			}
 			//	else {
@@ -2245,24 +2319,29 @@ void setup() {
 	boolean input_seq = false, input_pd = false,input_kc=false;
 	static byte ET = 0;
 ////////rain//////
-#define RAIN_POS 2900
+#define RAIN_POS 2500
 	class rain {
-		byte rainD = 0;
+		
 	public:
+		byte rainD = 0;
 		 rain() {
 			rainD = EEPROM.read(RAIN_POS - 1);
-			if (rainD > 60)rainD = 0;
+			if (rainD >= 60)rainD = 0;
 		//rainD = 1;
 
 		}
 		void store(float rain, int day) {
 			if (rain > 128)rain = 128;
+			rainD = EEPROM.read(RAIN_POS - 1);
 			byte rainB = int(rain) *2+ int(day / 256);
 			byte dayB = day % 256;
 			SP_D("Store Rain D"); SPS_D(rainD);
 			SPS_D(rainB); SPS_D(dayB); SPL_D();
 			if (rainD > 60) {
-				SPL("toomany rainy days!"); return;
+				SPL("toomany rainy days!-reset"); 
+				rainD = 0;
+		//		EEPROM.write(RAIN_POS - 1, 0);
+		
 			}   
 			EEPROM.write(RAIN_POS + rainD * 2, rainB);
 			EEPROM.write(RAIN_POS + rainD * 2+1, dayB);
@@ -2273,22 +2352,41 @@ void setup() {
 		}
 		float get(int day) {
 			rainD = EEPROM.read(RAIN_POS - 1);
-			SP_D(day); SP_D("Rd"); SPL_D(rainD);
+		//	SP_D(day);			 SP_D("Rd"); SPL_D(rainD);
 			for (byte i = 0; i < rainD; i++) {
 				byte rainB = EEPROM.read(RAIN_POS + i * 2);
 				byte dayB = EEPROM.read(RAIN_POS + i * 2 + 1);
-				SPS_D(rainB); SPS_D(dayB); SPS_D(rainB & 1); SPL_D();
-				if ((rainB & 1) * 256 + dayB != day)return 0;
-				else return rainB / 2.;
+		//		SPS_D(rainB); SPS_D(dayB); SPS_D(rainB & 1); SPL_D();
+				if ((rainB & 1) * 256 + dayB == day)return rainB / 2.;
 			}
 		return 0;
 
 		}
+		void print(){
+			rainD = EEPROM.read(RAIN_POS - 1);
+			SP_D("Rd"); SPL_D(rainD);
+			//	SP_D(day); SP_D("Rd"); SPL_D(rainD);
+			for (byte i = 0; i < rainD; i++) {
+				byte rainB = EEPROM.read(RAIN_POS + i * 2);
+				byte dayB = EEPROM.read(RAIN_POS + i * 2 + 1);
+				//		SPS_D(rainB); SPS_D(dayB); SPS_D(rainB & 1); SPL_D();
+				SP_D((rainB & 1) * 256 + dayB); SP_D("\t"); SPL_D(rainB / 2.);
+				
+			}
+			
+		}
 
 	};
 	rain r;
+	bool FTP_mode = false;
 /////////////////////////////////////////////////////////////// loop /////////////////////////////////////////////////////
 	void loop() {
+		API_repeat(120000);
+#ifdef FTP
+
+		if(FTP_mode)
+		ftpSrv.handleFTP();        //make sure in loop you call handleFTP()!!  
+#endif
 #ifdef OTA
 		ArduinoOTA.handle();
 #endif
@@ -2313,6 +2411,10 @@ void setup() {
 		if (cc == ' ')cc = 0;
 		//#ifdef LCD_TOUCH
 		c = touch_control(cc);
+		if (c == 'F') {
+			if (!FTP_mode)FTP_mode = true; else FTP_mode = false;
+			SPL_D(FTP_mode);
+		}
 		if (c == 'P') {
 			int arr[N_Maxcurves];
 			int val = inputI("time?");
@@ -2349,47 +2451,76 @@ void setup() {
 #else
 #define MYSECS_PER_YEAR 31557600UL
 #define ET_POS 2650	
-#define RAIN_POS 3020
-		
+//#define RAIN_POS 3020
+#ifdef WATERLOG
+		if (c == 'w') {
+			int day = inputI("day"); byte month = inputI("month/valve");
+			if (day > 0)
+				print_waterlog(day, month);
+			else
+				valve_print_waterlog(-day, month);
+		}
+#endif
 		if (c == 'W') {
-			SPL(ET_POS + (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY - 1);
-			SPL_D(float(eeprom_read_byte((byte *)(ET_POS + (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY - 1))) / 40.); 
-			SP_D("rain"); SPL_D(r.get( (now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY - 1));
-			int dayBack = inputI("day back?-0_exit");
-			SPL();
+			SPL_D();
+			r.print();
+			int dayBack = inputI("dayList");
+			
+			SPL_D("ET0\tRain");
+			for (byte i = dayBack; i > 0; i--) {
+				//SPL(ET_POS + (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY - i);
+				SP_D(float(eeprom_read_byte((byte *)(ET_POS + (now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY - i))) / 40.);
+				SP_D("\t"); SPL_D(r.get((now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY - i));
+			}
+			SPL_D("ET0 rain correction");
+			dayBack = inputI("day back?-0_exit");
+			SPL_D();
 			if (dayBack > 0) {
 				float rain;
 				ET = readET0(dayBack, 30,&rain) * 40;
-				//____________________________________save ET0  to EEPROM_________________________
+				//____________________________________save ET0 of dayback  to EEPROM_________________________
 
 				int day = (now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY;
 				SPL(ET_POS + day - dayBack);
 				eeprom_write_byte((byte *)(ET_POS + day - dayBack), ET);
-				int rainBack = inputI("rain_b?-0_exit");
+				//_________________________________store rain of dayback on EEPROM_______________________________________
+				int rainBack = inputI("rain_b?-0_exit_neg. reset");
 				SPL();
 				if (rainBack > 0) {
-					r.store(rainBack, (now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY-1);
+					r.store(rain, (now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY-dayBack);
+	//				weather_control(rain, ET / 40.);
 				}
-				if (rainBack < 0)EEPROM.write(RAIN_POS, 0);
+
+				if (rainBack < 0)EEPROM.write(RAIN_POS-1, 0);
 				EEPROM.commit();
 			}
 
 		}
+#define HOUR_ET0 24
+
+		//__________________________________rain delay end_________________________________________________
+		//if (now() >= cD.rain_delay[0] - 3600) {
+		//	float rain = readFromSensor("precip_today_metric", 30);
+		//	if (rain > 2)weather_control(rain, 0);
+		//}
 		//____________________________________before MidNight ____________________________________________________
-		if (hour() == 23 && minute() > 55)
+		if (hour() == HOUR_ET0-1 && minute() > 55)
 		{
 			if (ET == 0) {								//first time ET0 is 0
 				float day_rain;
 				ET = readET0(0, 30,&day_rain) * 40;
-				
-				SP("storedET*40="); SPL(ET);
-				//____________________________________save ET0  to EEPROM_________________________
+				if (ET > 0) {
+					SP("storedET*40="); SPL(ET);
+					//____________________________________save ET0  to EEPROM_________________________
+					int 	 day = (now() % MYSECS_PER_YEAR) / SECS_PER_DAY;
 
-					int day = (now() % MYSECS_PER_YEAR) / SECS_PER_DAY;
-					r.store(day_rain, day);
+					if (day_rain > 1) {
+						r.store(day_rain, day);
+					}
 					eeprom_write_byte((byte *)(ET_POS + day), ET);
-//					rain.k++;rain.day[rain.k]=day;rain.mm[rain.k]=rain;eeprom_write_block(&rain,RAIN_POS,sizeof(rain));
-					weather_control(day_rain, ET);
+					//					rain.k++;rain.day[rain.k]=day;rain.mm[rain.k]=rain;eeprom_write_block(&rain,RAIN_POS,sizeof(rain));
+					weather_control(day_rain, ET / 40.);
+				}
 			}
 		}
 		else ET = 0;
@@ -2794,6 +2925,7 @@ void setup() {
 #define SPL_DD(x) Serial.println(x)
 #define SP_DD(x) Serial.print(x)
 #define SHIFT_PLOT_MM 1
+	
 	bool plot_sequence()
 	{
 		int y[40];// = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
@@ -2832,7 +2964,7 @@ void setup() {
 		//if prog.check_day_match(oggi)
 		//int prev_time = 0; 
 		byte y00 = 0;
-		byte month_penman[12] = { 10,11,20,25,33,39,46,39,26,18,11,10 };//monthly average Savona *10
+		
 		while (day++ < MAX_PLOT_DAYS) {
 			SPS_DD(day);
 			// compute using recorded ETo values
@@ -2859,11 +2991,14 @@ void setup() {
 			if (day_penman > 6.) day_penman = month_penman[oggi.month()] / 10.;
 #endif
 			float kappaC = 1;
+			SP_D("T");	SPL_D(oggi.unixtime() + day * 24 * 3600);
 			for (int i = 1; i < sequn + 1; i++)
 			{
 				if (y[seq[i].valv] == 0)y[seq[i].valv] = SHIFT_PLOT_MM * y00++;
 				int y0 = 0;
-				if (seq[i].Check_day_match(oggi.operator+(day * 24 * 3600))){
+		       
+				if( oggi.unixtime()+(seq[i].start + day * 24 * 3600)>cD.rain_delay[seq[i].valv/10]&& //interval is after rain _delay period
+				seq[i].Check_day_match(oggi.operator+(day * 24 * 3600))){
 
 					if (prec_time[seq[i].valv] < day * 1440)  //________last interval_____previous day
 					{//
@@ -2904,7 +3039,11 @@ void setup() {
 					}
 			}
 				else  //______________________compute day mm variation____________________________________________________
+				{
 					y[seq[i].valv] = y[seq[i].valv] - (1440)*(kappaC*day_penman - dayrain) / 14.40;
+					//if no interval plot end of the day mm
+					loadGraph(seq[i].valv, (day + 1) * 1440, y[seq[i].valv] + y0);
+				}
 #ifdef newCode
 			if(day==-1)w.plotStartValue[CurvesN[seq[i].valv]]=y[seq[i].valv];-------------------------------------------store values at midnigth day=-1
 #endif
@@ -2949,7 +3088,7 @@ void setup() {
 
 	int precTime = 0, nextSeqStart = 0, nextSeqEnd = 0;
 	boolean startFlag = true;
-	bool check_sequence(uint16_t startf[], int durf[], int  fluxf[],int ff) //startime in 2s steps,duration in sec,flux in Lt/h
+	int check_sequence(uint16_t startf[], int durf[], int  fluxf[],int ff) //startime in 2s steps,duration in sec,flux in Lt/h
 																	 // check sequences loaded from OS units versus water usage and 
 																	 // check missing watering cycles and flux under or over target flux
 	{
@@ -2961,6 +3100,7 @@ void setup() {
 		byte fluxSteps[] = { 2,7,15,30,60 };
 		DateTime ora = adesso();
 		byte newFlux = 0;
+		int valv = -1;
 		byte	i = iprec;			// -------start from previous checked cycle
 		SP_D("PrecT"); SPL_D(precTime);
 		while (seq[i].start+seq[i].dur/60-1 <= ora.hour() * 60 + ora.minute() ||		//seq[i] e	before   actual time
@@ -2974,13 +3114,15 @@ void setup() {
 				if (!seq[i].Check_day_match(ora)) { SP_D("noDayMach"); }
 	
 				else
-			{									//cycle match day restrictions
+			{																		//cycle match day restrictions
 				for (byte jf = 0; jf < ff; jf++) {
 					FluxDiff = seq[i].Check_Flux(startf[jf], durf[jf], fluxf[jf]);	//cycle match in startime and duration
+
 					if (FluxDiff!= -10000)break;
 				}
 				if (FluxDiff != -10000)											// it means interval match
 				{
+					 valv = seq[i].valv;
 					 newFlux = seq[i].flux - FluxDiff / 20;
 					if (seq[i].flux == 0) seq[i].flux = abs(-FluxDiff / 20);        //fisrt time : add flux info to seq
 					else
@@ -3063,14 +3205,14 @@ void setup() {
 		if (FluxDiff == -10000) {
 			SPL(" no Seq match ");
 			
-			return false;
+			return -1;
 		}
 		else {
 			//write sequence to eeprom
 			eeprom_write_byte(SEQ_EE_START, sequn);
 			eeprom_write_block((void *)&seq, (void *)(SEQ_EE_START + 1), MAXSEQ * sizeof(sequence));
 			
-			return true;
+			return valv;
 		}
 	}
 bool program_rem_sequence(byte icontr, byte pid)

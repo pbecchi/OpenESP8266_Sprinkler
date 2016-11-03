@@ -3,3 +3,4 @@
 //#define OTA
 #define GRAPH	//------------------------------init Graphics-------------------------------------
 
+#define WATERLOG
