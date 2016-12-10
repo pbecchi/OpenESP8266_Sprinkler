@@ -12,9 +12,10 @@
 #include <TimeLib.h> 
 #include <WiFiUdp.h>
 #include <FS.h>
+#include <ThingSpeak.h>
 
 //#define FTP
-
+#define IOT
 //////////////////////////////////////   OTA/////////////////////////////////////////
 #define OTA
 #ifdef OTA
@@ -32,7 +33,7 @@
 #include <Wire.h>
 
 #include <RTClib.h>
-#include "NPTtimeSync.h"
+#include "../TimeNTP_ESP8266WiFi/TimeNTP_ESP8266WiFi.ino/NPTtimeSync.h"
 ////////////////////////////////////////////////////////
 #include <SPI.h>
 #include <Adafruit_ILI9341esp.h>
@@ -436,7 +437,8 @@ static	bool noClient = true;
 	struct CurrentData {
 		time_t rain_delay[4];
 		float cumulRain = 0;
-		byte dummy[96];
+		int mm[30];
+		byte dummy[30];
 	};
 
 	ProgramData pd[N_OS_STA];
@@ -1455,6 +1457,7 @@ void setup() {
 #ifdef FTP
 		ftpSrv.begin("esp8266", "esp8266");    //username, password for ftp.  set ports in ESP8266FtpServer.h  (default 21, 50009 for PASV)
 #endif
+
 		startUpEdit();
 		startUpFluxMonitor();
 		// read Pd structure
@@ -1484,6 +1487,11 @@ void setup() {
 	//		eeprom_write_block(&pdn[ic], (void*)(3200 + ic*PDN_SIZE), PDN_SIZE);
 		
 		print_status();
+#ifdef IOTno
+		static		WiFiClient IOTclient;
+
+		ThingSpeak.begin(IOTclient);
+#endif
 	}
 #include <stdarg.h>
 	//--------------------------------------------------------------------------
@@ -1942,12 +1950,16 @@ void setup() {
 		char  buff[500];
 		char command[20];
 		long time_d = 500;
-		if (hour(now()) < 20 && days == 0) return -1;
-		time_d = SECS_PER_DAY*days;
-		if (time_d == 0)time_d = 450;
-		time_t tim = now() - time_d;
-		if (hour(tim) < 20)time_d -= (21 - hour(tim)) * 3600;
-		SP(hour(tim)); SP(":"); SP(minute(tim));
+		if (days < 20) {
+			if (hour(now()) < 20 && days == 0) return -1;
+			time_d = SECS_PER_DAY*days;
+			if (time_d == 0)time_d = 450;
+			time_t tim = now() - time_d;
+			if (hour(tim) < 20)time_d -= (21 - hour(tim)) * 3600;
+			SP(hour(tim)); SP(":"); SP(minute(tim));
+		}
+		else
+			time_d = days * 1000;
 		float ET0;
 		
 		
@@ -2094,7 +2106,7 @@ void setup() {
 		while (client.available()) {
 			char c = client.read();
 			SP_D(c);
-			if (c == ':') {
+			if (c == ':'&&client.available()) {
 				c = client.read();
 				SP_D(c);
 				if (c == '1')res = true;
@@ -2152,14 +2164,20 @@ void setup() {
 #define RAIN_LOST 0.5
 #define WEATHER_DAYS 3
 	byte month_penman[12] = { 10,11,20,25,33,39,46,39,26,18,11,10 };//monthly average Savona *10
-	byte weather_control(float day_rain ,float ET0) {	//set water delay reading 
-														//calculate total rain over weathre days
+	int weather_control(float day_rain ,float ET0) {	//set water delay reading 
+		float prevRain = cD.cumulRain;												//calculate total rain over weathre days
 		if (cD.cumulRain == 0 && day_rain <= 1.)return 0;
 		cD.cumulRain -= ET0;
 		SP_D("CuRain"); SPL_D(cD.cumulRain);
 		if (cD.cumulRain < 0)cD.cumulRain = 0;
-		if (day_rain > 20)day_rain = 20 + (day_rain - 20)*RAIN_LOST;
+
+		if (day_rain > 20)day_rain = (day_rain - 20)*RAIN_LOST;
+		if(cD.cumulRain<20)
 		cD.cumulRain += day_rain;
+
+#define MAX_RAIN 30 //this is maximum rain soil can absorb____________________________________
+
+		if (cD.cumulRain > 20)cD.cumulRain = MAX_RAIN - 20 * (MAX_RAIN - 20) / cD.cumulRain;
 		long max_rain_delay = 0;
 		for (byte i = 0; i < 5; i++) if (cD.rain_delay[i] > max_rain_delay)max_rain_delay = cD.rain_delay[i];
 		SPL_D( (max_rain_delay - now()) / SECS_PER_DAY*month_penman[month()]);
@@ -2184,7 +2202,7 @@ void setup() {
 			}
 			eeprom_write_block(&cD, (void *)CURRENT_DATA_POS, sizeof(CurrentData));
 		}
-		return 0;
+		return int((cD.cumulRain-prevRain)*10);
 	}
 
 
@@ -2378,7 +2396,104 @@ void setup() {
 
 	};
 	rain r;
+#ifdef IOT
+	//#include <thingspeak-arduino-master\src\ThingSpeak.h>
+	struct MM {
+	public:
+		unsigned int x;
+		int y;
+	};
+	class  IOTstr {
+	public:
+
+		long Channel;
+		const char* key;
+		long values[8];
+		byte fieldn[8];
+		byte indval = 0;
+		byte nchar = 0;
+		IOTstr(char * mkey) { key = mkey; }
+		byte updateThingSpeak(long value, byte field_n, byte code)
+		{
+			if (code == 0) {
+				//void updateThingSpeak(long value, byte code) {
+				//Serial.println("update");
+				values[indval++] = value; nchar += 9; while (value >= 10) { value /= 10; nchar++; }
+				fieldn[indval - 1] = field_n;
+				return indval - 1;
+			}
+			else
+			{
+#if ARDUINO <100 	
+				//Serial.println("connect....");
+				byte IOTip[4] = { 184,106,153,149 };  //ip of api.thingspeak.com
+				Client IOTclient(IOTip, 80);   //184,106,153,149
+				if (IOTclient.connect()) {
+#else
+#ifndef ESP8266 
+				EthernetClient IOTclient;
+#else
+				WiFiClient IOTclient;
+#endif
+			    if(	IOTclient.connect("api.thingspeak.com", 80)){
+#endif
+
+					delay(1000);
+					String url = "GET /update?api_key=";
+					url += key;
+					url += "&";
+					SPL_D(url);
+					IOTclient.print(url);// "GET /update?api_key=FPIY8XPZBC2YGSS7&");
+
+					for (int ii = 0; ii < indval; ii++) {
+						SP_D(fieldn[ii]); SP_D('>'); SPL_D(values[ii]);
+						IOTclient.print("field"); IOTclient.print(fieldn[ii]); IOTclient.print("="); IOTclient.print(values[ii]);
+						if (ii < indval - 1)IOTclient.print("&"); else IOTclient.println('\n');
+					}
+
+					//IOTclient.println(" HTTP/1.1\nHost: api.thingspeak.com\nConnection: close\n");//" HTTP/1.1\r\n" + "Host: " + "api.wunderground.com" + "\r\n" + "Connection: close \r\n\r\n"
+					indval = 0; nchar = 0;
+					delay(2000);
+					byte inc = 0;
+					//------------wait replay------------------------------------------------------------
+					while (!IOTclient.available() && inc < 250) { delay(20); inc++; }
+					SPL_D(inc);
+					while (IOTclient.available()) { SP_D(IOTclient.read());}
+
+				}
+				else { SPL_D("conn.failed"); }
+				IOTclient.stop();
+				return 0;
+
+				}
+			return 100;
+			}
+		};
+//	MM actualMM[30];
+	IOTstr IOTv[5] = {"YVDDAJM6VBW72YH8", "15II2JPJ6PHZAJFC","KITD851JT8GQGQWL","AIN1ZOAMHDYQZO64","GW5VYMOOCGK62FDD" };
+//179379,"YVDDAJM6VBW72YH8", 194350, "15II2JPJ6PHZAJFC", 194351, "KITD851JT8GQGQWL", 194352, "AIN1ZOAMHDYQZO64", 194353, "GW5VYMOOCGK62FDD" };
+
+	byte load_mm(byte nvalve, int Dmm) {
+		//load on vector actualMM and on thingspeak  mm of rain calculated now() for valve nvalve 
+		byte j = 0;
+		for (byte i = 0; i<N_curves; i++)
+
+			if (CurvesN[i] == nvalve) {
+				cD.mm[i] += Dmm;
+				j = i;
+			}
+		IOTv[nvalve / 10].updateThingSpeak(cD.mm[j], nvalve % 10, 0);
+//		ThingSpeak.setField(nvalve % 10, actualMM[j].y);
+//		ThingSpeak.writeFields(IOTv[nvalve / 10].Channel, IOTv[nvalve / 10].key);
+
+		return j;
+	}
+
+
+
+#endif
 	bool FTP_mode = false;
+	byte ETcalc[40], prevET;
 /////////////////////////////////////////////////////////////// loop /////////////////////////////////////////////////////
 	void loop() {
 		API_repeat(120000);
@@ -2484,13 +2599,13 @@ void setup() {
 				SPL(ET_POS + day - dayBack);
 				eeprom_write_byte((byte *)(ET_POS + day - dayBack), ET);
 				//_________________________________store rain of dayback on EEPROM_______________________________________
-				int rainBack = inputI("rain_b?-0_exit_neg. reset");
+				int rainBack = inputI("store rain_b?-0_exit<<<<_neg. reset all rain values");
 				SPL();
 				if (rainBack > 0) {
 					r.store(rain, (now() % MYSECS_PER_YEAR + 43600L) / SECS_PER_DAY-dayBack);
-	//				weather_control(rain, ET / 40.);
-				}
+					weather_control(rain, ET / 40.);
 
+				}
 				if (rainBack < 0)EEPROM.write(RAIN_POS-1, 0);
 				EEPROM.commit();
 			}
@@ -2519,7 +2634,17 @@ void setup() {
 					}
 					eeprom_write_byte((byte *)(ET_POS + day), ET);
 					//					rain.k++;rain.day[rain.k]=day;rain.mm[rain.k]=rain;eeprom_write_block(&rain,RAIN_POS,sizeof(rain));
-					weather_control(day_rain, ET / 40.);
+					int cumulRainVar=weather_control(day_rain, ET / 40.);
+#ifdef IOT
+//----------------------add rain mm increments to each zone--------------------- 
+					for (byte iseq = 0; iseq <N_curves; iseq++) {
+						load_mm(CurvesN[iseq], cumulRainVar-ETcalc[iseq]);   //----------------load values to be written on thingspeak
+		//ET water reduction already accounted ETcalc[iseq] must be deducted
+					}
+					eeprom_write_block(&cD, (void *)CURRENT_DATA_POS, sizeof(CurrentData));
+					for (byte icc = 0; icc < 4; icc++)IOTv[icc].updateThingSpeak(0, 0, 1);//---write on ThingSpeak for each OS station
+#endif					
+					EEPROM.commit();
 				}
 			}
 		}
@@ -2575,7 +2700,7 @@ void setup() {
 					eeprom_write_block((void *)&pd[i], (void*)(PD_EEPROM_POS + i *PD_SIZE), PD_SIZE);
 			}
 			else {
-				pd[valv / 10].Kc[valv % 10] = inputI("Kc?");
+				pd[valv / 10].Kc[valv % 10] = inputI("Kc?(0.1 to 2.56 int*100)");
 				input_pd = true;
 				SP_D("pd["); SP_D(valv / 10); SP_D("].Kc["); SP_D(valv % 10); SP_D("]="); SPL_D(pd[valv / 10].Kc[valv % 10]);
 			}
@@ -2988,7 +3113,7 @@ void setup() {
 				dayrain = r.get((now() % MYSECS_PER_YEAR+43600L) / SECS_PER_DAY + day);
 			}
 			SP_D(dayrain); SP_D(" ");		SPL_D(day_penman);
-			if (day_penman > 6.) day_penman = month_penman[oggi.month()] / 10.;
+			if (day_penman > 6.||day_penman==0) day_penman = month_penman[oggi.month()] / 10.;
 #endif
 			float kappaC = 1;
 			SP_D("T");	SPL_D(oggi.unixtime() + day * 24 * 3600);
@@ -3146,7 +3271,20 @@ void setup() {
 //	if(pd[seq[i].valv / 10].area[seq[i].valv % 10]>0)	pd[seq[i].valv / 10].dummy[seq[i].valv % 10] += seq[i].flux * seq[i].dur / pd[seq[i].valv / 10].area[seq[i].valv % 10] / 180;
 				pd[seq[i].valv / 10].dummy[seq[i].valv % 10] = newFlux;
 //---------------------------------------------------------------------------
+#ifdef IOT
+// calculate water added computing mm before and after valve interval 
+//			prevET =previuos ET or day ET? compute ET water reduction up to start time;
+				byte in=load_mm(seq[i].valv, -prevET*(hour() * 60 + minute()) / 1440);   //   tobe mooved at begin of interval in INTERRUPT.ino
+				ETcalc[in] = prevET*(hour() * 60 + minute()) / 1440;
 
+//			newFlux or actual flux /area are mm added by irrigation				
+
+				load_mm(seq[i].valv, newFlux / pd[seq[i].valv / 10].area[seq[i].valv % 10]);
+				IOTv[seq[i].valv/10].updateThingSpeak(0, 0, 1);
+				eeprom_write_block(&cD, (void *)CURRENT_DATA_POS, sizeof(CurrentData));
+				
+#endif
+				
 					SP("Seq.match p."); SP(seq[i].progIndex); SP(" v."); SP(seq[i].valv); SP(" fdif."); SP(FluxDiff - 1); SP("w"); SPL(pd[seq[i].valv / 10].dummy[seq[i].valv % 10]);
 					//if(pd[seq[i].valv / 10].Status >0)pd[seq[i].valv / 10].Status =0;) //unit works! 
 					eeprom_write_block((void *)&pd[seq[i].valv / 10],(void*)(PD_EEPROM_POS + int(seq[i].valv / 10) *PD_SIZE), PD_SIZE);

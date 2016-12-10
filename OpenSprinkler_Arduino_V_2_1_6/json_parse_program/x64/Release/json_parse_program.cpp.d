@@ -115,10 +115,11 @@ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\json_parse_program\esp8266_nodemc
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/Stream.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src/include/slist.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/FS.h \
+ d:\users\pbecc\onedrive\Arduino\libraries\thingspeak-arduino-master\src/ThingSpeak.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266mDNS/ESP8266mDNS.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ArduinoOTA/ArduinoOTA.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\Wire/Wire.h \
  d:\users\pbecc\onedrive\Arduino\libraries\RTClib-master/RTClib.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\json_parse_program\esp8266_nodemcuv2\NPTtimeSync.h \
+ d:\users\pbecc\onedrive\Arduino\libraries/../TimeNTP_ESP8266WiFi/TimeNTP_ESP8266WiFi.ino/NPTtimeSync.h \
  d:\users\pbecc\onedrive\Arduino\libraries\RTClib-master/RTCLIB.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\SPI/SPI.h
