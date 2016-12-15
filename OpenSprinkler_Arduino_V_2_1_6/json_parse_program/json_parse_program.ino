@@ -2189,7 +2189,7 @@ void setup() {
 			time_t rain_del = now() + rain_delay*SECS_PER_DAY;
 			rain_del = rain_del - hour(rain_del) * 3600;						 // __________________________stop at midmnight
 			sprintf(rainCommand, "&rd=%d", int(rain_delay * 24) - hour(rain_del));
-			SP_D(rain_del); SP_D(" "); SPL_D(rainCommand);
+			SP_D(rain_del); SP_D(" "); SPL_D i(rainCommand);
 
 			for (byte ic = 0; ic < N_OS_STA; ic++) {
 		// correct rain delay if greater or smaller	

@@ -57,6 +57,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FTPServerSample", "..\..\..
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SMTPGO_example", "..\..\..\SMTPGO_example\SMTPGO_example.vcxproj", "{54F8EC25-4568-433F-B039-BDA750E4F0C4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitlashMio", "..\..\..\bitlashMio\bitlashMio.vcxproj", "{0E50F26C-CA90-4021-A311-1E91D848AF80}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -273,6 +275,12 @@ Global
 		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Release|x64.ActiveCfg = Release|Win32
 		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Release|x86.ActiveCfg = Release|Win32
 		{54F8EC25-4568-433F-B039-BDA750E4F0C4}.Release|x86.Build.0 = Release|Win32
+		{0E50F26C-CA90-4021-A311-1E91D848AF80}.Debug|x64.ActiveCfg = Debug|Win32
+		{0E50F26C-CA90-4021-A311-1E91D848AF80}.Debug|x86.ActiveCfg = Debug|Win32
+		{0E50F26C-CA90-4021-A311-1E91D848AF80}.Debug|x86.Build.0 = Debug|Win32
+		{0E50F26C-CA90-4021-A311-1E91D848AF80}.Release|x64.ActiveCfg = Release|Win32
+		{0E50F26C-CA90-4021-A311-1E91D848AF80}.Release|x86.ActiveCfg = Release|Win32
+		{0E50F26C-CA90-4021-A311-1E91D848AF80}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
