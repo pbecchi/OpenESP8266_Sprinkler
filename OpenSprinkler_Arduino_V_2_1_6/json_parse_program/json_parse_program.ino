@@ -33,7 +33,7 @@
 #include <Wire.h>
 
 #include <RTClib.h>
-#include "../TimeNTP_ESP8266WiFi/TimeNTP_ESP8266WiFi.ino/NPTtimeSync.h"
+#include <NPTtimeSync.h>
 ////////////////////////////////////////////////////////
 #include <SPI.h>
 #include <Adafruit_ILI9341esp.h>
@@ -1280,7 +1280,8 @@ void setup() {
 		SPIFFS.begin();
 //		SPIFFS.format();
 	
-		
+//#define INIT_EEPROM	
+
 #ifndef INIT_EEPROM
 		if (eeprom_read_byte(0) == 211)
 #endif			//initialise EEprom
@@ -2189,7 +2190,7 @@ void setup() {
 			time_t rain_del = now() + rain_delay*SECS_PER_DAY;
 			rain_del = rain_del - hour(rain_del) * 3600;						 // __________________________stop at midmnight
 			sprintf(rainCommand, "&rd=%d", int(rain_delay * 24) - hour(rain_del));
-			SP_D(rain_del); SP_D(" "); SPL_D i(rainCommand);
+			SP_D(rain_del); SP_D(" "); SPL_D (rainCommand);
 
 			for (byte ic = 0; ic < N_OS_STA; ic++) {
 		// correct rain delay if greater or smaller	

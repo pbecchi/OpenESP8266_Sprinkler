@@ -65,6 +65,26 @@
 #define SENSOR_TYPE_FLOW		0x02
 #define SENSOR_TYPE_OTHER		0xFF
 
+
+#undef OS_HW_VERSION
+
+/** Hardware defines */
+#if defined(ARDUINO)
+
+#if F_CPU==8000000L
+#define OS_HW_VERSION (OS_HW_VERSION_BASE+20)
+#elif F_CPU==12000000L
+#define OS_HW_VERSION (OS_HW_VERSION_BASE+21)
+#elif F_CPU==16000000L
+#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
+#define OS_HW_VERSION (OS_HW_VERSION_BASE+23)
+#else
+#define OS_HW_VERSION (OS_HW_VERSION_BASE+22)
+#endif
+#endif
+#include "Pins.h"
+
+
 /** Non-volatile memory (NVM) defines */
 #if defined(ARDUINO)
 
@@ -84,7 +104,7 @@
 	  * 0       2438  2450   2486  2534  2582   2630   2654        3998  4005  4012   4019  4026  4033  4040      4096
 	  */
 
-	#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__) // for 4KB NVM
+	#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)//|| defined(BATTERY) // for 4KB NVM
 
 		#define MAX_EXT_BOARDS    6  // maximum number of exp. boards (each expands 8 stations)
 		#define MAX_NUM_STATIONS  ((1+MAX_EXT_BOARDS)*8)  // maximum number of stations
@@ -104,9 +124,12 @@
 
 		#define MAX_EXT_BOARDS		5  // maximum number of exp. boards (each expands 8 stations)
 		#define MAX_NUM_STATIONS	((1+MAX_EXT_BOARDS)*8)  // maximum number of stations
-
+#ifdef BATTERY							//more room to store battery options
+		#define NVM_SIZE 3072
+#else
 		#define NVM_SIZE            2048  // For AVR, nvm data is stored in EEPROM, ATmega644 has 2K EEPROM
-		#define STATION_NAME_SIZE   16    // maximum number of characters in each station name
+#endif
+        #define STATION_NAME_SIZE   16    // maximum number of characters in each station name
 
 		#define MAX_PROGRAMDATA     996   // program data
 		#define MAX_NVCONDATA       12     // non-volatile controller data
@@ -164,9 +187,11 @@
 #define DEFAULT_JAVASCRIPT_URL    "https://ui.opensprinkler.com/js"
 #define DEFAULT_WEATHER_URL       "weather.opensprinkler.com"
 
+
 /** Macro define of each option
   * Refer to OpenSprinkler.cpp for details on each option
   */
+
 typedef enum
 {
     OPTION_FW_VERSION = 0,
@@ -214,6 +239,15 @@ typedef enum
     OPTION_PULSE_RATE_1,
     OPTION_REMOTE_EXT_MODE,
     OPTION_RESET,
+#ifdef BATTERY
+	D_SLEEP_DURATION,
+	D_SLEEP_START_TIME,
+	D_SLEEP_INTERVAL,
+	MIN_VOLTS_D_SLEEP,
+	MIN_VOLTS_L_SLEEP,
+	L_SLEEP_DURATION,
+	BATTERY_mAH,
+#endif
     NUM_OPTIONS	// total number of options
 } OS_OPTION_t;
 
@@ -224,23 +258,6 @@ typedef enum
 #define LOGDATA_WATERLEVEL 0x03
 #define LOGDATA_FLOWSENSE  0x04
 
-#undef OS_HW_VERSION
-
-/** Hardware defines */
-#if defined(ARDUINO)
-
-	#if F_CPU==8000000L
-		#define OS_HW_VERSION (OS_HW_VERSION_BASE+20)
-	#elif F_CPU==12000000L
-		#define OS_HW_VERSION (OS_HW_VERSION_BASE+21)
-	#elif F_CPU==16000000L
-		#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
-			#define OS_HW_VERSION (OS_HW_VERSION_BASE+23)
-		#else
-			#define OS_HW_VERSION (OS_HW_VERSION_BASE+22)
-		#endif
-	#endif
-#include "Pins.h"
 #ifdef GETOUT //da eliminare
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
 	/* READ ME - PIN_EXT_BOARDS defines the total number of discrete digital IO pins

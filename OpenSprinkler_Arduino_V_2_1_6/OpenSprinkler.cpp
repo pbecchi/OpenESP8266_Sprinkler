@@ -23,17 +23,19 @@
 #include "Defines.h"
 #include "OpenSprinkler.h"
 #include "Gpio.h"
+
 #ifdef ESP8266
 #ifdef SPIFFSDAT
 #include <FS.h>
 #define sd SPIFFS
 #define FIL file
 #endif
+//#include "PCF8574/PCF8574.h"
 #include "PCF8574Mio.h"
 
 
 #endif
- 
+
 #ifdef PCF8574_M
 PCF8574 PCF[10];//_38(0x3F);  // add switches to lines  (used as input)
  //PCF8574 PCF_39(0x3F);  // add leds to lines      (used as output)
@@ -53,6 +55,13 @@ PCF8574 PCF[10];//_38(0x3F);  // add switches to lines  (used as input)
 #define digitalWrite(x,y)  digitalWrite(x,y)
 #define digitalRead(x)   digitalRead(x)
 #endif
+
+extern "C" {
+#include "user_interface.h"
+	uint16 readvdd33(void);
+	bool wifi_set_sleep_type(sleep_type_t);
+	sleep_type_t wifi_get_sleep_type(void); 
+}
 /** Declare static data members */
 NVConData OpenSprinkler::nvdata;
 ConStatus OpenSprinkler::status;
@@ -74,7 +83,6 @@ ulong OpenSprinkler::raindelay_start_time;
 byte OpenSprinkler::button_timeout;
 ulong OpenSprinkler::checkwt_lasttime;
 ulong OpenSprinkler::checkwt_success_lasttime;
-
 char tmp_buffer[TMP_BUFFER_SIZE+1];       // scratch buffer
 
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
@@ -103,9 +111,19 @@ char stns_filename[]   = STATION_ATTR_FILENAME;
 LiquidCrystal OpenSprinkler::lcd ( PIN_LCD_RS, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7 );
 #else
 #ifdef LCDI2C
+
+#ifdef LCD_SSD1306
+#ifndef LCD_RST
+#define LCD_RST -1
+#endif
+Adafruit_SSD1306 OpenSprinkler::lcd(LCD_RST);
+
+#else
+
 #define BACKLIGHT_PIN PIN_LCD_BACKLIGHT
 //LiquidCrystal_I2C	OpenSprinkler::lcd(0X27, 2, 1, 0, 4, 5, 6, 7);
 LiquidCrystal_I2C OpenSprinkler::lcd(LCD_ADDR, PIN_LCD_EN, PIN_LCD_RW, PIN_LCD_RS, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
+#endif
 #else
 LiquidCrystal OpenSprinkler::lcd;
 #endif
@@ -130,6 +148,10 @@ extern SdFat sd;
 : LCD define for OSPi
 #endif
 
+#ifdef BATTERY
+ static Adafruit_INA219 ina(0x040);
+#endif
+
 #if defined(OSPI)
 byte OpenSprinkler::pin_sr_data = PIN_SR_DATA;
 #endif
@@ -144,52 +166,62 @@ prog_char op_json_names[] PROGMEM =
 #else
 char op_json_names[] =
 #endif
-    "fwv\0\0"
-    "tz\0\0\0"
-    "ntp\0\0"
-    "dhcp\0"
-    "ip1\0\0"
-    "ip2\0\0"
-    "ip3\0\0"
-    "ip4\0\0"
-    "gw1\0\0"
-    "gw2\0\0"
-    "gw3\0\0"
-    "gw4\0\0"
-    "hp0\0\0"
-    "hp1\0\0"
-    "hwv\0\0"
-    "ext\0\0"
-    "seq\0\0"
-    "sdt\0\0"
-    "mas\0\0"
-    "mton\0"
-    "mtof\0"
-    "urs\0\0"
-    "rso\0\0"
-    "wl\0\0\0"
-    "den\0\0"
-    "ipas\0"
-    "devid"
-    "con\0\0"
-    "lit\0\0"
-    "dim\0\0"
-    "bst\0\0"
-    "uwt\0\0"
-    "ntp1\0"
-    "ntp2\0"
-    "ntp3\0"
-    "ntp4\0"
-    "lg\0\0\0"
-    "mas2\0"
-    "mton2"
-    "mtof2"
-    "fwm\0\0"
-    "fpr0\0"
-    "fpr1\0"
-    "re\0\0\0"
-    "reset";
-//#endif // OPENSPRINKLER_ARDUINO
+"fwv\0\0"
+"tz\0\0\0"
+"ntp\0\0"
+"dhcp\0"
+"ip1\0\0"
+"ip2\0\0"
+"ip3\0\0"
+"ip4\0\0"
+"gw1\0\0"
+"gw2\0\0"
+"gw3\0\0"
+"gw4\0\0"
+"hp0\0\0"
+"hp1\0\0"
+"hwv\0\0"
+"ext\0\0"
+"seq\0\0"
+"sdt\0\0"
+"mas\0\0"
+"mton\0"
+"mtof\0"
+"urs\0\0"
+"rso\0\0"
+"wl\0\0\0"
+"den\0\0"
+"ipas\0"
+"devid"
+"con\0\0"
+"lit\0\0"
+"dim\0\0"
+"bst\0\0"
+"uwt\0\0"
+"ntp1\0"
+"ntp2\0"
+"ntp3\0"
+"ntp4\0"
+"lg\0\0\0"
+"mas2\0"
+"mton2"
+"mtof2"
+"fwm\0\0"
+"fpr0\0"
+"fpr1\0"
+"re\0\0\0"
+"reset"
+#ifdef BATTERY
+"DsleD"
+"DsleS"
+"DsleI"
+"DsleV"
+"LsleV"
+"LsleP"
+"batAh"
+#endif
+;
+// OPENSPRINKLER_ARDUINO
 
 /** Option promopts (stored in progmem, for LCD display) */
 // Each string is strictly 16 characters
@@ -243,7 +275,17 @@ char op_prompts[] =
     "Pulse rate:     "
     "----------------"
     "As remote ext.? "
-    "Factory reset?  ";
+    "Factory reset?  "
+#ifdef BATTERY
+    "deep sleep dur. "					
+	"deep sleep start"					
+	"deep sleep inter"					
+	"min bat v Dsleep"                 
+	"min V L sleep   " 				
+	"lightslepp delay"			
+	"battery capacity"			
+#endif
+	;
 
 /** Option maximum values (stored in progmem) */
 
@@ -300,6 +342,15 @@ char op_max[] =
     255,
     1,
     1
+#ifdef BATTERY
+	, 255,  //s deep sleep duration						D_SLEEP_DURATION
+	255, //min deep sleep start							D_SLEEP_START_TIME
+	255,  //min deep sleep interval						D_SLEEP_INTERVAL
+	255,  //mV minimum battery voltage start of deep sleeMIN_VOLTS_D_SLEEP
+	255,  //mV voltage start of light sleep				MIN_VOLTS_L_SLEEP
+	255,    //s light sleep delay time						L_SLEEP_DURATION
+	255  //mAh battery capacity							BATTERY_mAH
+#endif
 };
 //#endif // OPENSPRINKLER_ARDUINO
 
@@ -355,9 +406,24 @@ byte OpenSprinkler::options[] =
     100,// this and next byte define flow pulse rate (100x)
     0,
     0,  // set as remote extension
-    0   // reset
-};
+    0	   // reset
 
+		   //
+#ifdef BATTERY
+	,
+// options for battery operated
+ 60,    //m deep sleep duration						D_SLEEP_DURATION
+ 22,    //h deep sleep start							D_SLEEP_START_TIME
+ 8,     //h deep sleep interval						D_SLEEP_INTERVAL
+ 32,    //V*10 minimum battery voltage start of deep sleeMIN_VOLTS_D_SLEEP
+ 34,    //V*10 voltage start of light sleep				MIN_VOLTS_L_SLEEP
+ 30,   //s light sleep delay time						L_SLEEP_DURATION
+ 48    //10*Ah battery capacity							BATTERY_mAH
+//
+#endif
+};
+static float charge=0;
+unsigned long chargeTime=0;
 /** Weekday strings (stored in progmem, for LCD display) */
 static prog_char days_str[]/* PROGMEM*/ =
     "Mon\0"
@@ -417,7 +483,10 @@ void ScanI2c()
 	byte address[20];
 	byte error;
 	int nDevices;
-
+#ifdef DS1307RTC==I2CRTC
+	Serial.println("detecting RTC....");
+	RTC.detect();
+#endif
 	Serial.println("Scanning..I2C.....");
 
 	nDevices = 0;
@@ -461,7 +530,7 @@ void ScanI2c()
 					DEBUG_PRINT("PCF expander "); DEBUG_PRINT(nDevices - 1); DEBUG_PRINT("at"); DEBUG_PRINTLN(addres);
 					PCF[nDevices - 1].begin(addres);
 #else
-					Serial.println("error Pcf_dev set PCF8574_M ");
+					Serial.println("error Pcf_dev set: #define PCF8574_M in Pins.h");
 #endif
 				}
 			}
@@ -560,14 +629,15 @@ byte OpenSprinkler::start_network( )
     ether.hisport = ( unsigned int ) ( options[OPTION_HTTPPORT_1]<<8 ) + ( unsigned int ) options[OPTION_HTTPPORT_0];
     DEBUG_PRINT ( F ( "Using http port " ) );
     DEBUG_PRINTLN ( ether.hisport );
-	write_message("connected");
+//	write_message("connected");
     if ( options[OPTION_USE_DHCP] )
     {
         // set up DHCP
         // register with domain name "OS-xx" where xx is the last byte of the MAC address
+		DEBUG_PRINT(F("DHCP IP setup"));
         if ( !ether.dhcpSetup() )
         {
-            DEBUG_PRINTLN ( F ( "DHCP IP setup failed" ) );
+            DEBUG_PRINTLN ( F ( " failed" ) );
 			write_message("DHCP conn. failed");
             return 0;
         }
@@ -627,7 +697,9 @@ byte OpenSprinkler::start_network( )
 void OpenSprinkler::reboot_dev()
 {
 #ifdef ESP8266
+//	eeprom_write_byte((unsigned char *)(NVM_SIZE - 1), byte(charge / 25));
 	write_message("restart");
+	
 	ESP.restart();
 #else
 
@@ -719,13 +791,26 @@ void OpenSprinkler::lcd_start()
         // for I2C LCD, we don't need to do anything
     }
 #else  //for i2c library have to turn backligth on 
-	lcd.begin(20, 4);
 
+	
+#ifndef LCD_SSD1306
+	lcd.begin(20, 4);
 	lcd.setBacklightPin(BACKLIGHT_PIN, PIN_BACKLIGHT_MODE);
 	lcd.setBacklight(HIGH);
 	lcd.home();
 	lcd.print("start..V.2.1.6");
 
+#else
+	lcd.begin(SSD1306_SWITCHCAPVCC, 0x3c);
+	lcd.display();
+	delay(2000);
+	lcd.clearDisplay();
+	lcd.setTextColor(WHITE,BLACK); // white char clear background
+	lcd.print("start..V.2.1.6");
+	lcd.display();
+#endif
+
+	
 #endif
 #endif
 }
@@ -746,9 +831,13 @@ void OpenSprinkler::begin()
 	ScanI2c();
 
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
-    // initialize the Digital IO pins as outputs:
-    for ( int i = 0; i < ( PIN_EXT_BOARDS * 8 ); i++ )
-        pinMode ( station_pins[i], OUTPUT );
+ #ifdef OSBEE==1
+	setallpins(HIGH);
+#else
+	// initialize the Digital IO pins as outputs:
+	for (int i = 0; i < (PIN_EXT_BOARDS * 8); i++)
+		pinMode(station_pins[i], OUTPUT);
+#endif
 #else
     // shift register setup
 #ifdef PIN_SSR_OE
@@ -787,7 +876,7 @@ void OpenSprinkler::begin()
     digitalWrite ( PIN_SR_OE, LOW );
 #endif
 #endif // OPENSPRINKLER_ARDUINO_DISCRETE
-
+#ifdef PIN_RAINSENSOR
     // Rain sensor port set up
     pinMode ( PIN_RAINSENSOR, INPUT );
 
@@ -799,7 +888,7 @@ void OpenSprinkler::begin()
     // OSPI and OSBO use external pullups
     attachInterrupt ( PIN_FLOWSENSOR, "falling", flow_isr );
 #endif
-
+#endif
     // Default controller status variables
     // Static variables are assigned 0 by default
     // so only need to initialize non-zero ones
@@ -864,7 +953,7 @@ void OpenSprinkler::begin()
 #endif
 
     lcd_start();
-
+#ifndef LCD_SSD1306
     // define lcd custom icons
     byte _icon[8];
     // WiFi icon
@@ -928,6 +1017,8 @@ void OpenSprinkler::begin()
     _icon[6] = B10011;
     _icon[7] = B00000;
     lcd.createChar ( 6, _icon );
+
+#endif
 #ifdef SDFAT 
 
     // set sd cs pin high to release SD
@@ -942,12 +1033,22 @@ void OpenSprinkler::begin()
         status.has_sd = 1;
     }
 
+
 #elif defined(SPIFFSDFAT)	
+	long tot = 0;
+	DEBUG_PRINTLN("Start SPIFFS....");
 	if (SPIFFS.begin()) {
 		Dir dir = SPIFFS.openDir("/");
-		while (dir.next())DEBUG_PRINTLN(dir.fileName());
+		while (dir.next()) { DEBUG_PRINT(dir.fileName()); DEBUG_PRINT("  "); DEBUG_PRINTLN(dir.fileSize()); tot += dir.fileSize(); }
 		status.has_sd = 1;
+		DEBUG_PRINT("Tot.bytes="); DEBUG_PRINTLN(tot);
+		lcd.setCursor(0, YFACTOR);
+		lcd.print("Spiffs size=");
+		lcd.print(tot);
+		lcd.display();
+		delay(1000);
 	}
+	else DEBUG_PRINTLN("Coundn't start SPIFFS");
 #endif
 
 
@@ -975,10 +1076,175 @@ void OpenSprinkler::begin()
     DEBUG_PRINTLN ( get_runtime_path() );
 #endif
 }
+////////////////////////////////code for OS bee 2.0///////////////
 
+
+#ifdef OSBEE
+///////////////////////defines for OS Bee////////////////////////////////////////////////////
+//#define MAX_NUMBER_ZONES		3	//num.of zones_______________________needed
+#define st_pins OpenSprinkler::station_pins		//pins used for attached Zones
+//#define PIN_BST_PWR				2	//pin boost power____________________needed for OS Bee 2.0
+//#define PIN_BST_EN				3	//bin boost enable___________________needed
+//#define OSB_SOT_LATCH			4	//value of option for non latching valves___for OS Bee 2.0
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+// open a zone by zone index
+/* Set all pins (including COM)
+* to a given value
+*/
+void setallpins(byte value) {
+	static byte first = true;
+	DEBUG_PRINTLN(value); DEBUG_PRINT("set all pin:");
+	digitalWrite(PIN_COM, value);
+	for (byte i = 0; i<MAX_NUMBER_ZONES; i++) {
+		digitalWrite(st_pins[i], value);
+		DEBUG_PRINT(st_pins[i]); DEBUG_PRINT(" ");
+		delay(100);
+	}
+	DEBUG_PRINTLN(" done");
+	if (first) {
+		first = false;
+		
+		pinMode(PIN_COM, OUTPUT);
+		digitalWrite(PIN_BST_EN, LOW);
+		pinMode(PIN_BST_EN, OUTPUT);
+		digitalWrite(PIN_BST_PWR, LOW);
+		pinMode(PIN_BST_PWR, OUTPUT);
+		for (byte i = 0; i < MAX_NUMBER_ZONES; i++) {
+			pinMode(st_pins[i], OUTPUT);
+		}
+	}
+		
+	
+	
+}
+#if OSBEE==0
+void boost(){
+	// turn on boost converter for 500ms
+	digitalWrite(PIN_BST_PWR,HIGH);
+	delay(500);
+	digitalWrite(PIN_BST_PWR, LOW);
+}
+void BeeOpen(byte zid) {
+	byte pin = st_pins[zid];
+	//  all pin set to v+
+		// for latching solenoid
+		boost();							// boost voltage
+		setallpins(STA_HIGH);				// set all switches to HIGH, including COM
+		delay(500);
+		digitalWrite(pin, STA_LOW);			// set the specified switch to LOW
+		digitalWrite(PIN_BST_EN, STA_HIGH);		// dump boosted voltage
+		DEBUG_PRINT("Boost..");
+		delay(200);		// for 250ms
+		digitalWrite(PIN_BST_EN, STA_LOW);  // disable boosted voltage
+		DEBUG_PRINTLN("..sent");
+		digitalWrite(pin, STA_HIGH);        // set the specified switch back to HIGH
+		delay(500);
+		setallpins(STA_LOW);			// back to rest
+}
+
+// close a zone
+void BeeClose(byte zid) {
+	byte pin = st_pins[zid];
+		// for latching solenoid
+		boost();  // boost voltage
+		setallpins(STA_LOW);        // set all switches to LOW, including COM
+		delay(500);
+		digitalWrite(pin, STA_HIGH);// set the specified switch to HIGH
+		digitalWrite(PIN_BST_EN, STA_HIGH); // dump boosted voltage
+		DEBUG_PRINT("Boost..");
+		
+		delay(200);                     // for 250ms
+		digitalWrite(PIN_BST_EN, STA_LOW);  // disable boosted voltage
+		DEBUG_PRINTLN("..sent");
+
+		digitalWrite(pin, STA_LOW);     // set the specified switch back to LOW
+	//	delay(500);
+	//	setallpins(STA_LOW);               // set all switches back to rest
+}
+#else
+void boost() {
+	// turn on boost converter for 500ms
+	digitalWrite(PIN_BST_PWR, HIGH);
+	delay(500);
+	digitalWrite(PIN_BST_PWR, LOW);
+}
+#define SPL_D(x) DEBUG_PRINTLN(x)
+// open a zone by zone index
+void BeeOpen(byte zid) {
+	byte pin = st_pins[zid];
+#ifdef OSBEE_NOLATCH
+
+	if (options[OPTION_SOT].ival != OSB_SOT_LATCH)
+	{
+		DEBUG_PRINT("open_nl ");
+		DEBUG_PRINTLN(zid);
+		// for non-latching solenoid
+		digitalWrite(PIN_BST_EN, LOW);  // disable output of boosted voltage 
+		boost();                        // boost voltage
+		digitalWrite(PIN_COM, HIGH);    // set COM to HIGH
+		digitalWrite(PIN_BST_EN, HIGH); // dump boosted voltage    
+		digitalWrite(pin, LOW);         // set specified switch to LOW
+	}
+	else
+#endif
+	{
+		// for latching solenoid
+		boost();  // boost voltage
+		setallpins(HIGH);       // set all switches to HIGH, including COM
+		SPL_D("allpin high");
+
+		digitalWrite(pin, LOW); // set the specified switch to LOW
+		DEBUG_PRINT(pin); SPL_D(" low");
+
+		digitalWrite(PIN_BST_EN, HIGH); // dump boosted voltage
+		SPL_D("enable boost");
+		delay(300);                     // for 250ms
+		digitalWrite(pin, HIGH);        // set the specified switch back to HIGH
+		DEBUG_PRINT(pin); SPL_D(" high");
+
+		digitalWrite(PIN_BST_EN, LOW);  // disable boosted voltage
+		SPL_D("close boost");
+	}
+}
+void BeeClose(byte zid) {
+	byte pin = st_pins[zid];
+#ifdef OSBEE_NOLATCH
+	if (options[OPTION_SOT].ival != OSB_SOT_LATCH)
+	{
+		DEBUG_PRINT("close_nl ");
+		DEBUG_PRINTLN(zid);
+		// for non-latching solenoid
+		digitalWrite(pin, HIGH);
+	}
+	else
+#endif
+	{
+		// for latching solenoid
+		boost();  // boost voltage
+		SPL_D("boosted");
+		setallpins(LOW);        // set all switches to LOW, including COM
+		SPL_D("allpin low");
+		digitalWrite(pin, HIGH);// set the specified switch to HIGH
+		DEBUG_PRINT(pin); SPL_D(" high");
+		digitalWrite(PIN_BST_EN, HIGH); // dump boosted voltage
+		SPL_D("enable boost");
+		delay(300);                     // for 250ms
+		digitalWrite(pin, LOW);     // set the specified switch back to LOW
+		digitalWrite(PIN_BST_EN, LOW);  // disable boosted voltage
+		SPL_D("Close boost");
+		setallpins(HIGH);               // set all switches back to HIGH
+		SPL_D("allpins high");
+	}
+}
+#endif
+#endif
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 /** Apply all station bits
  * !!! This will activate/deactivate valves !!!
  */
+static byte prev_bits = 0xF;
 void OpenSprinkler::apply_all_station_bits()
 {
 
@@ -994,24 +1260,62 @@ void OpenSprinkler::apply_all_station_bits()
 	//	DEBUG_PRINT(int(bid)); DEBUG_PRINT("sb="); DEBUG_PRINTLN(int(sbits));
         else
             sbits = 0;
-
+	//  PROCESS ONLY IF BITS ARE CHANGED !!!!!!!!!!!!!!!!!!!!!!!!
+		if (bid == MAX_EXT_BOARDS) { //only for this station not for extension or remotes
+			if (sbits == prev_bits) return;
+			
+		} 
         // Check that we're switching physical discretes within the range defined
+
 		if (MAX_EXT_BOARDS - bid < PIN_EXT_BOARDS)
+
+
+		if (bid < PIN_EXT_BOARDS)
+#define MS7 7-s
+
 		{
-			DEBUG_PRINT("s "); DEBUG_PRINT(bid);DEBUG_PRINT(" b = "); DEBUG_PRINTLN(int(sbits));
+			
 			for (s = 0; s < 8; s++)
 			{
 
-				//	DEBUG_PRINT(station_pins[(bid * 8) + s]);
-				byte sBit = (sbits & ((byte)1 << (7 - s))) ? STA_HIGH : STA_LOW;
-						//DEBUG_PRINTF(sBit,DEC);
-				digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
+#ifdef OSBEE
+				if (bid == MAX_EXT_BOARDS) {
+					if ((sbits & ((byte)1 << (MS7))) != (prev_bits & ((byte)1 << (MS7))))
+						if (sbits & ((byte)1 << (MS7)))
+
+						{
+							BeeOpen(s);
+							DEBUG_PRINT("============open "); DEBUG_PRINTLN(s);
+						//	lcd.setCursor(s * 10 + 20, 30);
+						//	lcd.print('*');
+						}
+						else
+						{
+							BeeClose(s);
+							DEBUG_PRINT("===========closed "); DEBUG_PRINTLN(s);
+						//	lcd.setCursor(s * 10 + 20, 30);
+						//	lcd.print(' ');
+						}
+				}
+				else
+#endif
+				{
+					//	DEBUG_PRINT(station_pins[(bid * 8) + s]);
+					byte sBit = (sbits & ((byte)1 << (MS7))) ? STA_HIGH : STA_LOW;
+					//DEBUG_PRINTF(sBit,DEC);
+					digitalWrite(station_pins[((MAX_EXT_BOARDS - bid) * 8) + s], sBit);
+			    }
+
+			}
+			if (bid == MAX_EXT_BOARDS) {
+				DEBUG_PRINT("s "); DEBUG_PRINT(bid); DEBUG_PRINT(" b = "); DEBUG_PRINT(int(prev_bits)); DEBUG_PRINT("  "); DEBUG_PRINTLN(int(sbits));
+				prev_bits = sbits;
 			}
 		}
 		
     }
 	
-#else
+#else //ARDUINO DISCRETE
     digitalWrite ( PIN_SR_LATCH, LOW );
     byte bid, s, sbits;
 
@@ -1028,12 +1332,12 @@ void OpenSprinkler::apply_all_station_bits()
         {
             digitalWrite ( PIN_SR_CLOCK, LOW );
 #if defined(OSPI) // if OSPI, use dynamically assigned pin_sr_data
-            digitalWrite ( pin_sr_data, ( sbits & ( ( byte ) 1<< ( 7-s ) ) ) ? HIGH : LOW );
+            digitalWrite ( pin_sr_data, ( sbits & ( ( byte ) 1<< ( MS7 ) ) ) ? HIGH : LOW );
 #endif
 #ifndef OSPI
-			byte y = (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW;
+			byte y = (sbits & ((byte)1 << (MS7))) ? HIGH : LOW;
 			
-			digitalWrite ( PIN_SR_DATA, (sbits & ((byte)1 << (7 - s))) ? HIGH : LOW);
+			digitalWrite ( PIN_SR_DATA, (sbits & ((byte)1 << (MS7))) ? HIGH : LOW);
 #endif
             digitalWrite ( PIN_SR_CLOCK, HIGH );
         }
@@ -1073,7 +1377,170 @@ void OpenSprinkler::apply_all_station_bits()
         s=sid&0x07;
         switch_special_station ( sid, ( station_bits[bid]>>s ) &0x01 );
     }
+
 }
+#ifdef BATTERY
+#define SLEEPING_VOLTS		options[MIN_VOLTS_L_SLEEP]*10  //unit 10mV options unit is 100mV  
+#define DEEP_SLEEP_VOLTS	options[MIN_VOLTS_D_SLEEP]*10  //unit 10mV options unit is 100mV  
+#define DEEP_SLEEP_TIME		options[D_SLEEP_DURATION]*60   //minutes option is in hours
+#define SLEEP_START			options[D_SLEEP_START_TIME]*60 //minutes option is in hours
+#define SLEEP_DURATION		options[D_SLEEP_DURATION]*60   //minutes option is in hours
+#define L_SLEEP_TIME		options[L_SLEEP_DURATION]      //seconds
+
+static int voltAverage, vcount = 0, sleeptime = 30;
+/*
+#define SLEEPING_VOLTS 330
+#define DEEP_SLEEP_VOLTS 320
+#define DEEP_SLEEP_TIME 3600UL   // 1 hour
+#define SLEEP_START 20*60
+#define SLEEP_DURATION 10*60
+
+*/
+#define BOTTOM 64-9
+
+
+void OpenSprinkler::Sleep(int volts) {
+//	DEBUG_PRINT("V="); DEBUG_PRINTLN(SLEEPING_VOLTS);
+	bool sleepFlag = false;
+// in the interval for sleeping!!!
+	if (hour() > SLEEP_START) { if (hour() - SLEEP_START < SLEEP_DURATION) sleepFlag = true; }
+	else if (SLEEP_START + SLEEP_DURATION > 24) if (hour() < SLEEP_START + SLEEP_DURATION - 24)sleepFlag = true;
+//////
+	if (volts>=100)
+		if (volts < DEEP_SLEEP_VOLTS&&sleepFlag)
+		{
+			lcd.clearDisplay();
+			lcd.setCursor(0, BOTTOM);
+			lcd.print(volts / 100.); lcd.print(" sleep...");
+			unsigned int sleepTime = DEEP_SLEEP_TIME;
+			lcd_print_2digit(hour(now_tz() + sleepTime)); lcd.print(":");
+			lcd_print_2digit(minute(sleepTime+now_tz()));
+			lcd.display();
+			ESP.deepSleep(DEEP_SLEEP_TIME*1000000);    // sleep for 1 hour waik up and sleep again if battery is empty      
+		}
+		else 	if(volts < SLEEPING_VOLTS) {
+//		WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
+//		wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+		lcd.setCursor(30, BOTTOM); 
+		lcd.print("zzzzzzzz"); 
+		lcd.display();
+		wifi_set_sleep_type(LIGHT_SLEEP_T);
+		delay(L_SLEEP_TIME * 1000L);
+		lcd.setCursor(100, BOTTOM);
+		lcd.print("z");
+		lcd.display();
+		
+	}
+	else {
+	//	lcd.setCursor(30, BOTTOM);
+	//	lcd.print(volts);
+	}
+}
+void OpenSprinkler::ShowNet() {
+	if (second() % 60 == 0) {
+		byte level = ether.WiFiLevel(0);
+		DEBUG_PRINT("NetLev."); DEBUG_PRINTLN(level);
+#define NET_X 19*XFACTOR
+#define NET_Y BOTTOM-1
+#define NET_S 150
+		lcd.setCursor(NET_X-5, NET_Y);
+		lcd.print("  ");
+
+		lcd.drawBitmap(NET_X - 5, NET_Y, antenna5x9_bmp, 5, 9, WHITE);
+		lcd.drawBitmap(NET_X , NET_Y, blank24x18_bmp, 10, 10, BLACK);
+
+		lcd.drawTriangle(NET_X , NET_Y+YFACTOR,
+			NET_X + (level*XFACTOR) / NET_S, NET_Y+YFACTOR,
+			NET_X + (level*XFACTOR) / NET_S, NET_Y+YFACTOR - (YFACTOR*level) / NET_S, WHITE);
+		lcd.display();
+		
+	}
+}
+
+int OpenSprinkler::BatteryAmps()
+{
+	return ina.getCurrent_mA();
+
+}
+int OpenSprinkler::BatteryCharge()
+{
+	return charge;
+
+}
+
+int OpenSprinkler::BatteryVoltage() {
+	
+#define INTERV_BATTERY 5
+#define ANALOG_FACTOR (4.9+22)/4.9/1024 //*3.4 if 3.33 v full scale //4.9 & 22 KOhm 3.3 volt scale
+#ifdef INA219
+	if (chargeTime == 0) {
+		ina.begin();
+		charge=25*eeprom_read_byte((unsigned char *)(NVM_SIZE - 1));
+		if(charge==0||charge > options[BATTERY_mAH] * 100)charge = options[BATTERY_mAH] * 100;
+		chargeTime = millis();
+	}
+	 float current = ina.getCurrent_mA();
+	 float voltage = ina.getBusVoltage_V();
+	 charge -= current*(millis() - chargeTime) / 3600000;
+	 chargeTime = millis();
+	 if (charge < 50)charge = 50;
+	 if (charge > options[BATTERY_mAH] * 100)charge = options[BATTERY_mAH] * 100;
+	 if (minute() == 0 && second() > 58)eeprom_write_byte((unsigned char *)(NVM_SIZE - 1), byte(charge / 25));
+	 lcd.setCursor(0, BOTTOM);
+	 lcd.print(voltage);
+	lcd.setCursor(30, BOTTOM);
+	lcd.print("          ");
+	lcd.setCursor(30, BOTTOM);
+//	char buff[12];
+	lcd.printf("%5d %5d",int(current),int(charge));
+//	lcd.print(buff);
+	//lcd.print(" ");	lcd.print(int(charge));
+#endif
+	if (minute() % INTERV_BATTERY == 0) {
+		if (vcount == 0)voltAverage = 0;
+		lcd.setCursor(0, BOTTOM);
+		//lcd.drawBitmap(0, BOTTOM - 1, battery20x11_bmp, 20, 11, 0);
+		float volt = analogRead(A0)*ANALOG_FACTOR;
+		lcd.print(volt);
+		voltAverage += volt * 100;
+		vcount++;
+		
+			return 0;
+	}
+	else
+		if (vcount>0) {
+			lcd.setCursor(0, BOTTOM);
+			lcd.print(voltAverage / vcount / 100.);
+			lcd.display();
+			voltAverage = voltAverage / vcount;
+			delay(1000);
+			vcount = 0;
+		//	volts[ivolts] = voltAverage - 250;
+		//	if (button_read(BUTTON_WAIT_NONE)&0x0F == 2)drawdiag(volts, ivolts);
+		//	if (ivolts++ >= 100) {
+		//		ivolts = 0;
+		//	}
+			return voltAverage;
+
+		}
+	return voltAverage;
+		
+}
+void OpenSprinkler::drawdiag(byte y[], byte n) {
+#define YDIAG 60
+#define HDIAG 30
+	lcd.clearDisplay();
+	for (byte i = 0; i < n; i++) {
+		lcd.drawFastVLine(2 + i, YDIAG - HDIAG*y[i] / 250, HDIAG*y[i] / 250, WHITE);
+	/*	if (i*INTERV_BATTERY % 120 == 0) {
+			lcd.setCursor(i, YDIAG);
+			lcd.print(((hour() + 24) * 60 + minute() - (n-i) * INTERV_BATTERY) % 24);
+		}*/
+		
+	}
+	lcd.display();
+}
+#endif
 
 /** Read rain sensor status */
 void OpenSprinkler::rainsensor_status()
@@ -1616,6 +2083,7 @@ void OpenSprinkler::options_setup()
 	DEBUG_PRINT(button);
 //	button = 2;
 	byte ii = 1;
+
 	switch (button & BUTTON_MASK)
 	{
 
@@ -1629,15 +2097,10 @@ void OpenSprinkler::options_setup()
 		break;
 
 	case BUTTON_2:  // button 2 is used to enter bootloader
-#ifdef MESSAGE
-		print_message(-(ii++ * 20));
-		delay(2000);
-		while (button_read(BUTTON_WAIT_NONE)&BUTTON_MASK == 2)
-		{
-			print_message(-(ii++ * 20));
-			delay(2000);
-		}
-#endif
+		ether.netflag = true;
+		lcd_print_line_clear_pgm(PSTR("==Change Network=="), 0);
+		delay(DISPLAY_MSG_MS);
+
 		break;
 
     case BUTTON_3:
@@ -1651,7 +2114,11 @@ void OpenSprinkler::options_setup()
             button = button_read ( BUTTON_WAIT_NONE );
         }
         while ( ! ( button & BUTTON_FLAG_DOWN ) );
-        lcd.clear();
+#ifndef LCD_SSD1306
+		lcd.clear();
+#else
+		lcd.clearDisplay();
+#endif
         ui_set_options ( 0 );
         if ( options[OPTION_RESET] )
         {
@@ -1669,7 +2136,7 @@ void OpenSprinkler::options_setup()
 		DEBUG_PRINT("no but");
         // flash screen
         lcd_print_line_clear_pgm ( PSTR ( " OpenSprinkler" ),0 );
-        lcd.setCursor ( 2, 1 );
+        lcd.setCursor ( 2*XFACTOR, 1*YFACTOR );
         lcd_print_pgm ( PSTR ( "HW v" ) );
         byte hwv = options[OPTION_HW_VERSION];
         lcd.print ( ( char ) ( '0'+ ( hwv/10 ) ) );
@@ -1686,6 +2153,10 @@ void OpenSprinkler::options_setup()
         default:
             lcd_print_pgm ( PSTR ( " AC" ) );
         }
+
+#ifdef LCD_SSD1306
+		lcd.display();
+#endif
         delay ( 1000 );
     }
 #endif
@@ -1771,6 +2242,13 @@ void OpenSprinkler::raindelay_stop()
 }
 
 /** LCD and button functions */
+void OpenSprinkler::lcd_clear() {
+#ifndef LCD_SSD1306
+	lcd.clear();
+#else
+	lcd.clearDisplay();
+#endif
+}
 #if defined(ARDUINO)    // AVR LCD and button functions
 /** print a program memory string */
 void OpenSprinkler::lcd_print_pgm ( PGM_P /*PROGMEM*/ str )
@@ -1780,12 +2258,15 @@ void OpenSprinkler::lcd_print_pgm ( PGM_P /*PROGMEM*/ str )
     {
         lcd.print ( ( char ) c );
     }
+#ifdef LCD_SSD1306
+	lcd.display();
+#endif
 }
 
 /** print a program memory string to a given line with clearing */
 void OpenSprinkler::lcd_print_line_clear_pgm ( PGM_P /*PROGMEM*/ str, byte line )
 {
-    lcd.setCursor ( 0, line );
+    lcd.setCursor ( 0, line*YFACTOR );
     uint8_t c;
     int8_t cnt = 0;
     while ( ( c=pgm_read_byte ( str++ ) ) != '\0' )
@@ -1794,6 +2275,10 @@ void OpenSprinkler::lcd_print_line_clear_pgm ( PGM_P /*PROGMEM*/ str, byte line 
         cnt++;
     }
     for ( ; ( 16-cnt ) >= 0; cnt ++ ) lcd_print_pgm ( PSTR ( " " ) );
+
+#ifdef LCD_SSD1306
+	lcd.display();
+#endif
 }
 
 void OpenSprinkler::lcd_print_2digit ( int v )
@@ -1822,18 +2307,28 @@ void OpenSprinkler::lcd_print_time ( time_t t )
     lcd_print_2digit ( month ( t ) );
     lcd_print_pgm ( PSTR ( "-" ) );
     lcd_print_2digit ( day ( t ) );
+
+#ifdef LCD_SSD1306
+	lcd.display();
+#endif
 }
 
 /** print ip address */
 void OpenSprinkler::lcd_print_ip ( const byte *ip, byte endian )
 {
-    lcd.clear();
+
+    lcd_clear();
+
     lcd.setCursor ( 0, 0 );
     for ( byte i=0; i<4; i++ )
     {
         lcd.print ( endian ? ( int ) ip[3-i] : ( int ) ip[i] );
         if ( i<3 ) lcd_print_pgm ( PSTR ( "." ) );
     }
+
+#ifdef LCD_SSD1306
+	lcd.display();
+#endif
 }
 
 /** print mac address */
@@ -1845,74 +2340,119 @@ void OpenSprinkler::lcd_print_mac ( const byte *mac )
         if ( i )  lcd_print_pgm ( PSTR ( "-" ) );
         lcd.print ( ( mac[i]>>4 ), HEX );
         lcd.print ( ( mac[i]&0x0F ), HEX );
-        if ( i==4 ) lcd.setCursor ( 0, 1 );
+        if ( i==4 ) lcd.setCursor ( 0, YFACTOR );
     }
     lcd_print_pgm ( PSTR ( " (MAC)" ) );
+
+#ifdef LCD_SSD1306
+	lcd.display();
+#endif
 }
 
 /** print station bits */
-void OpenSprinkler::lcd_print_station ( byte line, char c )
+void OpenSprinkler::lcd_print_station(byte line, char c)
 {
-    lcd.setCursor ( 0, line );
-    if ( status.display_board == 0 )
-    {
-        lcd_print_pgm ( PSTR ( "MC:" ) ); // Master controller is display as 'MC'
-    }
-    else
-    {
-        lcd_print_pgm ( PSTR ( "E" ) );
-        lcd.print ( ( int ) status.display_board );
-        lcd_print_pgm ( PSTR ( ":" ) ); // extension boards are displayed as E1, E2...
-    }
+#ifdef LCD_SSN1306
+	lcd.setTextSize(2);
+#endif
+	lcd.setCursor(0, line*YFACTOR);
+	if (status.display_board == 0)
+	{
+		lcd_print_pgm(PSTR("MC")); // Master controller is display as 'MC'
+	}
+	else
+	{
+		lcd_print_pgm(PSTR("E"));
+		lcd.print((int)status.display_board);
+		lcd_print_pgm(PSTR("")); // extension boards are displayed as E1, E2...
+	}
 
-    if ( !status.enabled )
-    {
-        lcd_print_line_clear_pgm ( PSTR ( "-Disabled!-" ), 1 );
-    }
-    else
-    {
-        byte bitvalue = station_bits[status.display_board];
-        for ( byte s=0; s<8; s++ )
-        {
-            byte sid = ( byte ) status.display_board<<3;
-            sid += ( s+1 );
-            if ( sid == options[OPTION_MASTER_STATION] )
-            {
-                lcd.print ( ( bitvalue&1 ) ? ( char ) c : 'M' ); // print master station
-            }
-            else if ( sid == options[OPTION_MASTER_STATION_2] )
-            {
-                lcd.print ( ( bitvalue&1 ) ? ( char ) c : 'N' ); // print master2 station
-            }
-            else
-            {
-                lcd.print ( ( bitvalue&1 ) ? ( char ) c : '_' );
-            }
-            bitvalue >>= 1;
-        }
-    }
-    lcd_print_pgm ( PSTR ( "    " ) );
-    lcd.setCursor ( 12, 1 );
-    if ( options[OPTION_REMOTE_EXT_MODE] )
-    {
-        lcd.write ( 5 );
-    }
-    lcd.setCursor ( 13, 1 );
-    if ( status.rain_delayed || ( status.rain_sensed && options[OPTION_SENSOR_TYPE]==SENSOR_TYPE_RAIN ) )
-    {
-        lcd.write ( 3 );
-    }
-    if ( options[OPTION_SENSOR_TYPE]==SENSOR_TYPE_FLOW )
-    {
-        lcd.write ( 6 );
-    }
-    lcd.setCursor ( 14, 1 );
-    if ( status.has_sd )  lcd.write ( 2 );
-	
+	if (!status.enabled)
+	{
+		lcd_print_line_clear_pgm(PSTR("-Disabled!-"), 1);
+	}
+	else
+	{
+		byte xchar = 2;
+		byte bitvalue = station_bits[status.display_board];
+		for (byte s = 0; s < 8; s++)
+		{
+			byte sid = (byte)status.display_board << 3;
+			sid += (s + 1);
+			if (sid == options[OPTION_MASTER_STATION])
+			{
+#ifndef LCD_SSD1306x
+				lcd.print((bitvalue & 1) ? (char)c : 'M'); // print master station
+#else
+				lcd.drawBitmap(2 * XFACTOR*xchar++, YFACTOR, (bitvalue & 1) ? valveOpen10x16_bmp : valveClosed10x16_bmp, 10, 16, WHITE);
+#endif
+			}
+			else if (sid == options[OPTION_MASTER_STATION_2])
+			{
+				lcd.print((bitvalue & 1) ? (char)c : 'N'); // print master2 station
+			}
+			else
+			{
+// ------------if station is disabled -------------------------------------------
+				if(station_attrib_bits_read ( ADDR_NVM_STNDISABLE ) & ( 1<<s ) )lcd.print((bitvalue & 1) ? (char)c : '-'); // print master station
+				else
+//----------normal active station
+				lcd.print((bitvalue & 1) ? (char)c : '_'); // print master station
 
-    lcd.setCursor ( 15, 1 );
-    lcd.write ( status.network_fails>2?1:0 ); // if network failure detection is more than 2, display disconnect icon
+//				lcd.drawBitmap(2 * XFACTOR*xchar++, YFACTOR, (bitvalue & 1) ? valveOpen10x16_bmp : valveClosed10x16_bmp, 10, 16, WHITE);
 
+			}
+			bitvalue >>= 1;
+		}
+	}
+#ifndef LCD_SSD1306
+	lcd_print_pgm(PSTR("     "));
+	lcd.setCursor(12, 1);
+
+	if (options[OPTION_REMOTE_EXT_MODE])
+	{
+		lcd.write(5);
+	}
+	lcd.setCursor(13 , 1);
+#endif
+
+	if (status.rain_delayed || (status.rain_sensed && options[OPTION_SENSOR_TYPE] == SENSOR_TYPE_RAIN))
+	{
+#ifndef LCD_SSD1306
+		
+		lcd.write(3);
+#else
+		lcd.drawBitmap(117, 0, rain10x10_bmp, 10, 10, WHITE);
+#endif
+
+	}
+	if (options[OPTION_SENSOR_TYPE] == SENSOR_TYPE_FLOW)
+	{
+		lcd.write(6);
+	}
+
+	if (status.has_sd)
+	{
+
+#ifndef LCD_SSD1306
+		lcd.setCursor(14, 1);
+		lcd.write(2);
+#else
+		lcd.drawBitmap(16*XFACTOR, 0, sdisk10x10_bmp, 10, 10, WHITE);
+#endif
+	}
+
+#ifndef LCD_SSD1306
+	lcd.setCursor(15, 1);
+	lcd.write(status.network_fails>2 ? 1 : 0); // if network failure detection is more than 2, display disconnect icon
+#else
+	lcd.drawBitmap(18*XFACTOR, 0, antenna5x9_bmp, 5, 9, WHITE);
+#endif
+    
+#ifdef LCD_SSD1306
+	lcd.display();
+	lcd.setTextSize(1);
+#endif
 }
 
 /** print a version number */
@@ -1929,6 +2469,10 @@ void OpenSprinkler::lcd_print_version ( byte v )
         lcd.print ( "." );
     }
     lcd.print ( v%10 );
+
+#ifdef LCD_SSD1306
+	lcd.display();
+#endif
 }
 
 /** print an option value */
@@ -1939,7 +2483,7 @@ void OpenSprinkler::lcd_print_option ( int i )
     lcd.setCursor ( 0, 0 );
     lcd.print ( tmp_buffer );
     lcd_print_line_clear_pgm ( PSTR ( "" ), 1 );
-    lcd.setCursor ( 0, 1 );
+    lcd.setCursor ( 0, YFACTOR );
     int tz;
     switch ( i )
     {
@@ -2024,6 +2568,10 @@ void OpenSprinkler::lcd_print_option ( int i )
     if ( i==OPTION_WATER_PERCENTAGE )  lcd_print_pgm ( PSTR ( "%" ) );
     else if ( i==OPTION_MASTER_ON_ADJ || i==OPTION_MASTER_OFF_ADJ || i==OPTION_MASTER_ON_ADJ_2 || i==OPTION_MASTER_OFF_ADJ_2 )
         lcd_print_pgm ( PSTR ( " sec" ) );
+
+#ifdef LCD_SSD1306
+	lcd.display();
+#endif
 }
 
 /** Button functions */
@@ -2267,7 +2815,12 @@ void OpenSprinkler::ui_set_options ( int oid )
             lcd_print_option ( i );
         }
     }
-    lcd.noBlink();
+#ifndef LCD_SSD1306
+	lcd.noBlink();
+#else
+
+#endif
+    
 }
 
 /** Set LCD contrast (using PWM) */

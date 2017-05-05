@@ -14,7 +14,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 // ===================================================================================================================
 // HARDWARE CONFIGURATIONS								GPIO channels                     #define
 //
-// RTC               DS1307, DS33xx						I2C channels					allways
+// RTC               DS1307, DS33xx,MCP7940				I2C channels					allways
 // LCD               Standard ,							GPIO 5 channels					undef
 //					 Freetronic,						?								def OPENSPRINKLER_ARDUINO_FREETRONICS_LCD
 //					 I2C								I2C ch							def LCDI2C
@@ -42,12 +42,23 @@ This way you can use expander for all functions (interrupt donot work right now)
 
 #include <Arduino.h>
 #include "Config.h"
+#define MIN_LCD_LINE 3
+#define MAX_LCD_LINE 5
+//#define DS1307RTC RTC_DS1307
+//#define DS1307RTC RTC_MCP7940
+#define DUMMY_PIN 0x1F
+//#define SLEEP_START 20
 #define STA_HIGH HIGH   // normally 1 station output on
 #define STA_LOW LOW     // normally 0 station output off
 ////////////////////////////////////////BASIC ESP DEF //////////////////////////////
 #ifdef ESP8266
-//#define WIFIMANAGER
-//#define MESSAGE
+#define WIFIMANAGER 1
+#define MESSAGE
+#ifndef D1
+ #define D2 4
+ #define D1 5
+ #define D6 15
+#endif
 ////////ota upload//////////
 #define OTA_UPLOAD
 ////////////////////////////  I2C standard pins /////////////////////////
@@ -76,7 +87,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 //                       PIN    ASSIGNEMENT
 //
 //////////////////////////////////////////////////////////////////////////
-#define PROTO 6     //board type selection
+#define PROTO 8  //board type selection
 /////////////////////////////////////////////////////////////////////////
 //////////////////////////////proto board 1////////////rear garden//////////////////////////////////
 #if PROTO==1 // shift register 
@@ -90,7 +101,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define LCDI2C								//:i2c LCD
 #define SPIFFSDFAT							//:no sd ....EMULATED ON fLASH
 #define ADDITIONAL_SENSORS ESP8266_C         //:additional sensors to ESP 
-#undef EEPROM_ESP                            //modify in libsel.h
+//#undef EEPROM_ESP                            //modify in libsel.h  EEPROM is now on flash
 
 #elif PROTO==2
 /////////////////////////////proto board 2//////////Vegetable garden board/////////////////////////////////////
@@ -213,6 +224,83 @@ This way you can use expander for all functions (interrupt donot work right now)
 //#define PCF8574_M
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
 
+#elif PROTO==7 // battery operated latching valves 
+#define BATTERY											// for OpenSprinkler Solar battery powered
+#define INA219											// if INA219 board is present
+#define OSBEE 0											// ==0 if is a battery powered board
+// OLED 128*64 DISPLAY
+#define LCD_SSD1306
+#define LCD_RST 12		
+#define LCD_ADDR 0x3c
+#define OPENSPRINKLER_ARDUINO_W5100      //:required for ESP8266 not using shift registers
+#define OPENSPRINKLER_ARDUINO_DISCRETE      //direct connection pin relay board
+//#define SHIFT_REG
+// PCF8574 pin out  ----connected to relay module------------------------------ addr 0x3F
+#define PIN_STN_S01		0x24
+#define PIN_STN_S02		0x23
+#define PIN_STN_S03		0x22
+#define PIN_STN_S04		0x00    //NA
+#define PIN_STN_S05		0x00    //NA
+#define PIN_STN_S06		0x00    //NA
+#define PIN_STN_S07		0x00	//NA
+#define PIN_STN_S08		0x00	//NA
+#define PCF8574_M        //PCF8574 are used for i/o
+#define STA_HIGH LOW     // low station output on for Relay
+#define STA_LOW HIGH     // high station output off for Relay
+//#define DS1307RTC RTC_MCP7940
+//-------------------------buttons--------------------------------------------
+//#define BUTTON_ADC_PIN
+//:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
+#define PIN_BUTTON_1 0x25			//button are on  PCF8574 expaneder adr 0x3F
+#define PIN_BUTTON_2 0x26
+#define PIN_BUTTON_3 0x27
+#define BUT1_ON 0		//PIN input:1= Vcc, 0 =GND
+#define BUT2_ON 0		//PIN input:1= Vcc, 0 =GND
+#define BUT3_ON 0		//PIN input:1= Vcc, 0 =GND
+#define LCDI2C								//:i2c LCD
+#define LCD_SSN1306                         // SSN1306 screen
+#define SPIFFSDFAT				  			//:no sd ....EMULATED ON fLASH
+#define ADDITIONAL_SENSORS ESP8266_C        //:additional sensors to ESP 
+#define EEPROM_ESP                          //modify in libsel.h
+#elif PROTO==8 // standard OS Bee 2.0
+#define DS1307RTC I2CRTC
+//#define BATTERY											// for OpenSprinkler Solar battery powered
+//#define INA219											// if INA219 board is present
+#define OSBEE 1											// ==0 if is a battery powered board
+// OLED 128*64 DISPLAY
+#define LCD_SSD1306
+//#define LCD_RST 12		
+#define LCD_ADDR 0x3c
+#define OPENSPRINKLER_ARDUINO_W5100      //:required for ESP8266 not using shift registers
+#define OPENSPRINKLER_ARDUINO_DISCRETE      //direct connection pin relay board
+//#define SHIFT_REG
+// PCF8574 pin out  ----connected to relay module------------------------------ addr 0x3F
+#define PIN_STN_S01		12
+#define PIN_STN_S02		13
+#define PIN_STN_S03		14
+#define PIN_STN_S04		0x11    //NA
+#define PIN_STN_S05		0x11    //NA
+#define PIN_STN_S06		0x11    //NA
+#define PIN_STN_S07		0x11	//NA
+#define PIN_STN_S08		0x11	//NA
+//#define PCF8574_M        //PCF8574 are used for i/o
+#define STA_HIGH LOW   // low station output on for Relay
+#define STA_LOW HIGH     // high station output off for Relay
+//#define DS1307RTC RTC_MCP7940
+//-------------------------buttons--------------------------------------------
+//#define BUTTON_ADC_PIN
+//:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
+#define PIN_BUTTON_1 0x00			//button are on  PCF8574 expaneder adr 0x3F
+#define PIN_BUTTON_2 0x11
+#define PIN_BUTTON_3 0x11
+#define BUT1_ON 0		//PIN input:1= Vcc, 0 =GND
+#define BUT2_ON 1		//PIN input:1= Vcc, 0 =GND
+#define BUT3_ON 1		//PIN input:1= Vcc, 0 =GND
+#define LCDI2C								//:i2c LCD
+#define LCD_SSN1306                         // SSN1306 screen
+#define SPIFFSDFAT				  			//:no sd ....EMULATED ON fLASH
+//#define ADDITIONAL_SENSORS ESP8266_C      //no additional sensors GPIO are all used for Valve control
+#define EEPROM_ESP                          //modify in libsel.h
 #endif
 //////check if libsel.h is correct//////////////////////////////////////
 #ifdef EEPROM_ESP
@@ -242,6 +330,7 @@ issues with the array of pins defined in OpenSprinklerGen2.cpp) */
 /* Use these pins when the control signal to switch watering solenoids on and off
 is driven directly from the arduino digital output pins (i.e. not using a shift register
 like the regular opensprinkler hardware) */
+#ifndef PIN_STN_S01
 #define PIN_STN_S01		46
 #define PIN_STN_S02		44
 #define PIN_STN_S03		42
@@ -259,6 +348,7 @@ like the regular opensprinkler hardware) */
 #define PIN_STN_S14		35
 #define PIN_STN_S15		37
 #define PIN_STN_S16		39
+#endif
 
 //#define PIN_RF_DATA		30    // RF data pin - efault is 38
 //#define PORT_RF			
@@ -461,5 +551,24 @@ const uint8_t spi_ss_pin[] =   // SS pin for each device
 #define PORT_RF        PORTA
 #define PINX_RF        PINA3
 #endif 
+
+
 #endif      //ESP8266
 
+
+#ifdef OSBEE
+///////////////////////defines for OS Bee////////////////////////////////////////////////////
+#define PIN_COM					0x21					//pin for valves return line
+#define MAX_NUMBER_ZONES		3						//num.of zones_______________________needed
+#define st_pins OpenSprinkler::station_pins				//pins used for attached Zones
+#define PIN_BST_PWR				14						//pin boost power____________________needed //for OS Bee 2.0
+#define PIN_BST_EN				0x20					//bin boost enable___________________needed
+#define OSB_SOT_LATCH			0						//value of option for non latching valves___for OS Bee 2.0
+#ifdef OSBEE==1
+ #define PIN_COM					02					//pin for valves return line
+ #define PIN_BST_PWR				15					//pin boost power____________________needed //for OS Bee 2.0
+ #define PIN_BST_EN					16					//bin boost enable___________________needed
+//#define OSBEE_NOLATCH
+#endif
+////////////////////////////////////////////////////////////////////////////////////////////////
+#endif

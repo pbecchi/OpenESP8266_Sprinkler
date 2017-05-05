@@ -48,7 +48,7 @@ int16_t water_time_decode_signed(byte i);
 void write_to_file(const char *name, const char *data, int size, int pos=0, bool trunc=true);
 bool read_from_file(const char *name, char *data, int maxsize=TMP_BUFFER_SIZE, int pos=0);
 void remove_file(const char *name);
-void write_message(char * message);
+void write_message(const char * message);
 void print_message(int i);
 #if defined(ARDUINO)
   #define nvm_read_block  eeprom_read_block

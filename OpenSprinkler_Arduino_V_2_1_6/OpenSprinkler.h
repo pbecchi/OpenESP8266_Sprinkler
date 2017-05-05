@@ -23,7 +23,9 @@
 
 #ifndef _OPENSPRINKLER_H
 #define _OPENSPRINKLER_H
-
+extern "C" {
+#include "user_interface.h"
+}
 #include "Config.h"
 #include "Defines.h"
 #include "libsel.h"
@@ -42,13 +44,29 @@
 #endif
 	#include <Wire.h>
 	#include <Time.h>
+#ifdef BATTERY
+#include <Adafruit_INA219-master\Adafruit_INA219.h>
+#endif
 #ifdef LCDI2C
+#ifdef LCD_SSD1306
+
+#include "lib\Adafruit_SSD1306.h"
+#else
 #include <LiquidCrystal_I2C.h>
+#endif
 #else
 #include <LiquidCrystal.h>
 #endif
+#ifndef DS1307RTC
 	#include <DS1307RTC.h>
-
+#else
+ #ifdef DS1307RTC==I2CRTC
+   #include "i2crtc.h"
+ #else
+	#include "RTClib-master\RTClib.h"
+ #endif
+#endif
+#include "Bitmaps.h"
 	#ifdef OPENSPRINKLER_ARDUINO_W5100
 	  #include "EtherCardW5100.h"
 	#else
@@ -67,7 +85,15 @@
 #endif // end of headers
 
 #include "Utils.h"
-
+// end of include
+#define XFACTOR 1         // definition for i2c LCD caracters spacing
+#define YFACTOR 1
+#ifdef LCD_SSN1306
+///// ------------SSN1306 font size for line spacing------------------------------------
+#define XFACTOR 6
+#define YFACTOR 9
+#endif
+//added for network switching
 /** Non-volatile data */
 struct NVConData {
   uint16_t sunrise_time;  // sunrise time (in minutes)
@@ -223,7 +249,15 @@ public:
 #if defined(ARDUINO)
 
 #ifdef LCDI2C
+
+
+#ifdef LCD_SSD1306
+	static Adafruit_SSD1306 lcd;
+	
+#else
+
 static	LiquidCrystal_I2C lcd;
+#endif
 #else
 static	LiquidCristal lcd;
 #endif
@@ -261,6 +295,7 @@ static	LiquidCristal lcd;
   static byte  button_timeout;        // button timeout
   static ulong checkwt_lasttime;      // time when weather was checked
   static ulong checkwt_success_lasttime; // time when weather check was successful
+ 
   // member functions
   // -- 
 
@@ -309,8 +344,27 @@ static	LiquidCristal lcd;
   static void clear_all_station_bits(); // clear all station bits
   static void apply_all_station_bits(); // apply all station bits (activate/deactive values)
 
+
+ 
+ // static byte volts[100];
+ // static byte ivolts;
+
+  void Sleep(int volts);
+ 
+  void ShowNet();
+
+  int BatteryAmps();
+
+  int BatteryCharge();
+
+  int BatteryVoltage();
+
+
+  void drawdiag(byte y[], byte n);
+
   // -- LCD functions
 #if defined(ARDUINO) // LCD functions for Arduino
+  static void lcd_clear();
   static void lcd_print_pgm(PGM_P /* PROGMEM*/ str);           // print a program memory string
   static void lcd_print_line_clear_pgm(PGM_P /*PROGMEM*/ str, byte line);
   static void lcd_print_time(time_t t);                  // print current time
@@ -350,5 +404,5 @@ private:
 #endif
 #endif // LCD functions
 };
-
+void setallpins(byte a);
 #endif  // _OPENSPRINKLER_H

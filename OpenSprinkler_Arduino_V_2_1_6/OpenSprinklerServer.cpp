@@ -977,7 +977,10 @@ void server_json_controller_main()
     {
         bfill.emit_p ( PSTR ( "\"flcrt\":$L,\"flwrt\":$D," ), os.flowcount_rt, FLOWCOUNT_RT_WINDOW );
     }
-
+#ifdef BATTERY
+	bfill.emit_p(PSTR("\"batmV\":$D,\"batmA\":$D,\"batCh\":$D,"),
+		os.BatteryVoltage(), os.BatteryAmps(),os.BatteryCharge());
+#endif
     bfill.emit_p ( PSTR ( "\"sbits\":[" ) );
     // print sbits
     for ( bid=0; bid<os.nboards; bid++ )
@@ -1270,7 +1273,9 @@ byte server_change_options ( char *p )
         reset_all_stations_immediate();
 #if defined(ARDUINO)
         setTime ( t );
-        RTC.set ( t );
+
+		RTC.set(t);
+
 #endif
     }
     if ( findKeyVal ( p, tmp_buffer, TMP_BUFFER_SIZE, PSTR ( "wto" ), true ) )
@@ -1517,7 +1522,9 @@ byte server_json_log ( char *p )
         file.open ( tmp_buffer, O_READ );
 #else //ESP8266
 		memmove(tmp_buffer + 1, tmp_buffer, strlen(tmp_buffer)+1); tmp_buffer[0] = '/';
-		if (!SPIFFS.exists(tmp_buffer)) continue;
+		if (!SPIFFS.exists(tmp_buffer)) {
+			DEBUG_PRINT("not found"); DEBUG_PRINTLN(tmp_buffer); continue;
+		}
 		File file = SPIFFS.open(tmp_buffer, "r");
 #endif
 #else // prepare to open log file for RPI/BBB

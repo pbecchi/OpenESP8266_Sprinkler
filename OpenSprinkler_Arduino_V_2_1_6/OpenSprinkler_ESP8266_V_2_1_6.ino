@@ -71,6 +71,7 @@ Original Opensprinkler code commences below here
 #ifdef ESP8266
 
 //#include "SPIFFSdFat.h"
+//#include "PCF8574\PCF8574.h"
 #include "PCF8574Mio.h"
 #include <ESP8266mDNS.h>
 #ifndef SDFAT
@@ -80,9 +81,13 @@ Original Opensprinkler code commences below here
 #include <SdFat.h>
 #endif
 #endif
-
 	#include <Time.h>
+#ifndef DS1307RTC
 	#include <DS1307RTC.h>
+#else
+	#include "RTClib-master\RTClib.h"
+#endif
+
 #ifdef LCDI2C
     #include <LiquidCrystal_I2C.h>
 #else
@@ -153,6 +158,7 @@ void setup()
 #ifdef OPENSPRINKLER_ARDUINO_AUTOREBOOT // Added for Auto Reboot   
    Alarm.alarmRepeat ( REBOOT_HR, REBOOT_MIN, REBOOT_SEC, reboot );
 #endif // OPENSPRINKLER_ARDUINO_AUTOREBOOT
+   do_setup();
 #ifdef OTA_UPLOAD
    // Port defaults to 8266
    // ArduinoOTA.setPort(8266);
@@ -184,7 +190,6 @@ void setup()
    });
    ArduinoOTA.begin();
 #endif
-    do_setup();
 }
 
 void loop()

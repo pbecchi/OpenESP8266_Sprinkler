@@ -47,19 +47,21 @@ extern OpenSprinkler os;
 extern SdFat sd;
 #endif
 #endif
-void write_message(char * message) {
-	File file;char * fn  = "message.txt";
+void write_message(const char * message) {
+	//ether.message(message);
+	File file;char * fn  = "/message.txt";
 #ifdef MESSAGE
-	if (SPIFFS.exists(fn))
+	if (SPIFFS.exists("/message.txt"))
 	{
-		file = SPIFFS.open(fn, "r+"); DEBUG_PRINTLN("file exist open R/W");
+		file = SPIFFS.open("/message.txt", "a+"); DEBUG_PRINTLN("file exist open R/W");
 	}
 	else
 	{
-		file = SPIFFS.open(fn, "w"); DEBUG_PRINTLN("file dont exist open R/W");
+		file = SPIFFS.open("/message.txt", "w+"); DEBUG_PRINTLN("file dont exist open R/W");
+		
 	}
 //	file.print(date);
-	file.seek(0, SeekEnd);
+//	file.seek(0, SeekEnd);
 	
 	file.print(hour());
 	file.print(':');
@@ -81,30 +83,31 @@ void write_message(char * message) {
 #define MAXSIZE_MESSAGE 40
 void print_message(int pos) {
 	File file; 
-	char * fn = "message.txt";
-	if (SPIFFS.exists(fn))
+	char * fn = "/message.txt";
+	if (SPIFFS.exists("/message.txt"))
 	{
-		file = SPIFFS.open(fn, "r"); DEBUG_PRINTLN("file exist open R/W");
+		file = SPIFFS.open("/message.txt", "r"); DEBUG_PRINTLN("file exist open R/W");
 	}
 	else
 	{
-		DEBUG_PRINTLN("file dont exist open R/W");
+		DEBUG_PRINTLN("file dont exist ");
 		return;
 	}
 	//	file.print(date); 
 	char  data[MAXSIZE_MESSAGE];
 	if(pos>=0)
-	    file.seek(pos, SeekSet);
+	    file.seek(pos*MAXSIZE_MESSAGE, SeekSet);
 	else
-		file.seek(-pos, SeekEnd);
-	byte i0 = 0;
-	while (file.available()) {
-		file.readBytesUntil('/n', data, MAXSIZE_MESSAGE);
+		file.seek(pos*MAXSIZE_MESSAGE, SeekEnd);
+	file.find('\n');
+	byte i0 = MIN_LCD_LINE;
+	while (file.available()&&i0<=MAX_LCD_LINE) {
+		file.readBytesUntil('\n', data, MAXSIZE_MESSAGE);
 		Serial.println(data);
-		strtok(data, ":");
-		strtok(data, ":");
+		//strtok(data, ":");
+		//strtok(data, ":");
 		os.lcd_print_line_clear_pgm(data, i0++);
-		if (i0 == 2)i0 = 0;
+		//if (i0 == MAX_LCD_LINE)i0 = MIN_LCD_LINE;
 		delay(2000);
 		
 	}
@@ -180,7 +183,7 @@ bool read_from_file(const char *name, char *data, int maxsize, int pos) {
   ret = file.fgets(data, maxsize);
 #else
   file.seek(pos, SeekSet);
-  ret = file.readBytesUntil('/n', data, maxsize);
+  ret = file.readBytesUntil('\n', data, maxsize);
   
 #endif
 

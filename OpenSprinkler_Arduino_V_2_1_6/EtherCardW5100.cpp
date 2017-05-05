@@ -33,8 +33,21 @@
 char* SSID = "Vodafone-25873015";
 char* PASSWORD = "5ph87cmmjmm8cs9";
 #endif
+#include "OpenSprinkler.h"
+extern OpenSprinkler os;
 
 #include "EtherCardW5100.h"
+
+static byte ms_line = MIN_LCD_LINE;
+void EtherCardW5100::message(String buf) {
+	write_message(buf.c_str());
+#ifdef LCD_SSD1306	
+	os.lcd_print_line_clear_pgm(buf.c_str(), ms_line);
+	ms_line++;
+	ms_line += buf.length() / 22;
+	if (ms_line > MAX_LCD_LINE)ms_line = MIN_LCD_LINE;
+#endif
+}
 
 //================================================================
 // Utility functions
@@ -229,7 +242,7 @@ bool EtherCardW5100::using_dhcp;				// True if using DHCP
 
 // Declare static data members from enc28j60.h
 uint16_t EtherCardW5100::bufferSize;
-
+boolean EtherCardW5100::netflag = false;
 // Declare static data members for this wrapper class
 IPAddress EtherCardW5100::ntpip;
 #ifdef MY_PING
@@ -291,35 +304,58 @@ char* CharFromString(String uno) {
 	}*/
 	return a;
 }
-byte scanNetwork(byte flag)
-{
-	byte netCount = 0;
+#ifdef WIFIMANAGER
+void configModeCallback(WiFiManager *myWiFiManager) {
+	os.lcd_print_line_clear_pgm(PSTR("Conf WiFi..."), 0);
+	os.lcd_print_line_clear_pgm(PSTR("Go 192.168.4.1 "), 1);
+	Serial.println("Go 192.168.4.1 ");
+}
+#endif
 
-#ifndef WIFIMANAGER
-	Serial.println("scan start");
+byte EtherCardW5100::scanNetwork(byte flag)
+// scan network and return n.network with known password found stored on found_SSID[] and found_psw[] 
+// if no one is known or netflag is set open configuration portal new network are append to file,
+{
+
+	byte netCount = 0;
+	DEBUG_PRINTLN("scan start");
 
 	// WiFi.scanNetworks will return the number of networks found
 	int n = WiFi.scanNetworks();
-	Serial.println("scan done");
+	message("scan done");
 	if (n == 0)
 	{
-		Serial.println("no networks found");
+		message("no networks found");
 		return 0;
 	}
 	else
 	{
+#ifdef WIFIMULTI
+#include <ESP8266WiFiMulti.h>
+		struct WiFiAP {	
+			char	APname[20]; APpsw[20];
+		};
+		WiFiAP wifiAP[10];
+		byte n=eepro_read_byte(WIFIAP_POS);
+		for (byte i = 0; i < n; i++)
+		{
+			eeprom_read_block(&wifiAP, WIFIAP_POS + i * sizeof(wifiAP), sizeof(wifiAP));
+			wifim.addAP(APname[i], APpsw[i]);
+		}
+#else
 		String Ssid[10];
 		String psw[10];
 		File file;
 		int PaswKnown = -1;
 		int Npas = 0;
-		if (!SPIFFS.exists("SSID_PASSWORD"))
-			file = SPIFFS.open("SSID_PASSWORD", "w");               //new password file
+		if (!SPIFFS.exists("/SSID_PASSWORD"))
+			file = SPIFFS.open("/SSID_PASSWORD", "w");               //new password file
 		else
 		{    //-----------------read SSID and PASSWORD from file.
 
 			Serial.println("Reading password file....");
-			file = SPIFFS.open("SSID_PASSWORD", "r+");               //read passwords from file
+			file = SPIFFS.open("SSID_PASSWORD", "a+");               //read passwords from file
+			file.seek(0, SeekSet);
 			while (file.available())
 			{
 				char buff[20] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
@@ -335,12 +371,26 @@ byte scanNetwork(byte flag)
 				Serial.print('\t'); Serial.print("<>"); Serial.println(psw[Npas - 1]);
 			}
 		}
-		Serial.print(n);
+		Serial.print("read:");
+		Serial.println(Npas);
 		
-		Serial.println(" networks found");
-		for (int i = 0; i < n; ++i)
+		message(" networks found");
+		byte ind[10] = { 0,1,2,3,4,5,6,7,8,9 };
+		byte ii = 1; 
+			while (ii != 0)
+			{
+				ii = 0;
+				for (byte j = 0; j < n - 1; j++)
+
+					if (WiFi.RSSI(ind[j]) <= WiFi.RSSI(ind[j + 1])) {
+						ii = ind[j]; ind[j] = ind[j + 1]; ind[j + 1] = ii;
+					}
+			}
+		for (int ii = 0; ii < n; ++ii)
 		{
+			int i = ind[ii];
 			// Print SSID and RSSI for each network found
+			
 			Serial.print(i);
 			Serial.print(": ");
 			int jpas = Npas - 1;
@@ -351,7 +401,7 @@ byte scanNetwork(byte flag)
 			Serial.print(WiFi.RSSI(i));
 			Serial.print(")");
 			Serial.print((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? " " : "*");
-
+// ---need to order with RSSI???????????????????
 			if (jpas >= 0) {
 				Serial.println(" passw. available"); netCount++;
 				found_SSID[netCount-1] = Ssid[jpas];
@@ -363,26 +413,61 @@ byte scanNetwork(byte flag)
 			delay(10);
 		}
 
-		if (PaswKnown < 0||flag==1)
+		if (PaswKnown < 0||flag==1||EtherCardW5100::netflag)
 		{
+#ifdef WIFIMANAGER
+			WiFiManager wifiManager;
+			wifiManager.setConfigPortalTimeout(120);
+			/*
+			IPAddress ip = IPAddress(my_ip[0], my_ip[1], my_ip[2], my_ip[3]);
+			IPAddress gw = IPAddress(gw_ip[0], gw_ip[1], gw_ip[2], gw_ip[3]);
+			IPAddress subnet = IPAddress(255, 255, 255, 0);
+			DEBUG_PRINTLN(ip);
+
+			wifiManager.setSTAStaticIPConfig(ip, gw, subnet);*/
+			wifiManager.setAPCallback(configModeCallback);
+			//
+			//	if button 2 has been pressed will start configuration portal to select a different network
+			//
+				wifiManager.resetSettings();
+				if (wifiManager.startConfigPortal("MyConnectAP")) {
+					netCount++;
+					//!!!!!!!!!!reconnect in station mode!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					DEBUG_PRINTLN(WiFi.getMode());
+					found_SSID[netCount-1] = WiFi.SSID();
+					found_psw[netCount-1] = WiFi.psk();
+					file.print(WiFi.SSID()); file.print(','); file.println(WiFi.psk());
+					WiFi.disconnect();
+					file.close();
+					EtherCardW5100::netflag = false;
+				}
+				else return 0;
+#else //WIFIMANAGER
+//read from usb
 			Serial.println("Select network n.");
-			while (!Serial.available()&&millis()<30000) delay(10);
-			if (millis() > 30000)return 0;
+			while (!Serial.available()&&millis()<180000) delay(10);
+			if (millis() > 180000)return 0;
 			byte ch = Serial.read();
 			Ssid[Npas] = WiFi.SSID(ch - '0');
+			while (Serial.available())Serial.read();
 			Serial.print("Enter password for "); Serial.println(Ssid[Npas]);
 			while (!Serial.available()) delay(10);
-			psw[Npas] = Serial.readString();
+			psw[Npas] = Serial.readStringUntil(10);
 			Serial.print(Ssid[Npas]); Serial.print(','); Serial.println(psw[Npas]);
+
+
+			////////// append to file///////////////////			
 			file.print(Ssid[Npas]); file.print(','); file.println(psw[Npas]);
 			file.close();
-			netCount++;
+#endif
+			
 		}
+#endif
 	}
-#	endif
+
+
 	return netCount;
 }
-
 /// <summary>
 /// Configure network interface with static IP
 /// </summary>
@@ -392,18 +477,14 @@ byte scanNetwork(byte flag)
 /// <param name="mask">Subnet mask (4 bytes). 0 for no change. Default = 0</param>
 /// <returns>Returns true on success - actually always true</returns>
 
-#include "OpenSprinkler.h"
-extern OpenSprinkler os;
-void message(char * buf) {
-	os.lcd_print_line_clear_pgm(buf, 1);
+
+byte EtherCardW5100::WiFiLevel(byte itnet) {
+//	WiFi.scanNetworks();
+	return WiFi.RSSI();
+	
 }
-#ifdef WIFIMANAGER
-void configModeCallback(WiFiManager *myWiFiManager) {
-	os.lcd_print_line_clear_pgm(PSTR("Conf WiFi..."), 0);
-	os.lcd_print_line_clear_pgm(PSTR("Go 192.168.4.1 "), 1);
-	Serial.println("Go 192.168.4.1 ");
-}
-#endif
+
+
 bool EtherCardW5100::staticSetup
 (const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask)
 {
@@ -411,14 +492,15 @@ bool EtherCardW5100::staticSetup
 
 	
 #ifdef ESP8266
-#ifndef WIFIMANAGER
-	uint8_t n = 0;
 	bool result = false;
-	uint8_t nNetwork = scanNetwork(0);
+#if WIFIMANAGER == 1
+	uint8_t n = 0;
+		uint8_t nNetwork = scanNetwork(0);
 	if (nNetwork == 0)
 	{
 		message("no net"); ESP.restart();
 	}
+	//________________connect to first available network________________
 	while (n < nNetwork&&!result) {
 		SSID =  CharFromString(found_SSID[n]);
 		PASSWORD =  CharFromString(found_psw[n]);
@@ -430,15 +512,28 @@ bool EtherCardW5100::staticSetup
 	}
 #else
 	WiFiManager wifiManager;
+	wifiManager.setConfigPortalTimeout(120);
 	IPAddress ip = IPAddress(my_ip[0],my_ip[1],my_ip[2],my_ip[3]);
 	IPAddress gw = IPAddress(gw_ip[0], gw_ip[1], gw_ip[2], gw_ip[3]); 
 	IPAddress subnet = IPAddress(255,255,255,0);
 	DEBUG_PRINTLN(ip);
+
 	wifiManager.setSTAStaticIPConfig(ip,gw, subnet);
-	//wifiManager.setAPCallback(configModeCallback);
+	wifiManager.setAPCallback(configModeCallback);
+	//
+	//	if button 2 has been pressed will start configuration portal to select a different network
+	//
+	if (netflag)
+	{
+		wifiManager.resetSettings();
+		result = wifiManager.startConfigPortal("AutoConnectAP");
+		netflag = false;
+	}
+	else
+		result=wifiManager.autoConnect("MyConnectAP");
+	//!!!!!!!!!!reconnect in station mode!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	DEBUG_PRINTLN(WiFi.getMode());
 
-
-	wifiManager.autoConnect("AutoConnectAP");
 #endif //WIFIMANAGER
 #else
 	
@@ -450,6 +545,9 @@ bool EtherCardW5100::staticSetup
 
 #endif
 	if (result) {
+		String outstr = "Conn. ";
+		outstr+=	WiFi.SSID();
+		message(outstr);
 		incoming_server.begin();
 
 
@@ -539,26 +637,52 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 #ifndef ESP8266
 	if (ETHERNE.begin(mymac) == 0)
 #else
-#ifndef WIFIMANAGER
-	uint8_t n = 0;
+#if WIFIMANAGER == 1
 	bool result = false;
-	uint8_t nNetwork = scanNetwork(0);
-	while (n < nNetwork&&!result) {
-		SSID = CharFromString(found_SSID[n]);
-		
-		//   found_SSID[n];
-		PASSWORD = CharFromString(found_psw[n]); //found_psw[n];
-		//delete special char at the end/////////////////////////////////////
-		if (PASSWORD[strlen(PASSWORD)-1] < '0')PASSWORD[strlen(PASSWORD)-1] = 0;
-	
-		DEBUG_PRINTLN(strlen(PASSWORD));
-		n++;
-		result = WiFiconnect();
+	for (byte i = 0; i <= 1; i++) {
+		uint8_t n = 0;
+		uint8_t nNetwork = scanNetwork(i);
+		while (n < nNetwork && !result) {
+			SSID = CharFromString(found_SSID[n]);
+
+			//   found_SSID[n];
+			PASSWORD = CharFromString(found_psw[n]); //found_psw[n];
+			//delete special char at the end/////////////////////////////////////
+			if (PASSWORD[strlen(PASSWORD) - 1] < '0')PASSWORD[strlen(PASSWORD) - 1] = 0;
+
+			DEBUG_PRINTLN(strlen(PASSWORD));
+			n++;
+			result = WiFiconnect();
+		}
+		if (result)break;
 	}
 	if (!result )return false;
 #else
 	WiFiManager wifiManager;
-	wifiManager.autoConnect("AutoConnectAP");
+	wifiManager.setConfigPortalTimeout(120);
+	wifiManager.setAPCallback(configModeCallback);
+	if (netflag)
+	{
+		wifiManager.resetSettings();
+		bool	result = wifiManager.startConfigPortal("AutoConnectAP");
+		netflag = false;
+	}
+	else
+   bool 	result = wifiManager.autoConnect("AutoConnectAP");
+//!!!!!!!!!!reconnect in station mode!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	DEBUG_PRINTLN(WiFi.getMode());
+/*	WiFi.disconnect();
+	delay(1000);
+	WiFi.mode(WIFI_STA);
+	WiFi.begin();
+	int i = 0;
+	while (WiFi.status() != WL_CONNECTED && i++ <= 201) {  delay(400); DEBUG_PRINT('.'); }
+	if (i >= 201) {
+		DEBUG_PRINT("Could not connect to"); DEBUG_PRINTLN(WiFi.BSSIDstr());
+		return false;
+
+	}
+	DEBUG_PRINTLN(WiFi.getMode());*/
 #endif
 
 #ifdef HOSTNAM
@@ -611,8 +735,7 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 	
 #endif
 #endif
-    
-	// start listening for clients
+		// start listening for clients
     incoming_server.begin();
  //   udp_client.begin ( NTP_CLIENT_PORT );
 
@@ -630,6 +753,10 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 #else
 #ifdef ESP8266	
 	// Add service to MDNS-SD
+	String outstr = "Conn. ";
+	outstr += WiFi.SSID();
+	message(outstr);
+
 	MDNS.addService("http", "tcp", 80);
 	return true;
 #else	
@@ -1345,6 +1472,7 @@ void EtherCardW5100::clientIcmpRequest ( const uint8_t *destip )
     }
 #endif
 
+
 }
 
 /// <summary>
@@ -1355,8 +1483,8 @@ void EtherCardW5100::clientIcmpRequest ( const uint8_t *destip )
 uint8_t EtherCardW5100::packetLoopIcmpCheckReply ( const uint8_t *ip_monitoredhost )
 {
 #ifndef MY_PING
-
-	if (WiFi.status() != WL_CONNECTED) return true; else return false;
+	return Ping.ping(IPAddress(ip_monitoredhost[0], ip_monitoredhost[1], ip_monitoredhost[2], ip_monitoredhost[3]));
+	//	if (WiFi.status() != WL_CONNECTED) return true; else return false;
 #else
     if ( ping.asyncComplete ( ping_result ) )
     {

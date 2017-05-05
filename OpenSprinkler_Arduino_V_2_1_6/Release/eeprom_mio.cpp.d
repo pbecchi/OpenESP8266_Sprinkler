@@ -1,5 +1,5 @@
-d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\eeprom_mio.cpp.o: \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\eeprom_mio.cpp \
+d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\eeprom_mio.cpp.o: \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\eeprom_mio.cpp \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/Arduino.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/stdlib_noniso.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/binary.h \
@@ -28,9 +28,9 @@ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/MD5Builder.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/md5.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/debug.h \
- d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu/pins_arduino.h \
- d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu/../generic/common.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\generic/pins_arduino.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\generic/common.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\Wire/Wire.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/Stream.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\eeprom_mio.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\libsel.h
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\eeprom_mio.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\libsel.h

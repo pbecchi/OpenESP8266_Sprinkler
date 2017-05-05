@@ -1,0 +1,23 @@
+{
+  "name": "PCF8574",
+  "keywords": "I2C PCF8574 IO I/O shift rotate",
+  "description": "Library PCF8574 library for Arduino, implements shift rotate.",
+  "authors":
+  [
+    {
+      "name": "Rob Tillaart",
+      "email": "Rob.Tillaart@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/RobTillaart/Arduino.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "*",
+  "export": {
+    "include": "libraries/PCF8574"
+  }
+}

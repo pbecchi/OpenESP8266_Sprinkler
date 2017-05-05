@@ -55,6 +55,7 @@ Refer to the README file for more information
 #include <WiFiClientSecure.h>
 #include <WiFiClient.h>
 #include <Dns.h>
+#include <Arduino-Ping-master\ESP8266ping.h>
 
 #include "Config.h"
 #include "Defines.h"
@@ -219,6 +220,7 @@ private:
 
 public:
     // Definitions from ethercard.h
+
     static uint8_t mymac[6];						// MAC address
     static uint8_t myip[4];							// IP address
     static uint8_t netmask[4];						// Netmask
@@ -232,15 +234,22 @@ public:
     // static uint8_t broadcastip[4];				// Subnet broadcast address
     // static bool persist_tcp_connection;			// False to break connections on first packet received
     static uint16_t delaycnt;						// Counts number of cycles of packetLoop when no packet received - used to trigger periodic gateway ARP request
-
+	static boolean netflag;
     // Definitions from enc28j60.h
     static uint8_t buffer[];						// Data buffer (shared by recieve and transmit)
-    static uint16_t bufferSize;						// Size of data buffer
-													//
+    static uint16_t bufferSize;
+	static void message(String buf);
+	static byte scanNetwork(byte flag);
+	//void message(String buf);
+	// Size of data buffer
+	byte WiFiLevel(byte itnet);
+	//	bool staticSetup(const uint8_t * my_ip, const uint8_t * gw_ip, const uint8_t * dns_ip, const uint8_t * mask);
+//
 // ESP8266-------------------------------------------------------------------------
 //
 	static  bool WiFiconnect();          // Connect ESP8266 to network and start server
 	static bool WiFiconnect(const uint8_t* my_ip, const uint8_t* gw_ip, const uint8_t* dns_ip, const uint8_t* mask);
+//	bool dhcpSetup(const char * hname, bool fromRam);
 //
     // EtherCard.cpp
     /**   @brief  Initialise the network interface

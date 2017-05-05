@@ -33,6 +33,7 @@
 #include "OpenSprinklerProgram.h"
 #include "Weather.h"
 
+
 #if defined(ARDUINO)
 #ifdef ESP8266
 #ifndef SDFAT
@@ -108,12 +109,14 @@ static char ui_anim_chars[3] = {'.', 'o', 'O'};
 
 static byte ui_state = UI_STATE_DEFAULT;
 static byte ui_state_runprog = 0;
-
+static int iline = 2;
 void ui_state_machine()
 {
 
     if ( !os.button_timeout )
     {
+
+		iline = 2;
         os.lcd_set_brightness ( 0 );
         ui_state = UI_STATE_DEFAULT;  // also recover to default state
     }
@@ -165,7 +168,7 @@ void ui_state_machine()
             {
 
                 os.lcd_print_ip ( ether.myip, 0 );
-                os.lcd.setCursor ( 0, 1 );
+                os.lcd.setCursor ( 0, 1*YFACTOR );
                 os.lcd_print_pgm ( PSTR ( ":" ) );
                 os.lcd.print ( ether.hisport );
                 os.lcd_print_pgm ( PSTR ( " (osip)" ) );
@@ -188,7 +191,7 @@ void ui_state_machine()
                 }
                 else if ( digitalRead ( PIN_BUTTON_3 ) ==0 ) // if B3 is pressed while holding B2, display last successful weather call
                 {
-                    os.lcd.clear();
+                    os.lcd_clear();
                     os.lcd_print_time ( os.checkwt_success_lasttime );
                     os.lcd.setCursor ( 0, 1 );
                     os.lcd_print_pgm ( PSTR ( "(lswc)" ) );
@@ -203,7 +206,7 @@ void ui_state_machine()
             }
             else      // clicking B2: display MAC and gate way IP
             {
-                os.lcd.clear();
+                os.lcd_clear();
                 os.lcd_print_mac ( ether.mymac );
                 ui_state = UI_STATE_DISP_GW;
             }
@@ -218,8 +221,21 @@ void ui_state_machine()
             }
             else      // clicking B3: switch board display (cycle through master and all extension boards)
             {
+#ifdef MESSAGE 
+				
+			
+				print_message(-iline++);
+				delay(2000);
+		
+			//	while (button_read(BUTTON_WAIT_NONE)&BUTTON_MASK == 2)
+			//	{
+			//		print_message(-ii++ );
+			//		delay(2000);
+			//	}
+#else
                 os.status.display_board = ( os.status.display_board + 1 ) % ( os.nboards );
-            }
+#endif
+			}
             break;
         }
         break;
@@ -300,7 +316,11 @@ void do_setup()
 	DEBUG_PRINTLN("clock...");
     setSyncInterval ( RTC_SYNC_INTERVAL ); // RTC sync interval
     // if rtc exists, sets it as time sync source
-    setSyncProvider ( RTC.get );
+ 
+
+	setSyncProvider(RTC.get);
+	DEBUG_PRINT(hour()); DEBUG_PRINT(":"); DEBUG_PRINTLN(minute());
+
     os.lcd_print_time ( os.now_tz() ); // display time to LCD
 	DEBUG_PRINTLN("Time printed...");
 #ifdef OPENSPRINKLER_ARDUINO_HEARTBEAT
@@ -390,9 +410,22 @@ void delete_log ( char *name );
 void handle_web_request ( char *p );
 
 /** Main Loop */
+#define LOGDATA_BATTERY 5
+#define LOGDATA_BATTERYV 6
+static unsigned long milli_logBattery = 0;
 void do_loop()
 {
-	delay(100);
+#ifdef LCD_SSD1306
+	//os.ShowNet();
+
+#ifdef BATTERY
+	
+	int volts=os.BatteryVoltage();
+   
+	os.Sleep(volts);
+	//delay(100);
+#endif
+#endif
 //	DEBUG_PRINT("-_");
     static ulong last_time = 0;
     static ulong last_minute = 0;
@@ -403,7 +436,19 @@ void do_loop()
     os.status.mas = os.options[OPTION_MASTER_STATION];
     os.status.mas2= os.options[OPTION_MASTER_STATION_2];
     time_t curr_time = os.now_tz();
-    // ====== Process Ethernet packets ======
+#ifdef BATTERY
+	if (millis() > milli_logBattery) {
+#ifdef INA219
+		write_log(LOGDATA_BATTERY, curr_time); 
+#endif
+		unsigned long millisdelay = 900000UL;								// during day 15 min interval
+		if (hour() > 20) { if (hour() - 20 < 10) millisdelay= 3600000UL; }
+		else if (20 + 10> 24) if (hour() < 20 + 10 - 24)millisdelay = 3600000UL; //during nigth 60 min interval
+		milli_logBattery = millis() + millisdelay;
+		write_log(LOGDATA_BATTERYV, curr_time);
+	}
+#endif
+																			 // ====== Process Ethernet packets ======
 #if defined(ARDUINO)  // Process Ethernet packets for Arduino
     uint16_t pos=ether.packetLoop ( ether.packetReceive() );
     if ( pos>0 )  // packet received
@@ -1101,7 +1146,9 @@ void manual_start_program ( byte pid )
 // ================================
 // ====== LOGGING FUNCTIONS =======
 // ================================
-#if defined(ARDUINO)
+#ifdef ESP8266
+char LOG_PREFIX[] = "logs/";
+#elif defined(ARDUINO)
 char LOG_PREFIX[] = "/logs/";
 #else
 char LOG_PREFIX[] = "./logs/";
@@ -1131,7 +1178,9 @@ static prog_char log_type_names[] /*PROGMEM*/ =
     "rs\0"
     "rd\0"
     "wl\0"
-    "fl\0";
+    "fl\0"
+	"bc\0"
+	"bv\0";
 
 /** write run record to log on SD card */
 void write_log ( byte type, ulong curr_time )
@@ -1139,7 +1188,7 @@ void write_log ( byte type, ulong curr_time )
     if ( !os.options[OPTION_ENABLE_LOGGING] ) return;
 
     // file name will be logs/xxxxx.tx where xxxxx is the day in epoch time
-    ultoa ( curr_time / 86400, tmp_buffer, 10 );
+    ultoa ( curr_time / 86400L, tmp_buffer, 10 );
     make_logfile_name ( tmp_buffer );
 
 #if defined(ARDUINO) // prepare log folder for Arduino
@@ -1215,7 +1264,18 @@ void write_log ( byte type, ulong curr_time )
         // duration is unsigned integer
         ultoa ( ( ulong ) pd.lastrun.duration, tmp_buffer+strlen ( tmp_buffer ), 10 );
     }
-    else
+ /*   else
+		if (type == LOGDATA_BATTERY)
+		{
+			itoa(os.BatteryVoltage(), tmp_buffer + strlen(tmp_buffer), 10);
+			strcat_P(tmp_buffer, PSTR(","));
+			itoa(os.BatteryAmps(), tmp_buffer + strlen(tmp_buffer), 10);
+			strcat_P(tmp_buffer, PSTR(","));
+			// duration is unsigned integer
+			itoa(os.BatteryCharge(), tmp_buffer + strlen(tmp_buffer), 10);
+		}
+*/
+		else
     {
         ulong lvalue;
         if ( type==LOGDATA_FLOWSENSE )
@@ -1243,7 +1303,15 @@ void write_log ( byte type, ulong curr_time )
         case LOGDATA_WATERLEVEL:
             lvalue = os.options[OPTION_WATER_PERCENTAGE];
             break;
-        }
+#ifdef BATTERY
+		case LOGDATA_BATTERY:
+			lvalue = os.BatteryCharge();
+			break;
+		case LOGDATA_BATTERYV:
+			lvalue = os.BatteryVoltage();
+			break;
+#endif
+		}
         ultoa ( lvalue, tmp_buffer+strlen ( tmp_buffer ), 10 );
     }
     strcat_P ( tmp_buffer, PSTR ( "," ) );
@@ -1339,17 +1407,54 @@ void check_network()
         // change LCD icon to indicate it's checking network
         if ( !ui_state )
         {
-            os.lcd.setCursor ( 15, 1 );
-            os.lcd.write ( 4 );
+#ifndef LCD_SSD1306
+			os.lcd.setCursor(15, 1);
+			os.lcd.write(4);
+#else
+			os.lcd.drawBitmap(18*XFACTOR, 0, blank24x18_bmp, 5, 9, BLACK);
+			os.lcd.display();
+#endif
         }
+		boolean failed = true;
+#ifdef ESP8266
+		byte ntry = 0;
+		DEBUG_PRINT("ping ");
+		while (!ether.packetLoopIcmpCheckReply(ether.gwip)) {
+	//		pulseLed(100, 100, 1);
+			
+			if (!ui_state)
+			{
+#ifndef LCD_SSD1306
+				os.lcd.setCursor(15, 1);
+				os.lcd.write(4);
+#else
+				os.lcd.drawBitmap(18 * XFACTOR, 0, blank24x18_bmp, 5, 9, BLACK);
+				os.lcd.display();
+				delay(500);
+				os.lcd.drawBitmap(18 * XFACTOR, 0, antenna5x9_bmp, 5, 9, WHITE);
+				os.lcd.display();
 
-        // ping gateway ip
-        ether.clientIcmpRequest ( ether.gwip );
+#endif
+			}
 
-        ulong start = millis();
-        boolean failed = true;
-        // wait at most PING_TIMEOUT milliseconds for ping result
-        do
+			ntry++;
+			if (ntry > 100)break;
+		}
+		if (ntry <= 100) {
+			failed = false;
+			DEBUG_PRINTLN(" OK");
+		}
+		else DEBUG_PRINTLN(" failed");
+
+#else
+
+		// ping gateway ip
+		ether.clientIcmpRequest(ether.gwip);
+
+		ulong start = millis();
+	
+		// wait at most PING_TIMEOUT milliseconds for ping result
+		do
         {
             ether.packetLoop ( ether.packetReceive() );
             if ( ether.packetLoopIcmpCheckReply ( ether.gwip ) )
@@ -1359,7 +1464,8 @@ void check_network()
             }
         }
         while ( millis() - start < PING_TIMEOUT );
-        if ( failed )
+#endif
+		if ( failed )
         {
             os.status.network_fails++;
             // clamp it to 6
@@ -1369,7 +1475,7 @@ void check_network()
         // if failed more than 6 times, restart
         if ( os.status.network_fails>=6 )
 		{
-			write_message("netw. reconnection inpossible");
+			write_message("netw. reconn. impossible");
             // mark for safe restart
             os.status.safe_reboot = 1;
         }
@@ -1408,6 +1514,7 @@ void perform_ntp_sync()
         if ( t>0 )
         {
             setTime ( t );
+
             RTC.set ( t );
         }
     }

@@ -32,8 +32,8 @@ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\json_parse_program\esp8266_nodemc
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/debug.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu/pins_arduino.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu/../generic/common.h \
- d:\users\pbecc\onedrive\Arduino\libraries\Adafruit_ILI9341esp/Adafruit_ILI9341esp.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Adafruit_ILI9341esp/Adafruit_ILI9341esp.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/Print.h \
- d:\users\pbecc\onedrive\Arduino\libraries\Adafruit-GFX-Library/Adafruit_GFX.h \
- d:\users\pbecc\onedrive\Arduino\libraries\Adafruit-GFX-Library/gfxfont.h \
- d:\users\pbecc\onedrive\Arduino\libraries\XPT2046-master/XPT2046.h
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Adafruit-GFX-Library/Adafruit_GFX.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Adafruit-GFX-Library/gfxfont.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\XPT2046-master/XPT2046.h

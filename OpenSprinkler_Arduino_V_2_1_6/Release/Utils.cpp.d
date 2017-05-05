@@ -1,8 +1,8 @@
-d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\Utils.cpp.o: \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\Utils.cpp \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\Utils.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\Config.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\Defines.h \
+d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Utils.cpp.o: \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Utils.cpp \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Utils.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Config.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Defines.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/Arduino.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/stdlib_noniso.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/binary.h \
@@ -31,23 +31,31 @@ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/MD5Builder.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/md5.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/debug.h \
- d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu/pins_arduino.h \
- d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu/../generic/common.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\libsel.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\Pins.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\OpenSprinkler.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\Eeprom_ESP.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\generic/pins_arduino.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\generic/common.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\libsel.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Pins.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\OpenSprinkler.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include/user_interface.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include/os_type.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include/ets_sys.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include/ip_addr.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include/queue.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include/spi_flash.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Eeprom_ESP.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\Wire/Wire.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/Stream.h \
- d:\users\pbecc\onedrive\Arduino\libraries\Time/Time.h \
- d:\users\pbecc\onedrive\Arduino\libraries\Time/TimeLib.h \
- d:\users\pbecc\onedrive\Arduino\libraries\LiquidCrystal/LiquidCrystal_I2C.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Time/Time.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Time/TimeLib.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\lib\Adafruit_SSD1306.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\SPI/SPI.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\lib\Adafruit_GFX.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/Print.h \
- d:\users\pbecc\onedrive\Arduino\libraries\LiquidCrystal/I2CIO.h \
- d:\users\pbecc\onedrive\Arduino\libraries\LiquidCrystal/LCD.h \
- d:\users\pbecc\onedrive\Arduino\libraries\DS1307RTC/DS1307RTC.h \
- d:\users\pbecc\onedrive\Arduino\libraries/Time/TimeLib.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_nodemcuv2\EtherCardW5100.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\lib\gfxfont.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\i2crtc.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Time/TimeLib.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Bitmaps.h \
+ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\EtherCardW5100.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src/ESP8266WiFi.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src/include/wl_definitions.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/IPAddress.h \
@@ -75,5 +83,10 @@ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src/WiFiClient.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\Ethernet\src/Dns.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\Ethernet\src/EthernetUdp.h \
- d:\users\pbecc\onedrive\Arduino\libraries\Time/TimeLib.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries/Arduino-Ping-master\ESP8266ping.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include/ping.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WebServer\src/ESP8266WebServer.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WebServer\src/detail/RequestHandler.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\WiFiManager-master/WiFiManager.h \
+ d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\DNSServer\src/DNSServer.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266/FS.h
