@@ -1,3 +1,8 @@
+##note# I new release has been uploaded in https://github.com/pbecchi/OpenESP8266_Sprinkler/tree/ForOS_Bee2_0%2COS_Solar%2COS_3_0
+The new code is now compatible with OpenSprinkler 3.0, OS Bee 2.0 and OpenSprikler Solar!
+You can find there a detail description of all new features and modifications to the code .
+
+
 # OpenESP8266_Sprinkler
 ESP8266 port of Opensprikler software.
 NOTE:  This  code and the documentation is WORK IN PROGRES. All your comments and suggestions are welcome (please use GitHub Issue form).
