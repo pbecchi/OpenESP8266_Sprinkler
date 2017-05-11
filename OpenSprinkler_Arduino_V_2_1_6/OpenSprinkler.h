@@ -88,7 +88,7 @@ extern "C" {
 // end of include
 #define XFACTOR 1         // definition for i2c LCD caracters spacing
 #define YFACTOR 1
-#ifdef LCD_SSN1306
+#ifdef LCD_SSD1306
 ///// ------------SSN1306 font size for line spacing------------------------------------
 #define XFACTOR 6
 #define YFACTOR 9

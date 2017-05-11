@@ -560,6 +560,11 @@ void ScanI2c()
 #define MAC_CTRL_ID 0x50
 bool OpenSprinkler::read_hardware_mac()
 {
+#ifdef ESP8266
+	byte mac[6];
+	if(!WiFi.macAddress(mac)) return false;
+	for (byte i = 0; i < 6; i++) tmp_buffer[i ]= mac[i]; 
+#else
     uint8_t ret;
     Wire.beginTransmission ( MAC_CTRL_ID );
     Wire.write ( ( uint8_t ) ( 0x00 ) );
@@ -575,6 +580,7 @@ bool OpenSprinkler::read_hardware_mac()
     {
         tmp_buffer[ret] = Wire.read();
     }
+#endif
     return true;
 }
 
@@ -588,7 +594,7 @@ byte OpenSprinkler::start_network( )
     DEBUG_PRINTLN ( F ( "Connecting..." ) );
 
     // new from 2.2: read hardware MAC
-#ifdef OPENSPRINKLER_ARDUINO
+#if defined( OPENSPRINKLER_ARDUINO) && !defined(ESP8266)
     // always use software MAC
     DEBUG_PRINTLN ( F ( "Setting software MAC " ) );
     tmp_buffer[0] = 0x00;
@@ -629,7 +635,7 @@ byte OpenSprinkler::start_network( )
     ether.hisport = ( unsigned int ) ( options[OPTION_HTTPPORT_1]<<8 ) + ( unsigned int ) options[OPTION_HTTPPORT_0];
     DEBUG_PRINT ( F ( "Using http port " ) );
     DEBUG_PRINTLN ( ether.hisport );
-//	write_message("connected");
+
     if ( options[OPTION_USE_DHCP] )
     {
         // set up DHCP
@@ -2352,7 +2358,7 @@ void OpenSprinkler::lcd_print_mac ( const byte *mac )
 /** print station bits */
 void OpenSprinkler::lcd_print_station(byte line, char c)
 {
-#ifdef LCD_SSN1306
+#ifdef LCD_SSD1306
 	lcd.setTextSize(2);
 #endif
 	lcd.setCursor(0, line*YFACTOR);

@@ -15,6 +15,7 @@
 #define __ets__
 #define ICACHE_FLASH
 #define F_CPU 80000000L
+#define LWIP_OPEN_SRC
 #define DEBUG_ESP_PORT Serial
 #define DEBUG_ESP_OTA
 #define DEBUG_ESP_UPDATER

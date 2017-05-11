@@ -87,7 +87,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 //                       PIN    ASSIGNEMENT
 //
 //////////////////////////////////////////////////////////////////////////
-#define PROTO 8  //board type selection
+#define PROTO 9  //board type selection
 /////////////////////////////////////////////////////////////////////////
 //////////////////////////////proto board 1////////////rear garden//////////////////////////////////
 #if PROTO==1 // shift register 
@@ -258,7 +258,6 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define BUT2_ON 0		//PIN input:1= Vcc, 0 =GND
 #define BUT3_ON 0		//PIN input:1= Vcc, 0 =GND
 #define LCDI2C								//:i2c LCD
-#define LCD_SSN1306                         // SSN1306 screen
 #define SPIFFSDFAT				  			//:no sd ....EMULATED ON fLASH
 #define ADDITIONAL_SENSORS ESP8266_C        //:additional sensors to ESP 
 #define EEPROM_ESP                          //modify in libsel.h
@@ -297,11 +296,50 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define BUT2_ON 1		//PIN input:1= Vcc, 0 =GND
 #define BUT3_ON 1		//PIN input:1= Vcc, 0 =GND
 #define LCDI2C								//:i2c LCD
-#define LCD_SSN1306                         // SSN1306 screen
 #define SPIFFSDFAT				  			//:no sd ....EMULATED ON fLASH
 //#define ADDITIONAL_SENSORS ESP8266_C      //no additional sensors GPIO are all used for Valve control
 #define EEPROM_ESP                          //modify in libsel.h
+
+#elif PROTO==9   //________________________/Opensprinkler 3.0/________________________________________________________________
+#define DS1307RTC I2CRTC
+#define OPENSPRINKLER_ARDUINO_W5100        //only for MEGA (required for ESP8266 only when not using shift registers)
+//#define SHIFT_REG						   //: stations on PCF8574 n.1...7 connected to shift register                                                        
+#define OPENSPRINKLER_ARDUINO_DISCRETE     //:no shift registers each station to different pin (on PCF8574 if I2C_SHIFT_REG defined)
+//#define I2C_SHIFT_REG                    //output to stations are connected to PCF8574 PINS
+// PCF8574 pin out  ---------------------------------- addr 0x21
+#define PIN_STN_S01		0x37
+#define PIN_STN_S02		0x36
+#define PIN_STN_S03		0x35
+#define PIN_STN_S04		0x34
+#define PIN_STN_S05		0x33
+#define PIN_STN_S06		0x32
+#define PIN_STN_S07		0x31
+#define PIN_STN_S08		0x30
+#define PCF8574_M        //PCF8574 are used for i/o
+#define STA_HIGH LOW     // low station output on for OS 3.0
+#define STA_LOW HIGH     // high station output off for OS 3.0
+//-------------------------buttons--------------------------------------------
+//#define BUTTON_ADC_PIN        A0       //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
+#define PIN_BUTTON_1 0x21		//button are on  PCF8574 expaneder adr 0x20
+#define PIN_BUTTON_2 0x00			//button 2 is used for ESP flash
+#define PIN_BUTTON_3 0x23
+#define BUT1_ON 0		//PIN input:1= Vcc, 0 =GND
+#define BUT2_ON 0		//PIN input:1= Vcc, 0 =GND
+#define BUT3_ON 0		//PIN input:1= Vcc, 0 =GND
+//-------------LCD --------------------storage-----------------------add sensors---------
+#define LCDI2C								//: assign LCD address
+#define LCD_SSD1306							// OLED 128*64 DISPLAY
+#define LCD_ADDR 0x3c
+
+#define SPIFFSDFAT							//:no SD
+#define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
+
+
+
+
+
 #endif
+///////////////////////////////////////////////END OF PROTOTYPE  LIST//////////////////////////////////////////////////////////
 //////check if libsel.h is correct//////////////////////////////////////
 #ifdef EEPROM_ESP
 //#undef EEPROM_ESP

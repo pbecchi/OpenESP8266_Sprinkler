@@ -135,7 +135,7 @@ Original Opensprinkler code commences below here
 #include <avr/wdt.h>
 #endif
 #endif
-byte DB = 0xFF;
+byte DB = 0xFF;     ////________________debug print everywhere_________________
 #ifdef ESP8266
 extern DS1307RTC RTC;
 #endif
@@ -189,6 +189,7 @@ void setup()
 	   else if (error == OTA_END_ERROR) Serial.println("End Failed");
    });
    ArduinoOTA.begin();
+   DB = 0;//_______________________________________________all debug is off enter DB via USB 
 #endif
 }
 

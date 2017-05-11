@@ -27,6 +27,8 @@
 // External variables defined in main ion file
 #if defined(ARDUINO)
 #ifdef ESP8266
+#undef DB_MASK
+#define DB_MASK 2
 #ifndef SDFAT
 #include <FS.h>
 //#include "SPIFFSdFat.h"
@@ -1541,7 +1543,7 @@ byte server_json_log ( char *p )
             res = file.fgets ( tmp_buffer, TMP_BUFFER_SIZE );
 #else
 			res = file.readBytesUntil('\n',tmp_buffer, TMP_BUFFER_SIZE);
-			tmp_buffer[res+1 ] = 0;
+			tmp_buffer[res ] = 0;
 			DEBUG_PRINT("Log>"); DEBUG_PRINT(res); DEBUG_PRINT('=');  DEBUG_PRINTLN(tmp_buffer);
 #endif
 			if ( res <= 0 )

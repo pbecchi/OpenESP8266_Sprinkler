@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ds1307", "RTClib-master\exa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProvaOSBee", "..\..\ProvaOSBee\ProvaOSBee.vcxproj", "{B8138B37-699D-439D-9E21-28082C5E0FD8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSBee2.0FirmWare", "..\..\OSBeeWiFi-Firmware-master\OSBeeWiFi\examples\mainArduino\mainArduino.vcxproj", "{E4E4E466-0700-4526-B718-74C6AFD1A4BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -107,6 +109,12 @@ Global
 		{B8138B37-699D-439D-9E21-28082C5E0FD8}.Release|x64.ActiveCfg = Release|Win32
 		{B8138B37-699D-439D-9E21-28082C5E0FD8}.Release|x86.ActiveCfg = Release|Win32
 		{B8138B37-699D-439D-9E21-28082C5E0FD8}.Release|x86.Build.0 = Release|Win32
+		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Debug|x64.ActiveCfg = Debug|Win32
+		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Debug|x86.ActiveCfg = Debug|Win32
+		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Debug|x86.Build.0 = Debug|Win32
+		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Release|x64.ActiveCfg = Release|Win32
+		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Release|x86.ActiveCfg = Release|Win32
+		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

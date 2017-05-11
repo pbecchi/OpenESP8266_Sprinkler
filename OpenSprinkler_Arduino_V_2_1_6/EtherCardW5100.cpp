@@ -322,7 +322,7 @@ byte EtherCardW5100::scanNetwork(byte flag)
 
 	// WiFi.scanNetworks will return the number of networks found
 	int n = WiFi.scanNetworks();
-	message("scan done");
+	//message("scan done");
 	if (n == 0)
 	{
 		message("no networks found");
@@ -374,7 +374,7 @@ byte EtherCardW5100::scanNetwork(byte flag)
 		Serial.print("read:");
 		Serial.println(Npas);
 		
-		message(" networks found");
+		//message(" networks found");
 		byte ind[10] = { 0,1,2,3,4,5,6,7,8,9 };
 		byte ii = 1; 
 			while (ii != 0)

@@ -1322,6 +1322,7 @@ void write_log ( byte type, ulong curr_time )
 #ifndef ESP8266
     file.write ( tmp_buffer );
 #else 
+	strcat(tmp_buffer, "\0");
 	file.print(tmp_buffer);
 #endif
 
@@ -1438,13 +1439,15 @@ void check_network()
 			}
 
 			ntry++;
-			if (ntry > 100)break;
+			if (ntry > 10)break;
 		}
-		if (ntry <= 100) {
+		if (ntry <= 10) {
 			failed = false;
 			DEBUG_PRINTLN(" OK");
 		}
-		else DEBUG_PRINTLN(" failed");
+		else {
+			DEBUG_PRINTLN(" failed"); write_message("ping failed");
+		}
 
 #else
 

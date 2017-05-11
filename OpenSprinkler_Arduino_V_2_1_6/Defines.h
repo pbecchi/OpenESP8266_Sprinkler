@@ -457,8 +457,14 @@ typedef enum
 #define SERIAL_DEBUG
 #if defined(SERIAL_DEBUG) /** Serial debug functions */
 extern byte DB;
+// db_mask opensprinklerserver 32
+//         utils               8
+//         opensprinklermain   2
+//         ethercardW5100	   4
+//         weather            16
+
 #define DB_MASK 0xFF
-#define DEBUG_COMMAND  if(Serial.available()){DB=Serial.read()-'0';DB=DB*10+Serial.read()-'0';Serial.print("->");Serial.println(DB);}
+#define DEBUG_COMMAND  if(Serial.available()){char c=Serial.read();DB=0;while(Serial.available()){if(c>='0'){DB=DB*10;DB+=c-'0';}c=Serial.read();}Serial.print("->");Serial.println(DB);}
 
 #define DEBUG_PRINTF(x,y)   if(DB&DB_MASK) Serial.print(x,y)
 #define DEBUG_PRINT(x)  if(DB&DB_MASK) Serial.print(x)
