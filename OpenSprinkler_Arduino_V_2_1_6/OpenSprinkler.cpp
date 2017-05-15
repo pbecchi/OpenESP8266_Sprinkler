@@ -343,9 +343,9 @@ char op_max[] =
     1,
     1
 #ifdef BATTERY
-	, 255,  //s deep sleep duration						D_SLEEP_DURATION
-	255, //min deep sleep start							D_SLEEP_START_TIME
-	255,  //min deep sleep interval						D_SLEEP_INTERVAL
+	, 255,  //min deep sleep duration						D_SLEEP_DURATION
+	255,  //h deep sleep start							D_SLEEP_START_TIME
+	255,  //h deep sleep interval						D_SLEEP_INTERVAL
 	255,  //mV minimum battery voltage start of deep sleeMIN_VOLTS_D_SLEEP
 	255,  //mV voltage start of light sleep				MIN_VOLTS_L_SLEEP
 	255,    //s light sleep delay time						L_SLEEP_DURATION
@@ -353,7 +353,7 @@ char op_max[] =
 #endif
 };
 //#endif // OPENSPRINKLER_ARDUINO
-
+#define DB_MASK 1
 /** Option values (stored in RAM) */
 byte OpenSprinkler::options[] =
 {
@@ -837,12 +837,17 @@ void OpenSprinkler::begin()
 	ScanI2c();
 
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
- #ifdef OSBEE==1
+#ifdef OSBEE
+#if OSBEE == 1	
 	setallpins(HIGH);
 #else
 	// initialize the Digital IO pins as outputs:
 	for (int i = 0; i < (PIN_EXT_BOARDS * 8); i++)
-		pinMode(station_pins[i], OUTPUT);
+	{		pinMode(station_pins[i], OUTPUT);
+
+}
+//	for (int i = 0; i < MAX_NUMBER_ZONES; i++) BeeClose(i);
+  #endif
 #endif
 #else
     // shift register setup
@@ -1100,25 +1105,36 @@ void OpenSprinkler::begin()
 */
 void setallpins(byte value) {
 	static byte first = true;
-	DEBUG_PRINTLN(value); DEBUG_PRINT("set all pin:");
-	digitalWrite(PIN_COM, value);
+
+	DEBUG_PRINT("Set "); DEBUG_PRINT(value); DEBUG_PRINT(" all pin:");
+	if (first) {
+		DEBUG_PRINTLN("setting mode....");
+		first = false;
+#if OSBEE == 1
+		digitalWrite(PIN_COM, value);
+		digitalWrite(PIN_BST_EN, LOW);
+		digitalWrite(PIN_BST_PWR, LOW);
+#endif
+		pinMode(PIN_COM, OUTPUT);
+		pinMode(PIN_BST_EN, OUTPUT);
+		pinMode(PIN_BST_PWR, OUTPUT);
+
+		for (byte i = 0; i < MAX_NUMBER_ZONES; i++) {
+#if OSBEE == 1
+			digitalWrite(st_pins[i], LOW);
+#endif
+			pinMode(st_pins[i], OUTPUT);
+		}
+	}
+		DEBUG_PRINT("Set "); DEBUG_PRINT(value); DEBUG_PRINT(" all pin:");
+
+		digitalWrite(PIN_COM, value);
 	for (byte i = 0; i<MAX_NUMBER_ZONES; i++) {
 		digitalWrite(st_pins[i], value);
 		DEBUG_PRINT(st_pins[i]); DEBUG_PRINT(" ");
 		delay(100);
-	}
+	
 	DEBUG_PRINTLN(" done");
-	if (first) {
-		first = false;
-		
-		pinMode(PIN_COM, OUTPUT);
-		digitalWrite(PIN_BST_EN, LOW);
-		pinMode(PIN_BST_EN, OUTPUT);
-		digitalWrite(PIN_BST_PWR, LOW);
-		pinMode(PIN_BST_PWR, OUTPUT);
-		for (byte i = 0; i < MAX_NUMBER_ZONES; i++) {
-			pinMode(st_pins[i], OUTPUT);
-		}
 	}
 		
 	
@@ -1139,8 +1155,9 @@ void BeeOpen(byte zid) {
 		setallpins(STA_HIGH);				// set all switches to HIGH, including COM
 		delay(500);
 		digitalWrite(pin, STA_LOW);			// set the specified switch to LOW
+		DEBUG_PRINT("Open pin "); DEBUG_PRINT(pin);
 		digitalWrite(PIN_BST_EN, STA_HIGH);		// dump boosted voltage
-		DEBUG_PRINT("Boost..");
+		DEBUG_PRINT(" Boost..");
 		delay(200);		// for 250ms
 		digitalWrite(PIN_BST_EN, STA_LOW);  // disable boosted voltage
 		DEBUG_PRINTLN("..sent");
@@ -1157,8 +1174,9 @@ void BeeClose(byte zid) {
 		setallpins(STA_LOW);        // set all switches to LOW, including COM
 		delay(500);
 		digitalWrite(pin, STA_HIGH);// set the specified switch to HIGH
+		DEBUG_PRINT("Close pin "); DEBUG_PRINT(pin);
 		digitalWrite(PIN_BST_EN, STA_HIGH); // dump boosted voltage
-		DEBUG_PRINT("Boost..");
+		DEBUG_PRINT(" Boost..");
 		
 		delay(200);                     // for 250ms
 		digitalWrite(PIN_BST_EN, STA_LOW);  // disable boosted voltage
@@ -1258,29 +1276,25 @@ void OpenSprinkler::apply_all_station_bits()
     byte bid, s, sbits;
 
     // Shift out all station bit values from the highest bit to the lowest
-    for ( bid = 0; bid <= MAX_EXT_BOARDS; bid++ )
-    {
+	for (bid = 0; bid <= MAX_EXT_BOARDS; bid++)
+	{
 
-        if ( status.enabled )
-            sbits = station_bits[MAX_EXT_BOARDS - bid];
-	//	DEBUG_PRINT(int(bid)); DEBUG_PRINT("sb="); DEBUG_PRINTLN(int(sbits));
+		if (status.enabled)
+		{
+			sbits = station_bits[MAX_EXT_BOARDS - bid];
+	//		DEBUG_PRINT(int(bid)); DEBUG_PRINT("sb="); DEBUG_PRINTLN(int(sbits));
+		}
         else
             sbits = 0;
+#ifdef OSBEE
 	//  PROCESS ONLY IF BITS ARE CHANGED !!!!!!!!!!!!!!!!!!!!!!!!
-		if (bid == MAX_EXT_BOARDS) { //only for this station not for extension or remotes
+		if (bid == MAX_EXT_BOARDS)                    //only for this station not for extension or remotes
 			if (sbits == prev_bits) return;
-			
-		} 
-        // Check that we're switching physical discretes within the range defined
+#endif
 
 		if (MAX_EXT_BOARDS - bid < PIN_EXT_BOARDS)
-
-
-		if (bid < PIN_EXT_BOARDS)
 #define MS7 7-s
-
-		{
-			
+		{			
 			for (s = 0; s < 8; s++)
 			{
 
@@ -1388,10 +1402,11 @@ void OpenSprinkler::apply_all_station_bits()
 #ifdef BATTERY
 #define SLEEPING_VOLTS		options[MIN_VOLTS_L_SLEEP]*10  //unit 10mV options unit is 100mV  
 #define DEEP_SLEEP_VOLTS	options[MIN_VOLTS_D_SLEEP]*10  //unit 10mV options unit is 100mV  
-#define DEEP_SLEEP_TIME		options[D_SLEEP_DURATION]*60   //minutes option is in hours
-#define SLEEP_START			options[D_SLEEP_START_TIME]*60 //minutes option is in hours
-#define SLEEP_DURATION		options[D_SLEEP_DURATION]*60   //minutes option is in hours
+#define DEEP_SLEEP_TIME		options[D_SLEEP_DURATION]*60   //seconds option is in minutes
+#define SLEEP_START			options[D_SLEEP_START_TIME] // hours
+#define SLEEP_DURATION		options[D_SLEEP_INTERVAL]   // hours
 #define L_SLEEP_TIME		options[L_SLEEP_DURATION]      //seconds
+#define FACTOR 0.6
 
 static int voltAverage, vcount = 0, sleeptime = 30;
 /*
@@ -1410,7 +1425,7 @@ void OpenSprinkler::Sleep(int volts) {
 	bool sleepFlag = false;
 // in the interval for sleeping!!!
 	if (hour() > SLEEP_START) { if (hour() - SLEEP_START < SLEEP_DURATION) sleepFlag = true; }
-	else if (SLEEP_START + SLEEP_DURATION > 24) if (hour() < SLEEP_START + SLEEP_DURATION - 24)sleepFlag = true;
+	else { if (SLEEP_START + SLEEP_DURATION > 24) if (hour() < SLEEP_START + SLEEP_DURATION - 24)sleepFlag = true; }
 //////
 	if (volts>=100)
 		if (volts < DEEP_SLEEP_VOLTS&&sleepFlag)
@@ -1422,13 +1437,14 @@ void OpenSprinkler::Sleep(int volts) {
 			lcd_print_2digit(hour(now_tz() + sleepTime)); lcd.print(":");
 			lcd_print_2digit(minute(sleepTime+now_tz()));
 			lcd.display();
-			ESP.deepSleep(DEEP_SLEEP_TIME*1000000);    // sleep for 1 hour waik up and sleep again if battery is empty      
+			ESP.deepSleep(DEEP_SLEEP_TIME*1000000);    // sleep for 1 hour waik up and sleep again if battery is empty   
+			
 		}
 		else 	if(volts < SLEEPING_VOLTS) {
 //		WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
 //		wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
 		lcd.setCursor(30, BOTTOM); 
-		lcd.print("zzzzzzzz"); 
+		lcd.print("zzzzz"); 
 		lcd.display();
 		wifi_set_sleep_type(LIGHT_SLEEP_T);
 		delay(L_SLEEP_TIME * 1000L);
@@ -1486,8 +1502,8 @@ int OpenSprinkler::BatteryVoltage() {
 		chargeTime = millis();
 	}
 	 float current = ina.getCurrent_mA();
-	 float voltage = ina.getBusVoltage_V();
-	 charge -= current*(millis() - chargeTime) / 3600000;
+	 float voltage = ina.getBusVoltage_V();// +ina.getShuntVoltage_mV() / 1000;
+	 charge -= current*(millis() - chargeTime) / 3600000*FACTOR;
 	 chargeTime = millis();
 	 if (charge < 50)charge = 50;
 	 if (charge > options[BATTERY_mAH] * 100)charge = options[BATTERY_mAH] * 100;

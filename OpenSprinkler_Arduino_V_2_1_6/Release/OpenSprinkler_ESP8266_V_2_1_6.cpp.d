@@ -54,13 +54,14 @@ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/Stream.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\Time/Time.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\Time/TimeLib.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries/Adafruit_INA219-master\Adafruit_INA219.h \
  d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\lib\Adafruit_SSD1306.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\SPI/SPI.h \
  d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\lib\Adafruit_GFX.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/Print.h \
  d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\lib\gfxfont.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\i2crtc.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries\Time/TimeLib.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\DS1307RTC/DS1307RTC.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries/Time/TimeLib.h \
  d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Bitmaps.h \
  d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\EtherCardW5100.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src/ESP8266WiFi.h \
@@ -100,8 +101,6 @@ d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp
  d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\PCF8574Mio.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266mDNS/ESP8266mDNS.h \
  d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/FS.h \
- d:\Users\pbecc\AppData\Local\Temp\VMicroBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\RTClib-master\RTClib.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries/Time/TimeLib.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\LiquidCrystal/LiquidCrystal_I2C.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\LiquidCrystal/I2CIO.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\LiquidCrystal/LCD.h \

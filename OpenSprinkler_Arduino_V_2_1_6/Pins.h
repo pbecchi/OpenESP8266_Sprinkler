@@ -87,7 +87,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 //                       PIN    ASSIGNEMENT
 //
 //////////////////////////////////////////////////////////////////////////
-#define PROTO 9  //board type selection
+#define PROTO 7    ///////////////////////board type selection////////////
 /////////////////////////////////////////////////////////////////////////
 //////////////////////////////proto board 1////////////rear garden//////////////////////////////////
 #if PROTO==1 // shift register 
@@ -335,6 +335,43 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
 
 
+#elif PROTO==10 // testbench 
+#define BATTERY											// for OpenSprinkler Solar battery powered
+#define INA219											// if INA219 board is present
+#define OSBEE 0											// ==0 if is a battery powered board
+// OLED 128*64 DISPLAY
+#define LCD_SSD1306
+#define LCD_RST 12		
+#define LCD_ADDR 0x3c
+#define OPENSPRINKLER_ARDUINO_W5100      //:required for ESP8266 not using shift registers
+#define OPENSPRINKLER_ARDUINO_DISCRETE      //direct connection pin relay board
+//#define SHIFT_REG
+// PCF8574 pin out  ----connected to relay module------------------------------ addr 0x3F
+#define PIN_STN_S01		0x24
+#define PIN_STN_S02		0x23
+#define PIN_STN_S03		0x22
+#define PIN_STN_S04		0x00    //NA
+#define PIN_STN_S05		0x00    //NA
+#define PIN_STN_S06		0x00    //NA
+#define PIN_STN_S07		0x00	//NA
+#define PIN_STN_S08		0x00	//NA
+#define PCF8574_M        //PCF8574 are used for i/o
+#define STA_HIGH LOW     // low station output on for Relay
+#define STA_LOW HIGH     // high station output off for Relay
+//#define DS1307RTC RTC_MCP7940
+//-------------------------buttons--------------------------------------------
+//#define BUTTON_ADC_PIN
+//:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
+#define PIN_BUTTON_1 0x25			//button are on  PCF8574 expaneder adr 0x3F
+#define PIN_BUTTON_2 0x26
+#define PIN_BUTTON_3 0x27
+#define BUT1_ON 1		//PIN input:1= Vcc, 0 =GND
+#define BUT2_ON 1		//PIN input:1= Vcc, 0 =GND
+#define BUT3_ON 1		//PIN input:1= Vcc, 0 =GND
+#define LCDI2C								//:i2c LCD
+#define SPIFFSDFAT				  			//:no sd ....EMULATED ON fLASH
+#define ADDITIONAL_SENSORS ESP8266_C        //:additional sensors to ESP 
+#define EEPROM_ESP                          //modify in libsel.h
 
 
 
@@ -602,7 +639,7 @@ const uint8_t spi_ss_pin[] =   // SS pin for each device
 #define PIN_BST_PWR				14						//pin boost power____________________needed //for OS Bee 2.0
 #define PIN_BST_EN				0x20					//bin boost enable___________________needed
 #define OSB_SOT_LATCH			0						//value of option for non latching valves___for OS Bee 2.0
-#ifdef OSBEE==1
+#if OSBEE==1
  #define PIN_COM					02					//pin for valves return line
  #define PIN_BST_PWR				15					//pin boost power____________________needed //for OS Bee 2.0
  #define PIN_BST_EN					16					//bin boost enable___________________needed

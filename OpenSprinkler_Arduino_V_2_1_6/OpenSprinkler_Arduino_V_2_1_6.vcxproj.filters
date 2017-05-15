@@ -152,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenSprinkler_ESP8266_V_2_1_6.ino" />
+    <None Include="OpenSprinkler SW new features.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="board.txt" />
