@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSprinkler_ESP8266_V_2_1_6", "OpenSprinkler_Arduino_V_2_1_6.vcxproj", "{3E5D7F3B-DE26-4C61-9CF4-CEDB591106DE}"
 EndProject
@@ -24,6 +24,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProvaOSBee", "..\..\ProvaOSBee\ProvaOSBee.vcxproj", "{B8138B37-699D-439D-9E21-28082C5E0FD8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSBee2.0FirmWare", "..\..\OSBeeWiFi-Firmware-master\OSBeeWiFi\examples\mainArduino\mainArduino.vcxproj", "{E4E4E466-0700-4526-B718-74C6AFD1A4BB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1403B5B3-BB2D-4D84-BD14-B448F026E494}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

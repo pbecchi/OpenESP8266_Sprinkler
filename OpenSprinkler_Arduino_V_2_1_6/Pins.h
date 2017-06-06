@@ -87,7 +87,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 //                       PIN    ASSIGNEMENT
 //
 //////////////////////////////////////////////////////////////////////////
-#define PROTO 7    ///////////////////////board type selection////////////
+#define PROTO 11    ///////////////////////board type selection////////////
 /////////////////////////////////////////////////////////////////////////
 //////////////////////////////proto board 1////////////rear garden//////////////////////////////////
 #if PROTO==1 // shift register 
@@ -374,6 +374,38 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define EEPROM_ESP                          //modify in libsel.h
 
 
+/////////////////////////////proto board 6//////////Swimming pool//PCF8574 with relay///////////////////////////////////
+#elif PROTO==11  // ESP8266 with no peripheral: no button, no I2c, no LCD relay output on ESP pins !!blind mode!!
+#define OPENSPRINKLER_ARDUINO_W5100        //only for MEGA (required for ESP8266 only when not using shift registers)
+//#define SHIFT_REG						   //: stations on PCF8574 n.1...7 connected to shift register                                                        
+#define OPENSPRINKLER_ARDUINO_DISCRETE     //:no shift registers each station to different pin (on PCF8574 if I2C_SHIFT_REG defined)
+//#define I2C_SHIFT_REG                      //output to stations are connected to PCF8574 PINS
+// PCF8574 pin out  ----connected to relay module------------------------------ addr 0x3B
+#define PIN_STN_S01		0x00
+#define PIN_STN_S02		0x02
+#define PIN_STN_S03		9
+#define PIN_STN_S04		10
+#define PIN_STN_S05		12
+#define PIN_STN_S06		13
+#define PIN_STN_S07		14
+#define PIN_STN_S08		15
+//#define PCF8574_M        //PCF8574 are used for i/o
+#define STA_HIGH LOW     // low station output on for Relay
+#define STA_LOW HIGH     // high station output off for Relay
+//-------------------------buttons--------------------------------------------
+//#define BUTTON_ADC_PIN        A0       //:digital buttons ---> IO n.on PCF8574 n.0 pins: Ox00 <>0x02
+#define PIN_BUTTON_1 0x21		//button are on second PCF8574 expaneder adr 0x39
+#define PIN_BUTTON_2 0x22
+#define PIN_BUTTON_3 0x23
+#define BUT1_ON 1		//PIN input:1= Vcc, 0 =GND
+#define BUT2_ON 1		//PIN input:1= Vcc, 0 =GND
+#define BUT3_ON 1		//PIN input:1= Vcc, 0 =GND
+//-------------LCD --------------------storage-----------------------add sensors---------
+#define LCDI2C								//: assign LCD address
+//#define LCD_ADDR 0x3F
+#define SPIFFSDFAT							//:no SD
+//#define PCF8574_M
+#define ADDITIONAL_SENSORS PCF85
 
 #endif
 ///////////////////////////////////////////////END OF PROTOTYPE  LIST//////////////////////////////////////////////////////////

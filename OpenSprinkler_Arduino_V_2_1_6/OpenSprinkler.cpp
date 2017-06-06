@@ -1153,16 +1153,18 @@ void BeeOpen(byte zid) {
 		// for latching solenoid
 		boost();							// boost voltage
 		setallpins(STA_HIGH);				// set all switches to HIGH, including COM
-		delay(500);
+		delay(200);
 		digitalWrite(pin, STA_LOW);			// set the specified switch to LOW
 		DEBUG_PRINT("Open pin "); DEBUG_PRINT(pin);
+		delay(200);
 		digitalWrite(PIN_BST_EN, STA_HIGH);		// dump boosted voltage
 		DEBUG_PRINT(" Boost..");
 		delay(200);		// for 250ms
 		digitalWrite(PIN_BST_EN, STA_LOW);  // disable boosted voltage
 		DEBUG_PRINTLN("..sent");
+		delay(100);
 		digitalWrite(pin, STA_HIGH);        // set the specified switch back to HIGH
-		delay(500);
+		delay(200);
 		setallpins(STA_LOW);			// back to rest
 }
 
@@ -1172,8 +1174,9 @@ void BeeClose(byte zid) {
 		// for latching solenoid
 		boost();  // boost voltage
 		setallpins(STA_LOW);        // set all switches to LOW, including COM
-		delay(500);
+		delay(200);
 		digitalWrite(pin, STA_HIGH);// set the specified switch to HIGH
+		delay(200);
 		DEBUG_PRINT("Close pin "); DEBUG_PRINT(pin);
 		digitalWrite(PIN_BST_EN, STA_HIGH); // dump boosted voltage
 		DEBUG_PRINT(" Boost..");
@@ -1181,7 +1184,7 @@ void BeeClose(byte zid) {
 		delay(200);                     // for 250ms
 		digitalWrite(PIN_BST_EN, STA_LOW);  // disable boosted voltage
 		DEBUG_PRINTLN("..sent");
-
+		delay(200);
 		digitalWrite(pin, STA_LOW);     // set the specified switch back to LOW
 	//	delay(500);
 	//	setallpins(STA_LOW);               // set all switches back to rest
@@ -1406,7 +1409,7 @@ void OpenSprinkler::apply_all_station_bits()
 #define SLEEP_START			options[D_SLEEP_START_TIME] // hours
 #define SLEEP_DURATION		options[D_SLEEP_INTERVAL]   // hours
 #define L_SLEEP_TIME		options[L_SLEEP_DURATION]      //seconds
-#define FACTOR 0.6
+#define FACTOR 0.8
 
 static int voltAverage, vcount = 0, sleeptime = 30;
 /*
@@ -1493,7 +1496,7 @@ int OpenSprinkler::BatteryCharge()
 int OpenSprinkler::BatteryVoltage() {
 	
 #define INTERV_BATTERY 5
-#define ANALOG_FACTOR (4.9+22)/4.9/1024 //*3.4 if 3.33 v full scale //4.9 & 22 KOhm 3.3 volt scale
+#define ANALOG_FACTOR 1.1*(4.9+22)/4.9/1024 //*3.4 if 3.33 v full scale //4.9 & 22 KOhm 3.3 volt scale
 #ifdef INA219
 	if (chargeTime == 0) {
 		ina.begin();
@@ -1503,7 +1506,10 @@ int OpenSprinkler::BatteryVoltage() {
 	}
 	 float current = ina.getCurrent_mA();
 	 float voltage = ina.getBusVoltage_V();// +ina.getShuntVoltage_mV() / 1000;
-	 charge -= current*(millis() - chargeTime) / 3600000*FACTOR;
+	  if(current<0)
+		  charge -= current*(millis() - chargeTime) / 3600000;
+	  else
+		  charge -= current*(millis() - chargeTime) / 3600000*FACTOR;
 	 chargeTime = millis();
 	 if (charge < 50)charge = 50;
 	 if (charge > options[BATTERY_mAH] * 100)charge = options[BATTERY_mAH] * 100;
