@@ -71,7 +71,9 @@ EthernetClient *m_client = 0;
 // to minimize conflicting events
 #define NTP_SYNC_INTERVAL       86403L  // NYP sync interval, 24 hrs
 #define RTC_SYNC_INTERVAL       60      // RTC sync interval, 60 secs
-#define CHECK_NETWORK_INTERVAL  601     // Network checking timeout, 10 minutes
+#ifndef CHECK_NETWORK_INTERVAL 
+ #define CHECK_NETWORK_INTERVAL  601     // Network checking timeout, 10 minutes
+#endif
 #define CHECK_WEATHER_TIMEOUT   3601    // Weather check interval: 1 hour
 #define CHECK_WEATHER_SUCCESS_TIMEOUT 86433L // Weather check success interval: 24 hrs
 #define LCD_BACKLIGHT_TIMEOUT   15      // LCD backlight timeout: 15 secs
@@ -450,11 +452,13 @@ void do_loop()
 #endif
 																			 // ====== Process Ethernet packets ======
 #if defined(ARDUINO)  // Process Ethernet packets for Arduino
-    uint16_t pos=ether.packetLoop ( ether.packetReceive() );
+	
+   // uint16_t pos=ether.packetLoop ( ether.packetReceive() );
+	uint16_t pos = ether.packetReceive();
     if ( pos>0 )  // packet received
     {
 #ifdef OPENSPRINKLER_ARDUINO_W5100
-        handle_web_request ( ( char* ) EtherCardW5100::buffer + pos );
+        handle_web_request ( ( char* ) EtherCardW5100::buffer + 1 );
 #else
         handle_web_request ( ( char* ) Ethernet::buffer+pos );
 #endif
@@ -1439,9 +1443,9 @@ void check_network()
 			}
 
 			ntry++;
-			if (ntry > 10)break;
+			if (ntry > 5)break;
 		}
-		if (ntry <= 10) {
+		if (ntry <= 5) {
 			failed = false;
 			DEBUG_PRINTLN(" OK");
 		}

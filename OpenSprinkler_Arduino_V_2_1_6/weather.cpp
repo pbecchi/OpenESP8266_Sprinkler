@@ -145,7 +145,7 @@ static void getweather_callback ( byte status, uint16_t off, uint16_t len )
 void GetWeather()
 {
     // perform DNS lookup for every query
-	char weather_Url[15];
+	char weather_Url[25];
     nvm_read_block ( weather_Url, ( void* ) ADDR_NVM_WEATHERURL, MAX_WEATHERURL );
     ether.dnsLookup ( weather_Url, true );
 	
@@ -153,6 +153,7 @@ void GetWeather()
     char tmp[30];
     read_from_file ( wtopts_filename, tmp, 30 );
     BufferFiller bf = ( uint8_t* ) tmp_buffer;
+	DEBUG_PRINTLN(tmp);
     bf.emit_p ( PSTR ( "$D.py?loc=$E&key=$E&fwv=$D&wto=$S" ),
                 ( int ) os.options[OPTION_USE_WEATHER],
                 ADDR_NVM_LOCATION,

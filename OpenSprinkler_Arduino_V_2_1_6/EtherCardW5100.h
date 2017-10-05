@@ -208,8 +208,10 @@ private:
 #endif
 	static ETHERNES incoming_server;			// server used for incoming connections
     static ETHERNEC incoming_client;			// client used for incoming www requests (only)
+#ifdef MOD1
 	static ETHERNEC outgoing_client;			// client used for outgoing browse_url requests (only)
-    static ETHERNEUDP udp_client;					// udp object used for NTP requests
+#endif
+	static ETHERNEUDP udp_client;					// udp object used for NTP requests
 
     static DNSClient dns_client;					// client used for dns lookups
 	

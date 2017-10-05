@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSBee2.0FirmWare", "..\..\O
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1403B5B3-BB2D-4D84-BD14-B448F026E494}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "provaESPwiFi", "..\provaESPwiFi\provaESPwiFi.vcxproj", "{C63BB361-21A2-46CB-AB00-19FFCC1EFA91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -117,6 +119,12 @@ Global
 		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Release|x64.ActiveCfg = Release|Win32
 		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Release|x86.ActiveCfg = Release|Win32
 		{E4E4E466-0700-4526-B718-74C6AFD1A4BB}.Release|x86.Build.0 = Release|Win32
+		{C63BB361-21A2-46CB-AB00-19FFCC1EFA91}.Debug|x64.ActiveCfg = Debug|Win32
+		{C63BB361-21A2-46CB-AB00-19FFCC1EFA91}.Debug|x86.ActiveCfg = Debug|Win32
+		{C63BB361-21A2-46CB-AB00-19FFCC1EFA91}.Debug|x86.Build.0 = Debug|Win32
+		{C63BB361-21A2-46CB-AB00-19FFCC1EFA91}.Release|x64.ActiveCfg = Release|Win32
+		{C63BB361-21A2-46CB-AB00-19FFCC1EFA91}.Release|x86.ActiveCfg = Release|Win32
+		{C63BB361-21A2-46CB-AB00-19FFCC1EFA91}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,11 @@
 #pragma once
+//////////////////////////////////////////////////////////////////////////
+//
+//                       PIN    ASSIGNEMENT
+//
+//////////////////////////////////////////////////////////////////////////
+#define PROTO 11   ///////////////////////board type selection////////////
+/////////////////////////////////////////////////////////////////////////
 /*------------------------------------------------------------------------------------------------------
 The file details each pin used for your HW configuration. 
 You have first to define the configuration you are working on (ESP or other MCU) 
@@ -82,13 +89,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define BUT3_ON 1
 //////////////////////////contain definition  ESP flash or I2C eeprom choise.
 #include "libsel.h"   // change only if you have EEPROM on I2C
-//////////////////////////////////////////////////////////////////////////
-//
-//                       PIN    ASSIGNEMENT
-//
-//////////////////////////////////////////////////////////////////////////
-#define PROTO 11    ///////////////////////board type selection////////////
-/////////////////////////////////////////////////////////////////////////
+
 //////////////////////////////proto board 1////////////rear garden//////////////////////////////////
 #if PROTO==1 // shift register 
 
@@ -225,6 +226,7 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define ADDITIONAL_SENSORS PCF8574_C        //:additional sensors on PCF8574 n.0 
 
 #elif PROTO==7 // battery operated latching valves 
+#undef OTAUPLOAD
 #define BATTERY											// for OpenSprinkler Solar battery powered
 #define INA219											// if INA219 board is present
 #define OSBEE 0											// ==0 if is a battery powered board
@@ -236,17 +238,17 @@ This way you can use expander for all functions (interrupt donot work right now)
 #define OPENSPRINKLER_ARDUINO_DISCRETE      //direct connection pin relay board
 //#define SHIFT_REG
 // PCF8574 pin out  ----connected to relay module------------------------------ addr 0x3F
-#define PIN_STN_S01		0x24
-#define PIN_STN_S02		0x23
-#define PIN_STN_S03		0x22
+#define PIN_STN_S01		0x22
+#define PIN_STN_S02		0x21
+#define PIN_STN_S03		0x20
 #define PIN_STN_S04		0x00    //NA
 #define PIN_STN_S05		0x00    //NA
 #define PIN_STN_S06		0x00    //NA
 #define PIN_STN_S07		0x00	//NA
 #define PIN_STN_S08		0x00	//NA
 #define PCF8574_M        //PCF8574 are used for i/o
-#define STA_HIGH LOW     // low station output on for Relay
-#define STA_LOW HIGH     // high station output off for Relay
+#define STA_HIGH HIGH     // low station output on for Relay
+#define STA_LOW LOW     // high station output off for Relay
 //#define DS1307RTC RTC_MCP7940
 //-------------------------buttons--------------------------------------------
 //#define BUTTON_ADC_PIN
@@ -665,11 +667,11 @@ const uint8_t spi_ss_pin[] =   // SS pin for each device
 
 #ifdef OSBEE
 ///////////////////////defines for OS Bee////////////////////////////////////////////////////
-#define PIN_COM					0x21					//pin for valves return line
+#define PIN_COM					0x23					//pin for valves return line
 #define MAX_NUMBER_ZONES		3						//num.of zones_______________________needed
 #define st_pins OpenSprinkler::station_pins				//pins used for attached Zones
 #define PIN_BST_PWR				14						//pin boost power____________________needed //for OS Bee 2.0
-#define PIN_BST_EN				0x20					//bin boost enable___________________needed
+#define PIN_BST_EN				0x24					//bin boost enable___________________needed
 #define OSB_SOT_LATCH			0						//value of option for non latching valves___for OS Bee 2.0
 #if OSBEE==1
  #define PIN_COM					02					//pin for valves return line

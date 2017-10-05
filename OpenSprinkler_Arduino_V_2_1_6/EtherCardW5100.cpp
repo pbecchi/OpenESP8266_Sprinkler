@@ -254,7 +254,9 @@ ICMPEchoReply EtherCardW5100::ping_result;
 ETHERNES EtherCardW5100::incoming_server ( hisport );
 //ETHERNES EtherCardW5100::incoming_server(80);
 ETHERNEC EtherCardW5100::incoming_client;
+#ifdef MOD1
 ETHERNEC EtherCardW5100::outgoing_client;
+#endif
 ETHERNEUDP EtherCardW5100::udp_client;
 DNSClient EtherCardW5100::dns_client;
 
@@ -287,6 +289,42 @@ uint8_t EtherCardW5100::begin ( const uint16_t size, const uint8_t* macaddr, uin
     using_dhcp = false;
     copyMac ( mymac, macaddr );
     return 1; //0 means fail
+}
+
+////////////////////////////////////////////////////////WiFi Events////////////////////////////////
+int ndisc = 0, tot_disctime = 0; ulong disctime = 0;
+void WiFiEvent(WiFiEvent_t event) {
+	DEBUG_PRINT("[WiFi-event] event:");DEBUG_PRINTLN( event);
+
+	switch (event) {
+	case WIFI_EVENT_STAMODE_GOT_IP:
+		DEBUG_PRINTLN("WiFi connected");
+		DEBUG_PRINTLN("IP: ");
+		DEBUG_PRINTLN(WiFi.localIP());
+		break;
+	case WIFI_EVENT_STAMODE_DISCONNECTED:
+		DEBUG_PRINT("WiFi lost connection ");
+		ndisc++; DEBUG_PRINTLN(ndisc);
+		disctime = millis();
+#ifdef LCD_SSD1306
+		os.lcd.drawBitmap(18 * XFACTOR, 0, blank24x18_bmp, 5, 9, BLACK);
+		os.lcd.display();
+#endif
+		break;
+	case WIFI_EVENT_STAMODE_CONNECTED:
+
+		DEBUG_PRINT("reconnected after" );DEBUG_PRINTLN( millis() - disctime);
+		tot_disctime += (millis() - disctime) / 1000;
+#ifdef LCD_SSD1306
+		os.lcd.drawBitmap(18 * XFACTOR, 0, antenna5x9_bmp, 5, 9, WHITE);
+		os.lcd.display();
+#endif
+		break;
+	case WIFI_EVENT_STAMODE_AUTHMODE_CHANGE:
+		DEBUG_PRINTLN("WiFi Authmode Changed");
+		break;
+
+	}
 }
 //////////////////////////////////////////////////////////////////scanNetwork()///////////////////////////////////////
 String found_SSID[5], found_psw[5];
@@ -413,7 +451,7 @@ byte EtherCardW5100::scanNetwork(byte flag)
 			delay(10);
 		}
 
-		if (PaswKnown < 0||flag==1||EtherCardW5100::netflag)
+		if (PaswKnown < 0||flag==1||EtherCardW5100::netflag)    //netflag is the flag of BUTTON  2 down
 		{
 #ifdef WIFIMANAGER
 			WiFiManager wifiManager;
@@ -439,6 +477,7 @@ byte EtherCardW5100::scanNetwork(byte flag)
 					file.print(WiFi.SSID()); file.print(','); file.println(WiFi.psk());
 					WiFi.disconnect();
 					file.close();
+					WiFi.mode(WIFI_STA);
 					EtherCardW5100::netflag = false;
 				}
 				else return 0;
@@ -491,9 +530,8 @@ bool EtherCardW5100::staticSetup
 	using_dhcp = false;
 
 	
-#ifdef ESP8266
 	bool result = false;
-#if WIFIMANAGER == 1
+#if WIFIMANAGER == 1 || !defined(WIFIMANAGER)
 	uint8_t n = 0;
 		uint8_t nNetwork = scanNetwork(0);
 	if (nNetwork == 0)
@@ -535,22 +573,14 @@ bool EtherCardW5100::staticSetup
 	DEBUG_PRINTLN(WiFi.getMode());
 
 #endif //WIFIMANAGER
-#else
-	
-	IPAddress ip = Byte2IP ( my_ip );
-	IPAddress gw = Byte2IP ( gw_ip );
-	IPAddress subnet = Byte2IP ( mask );*/
-	// initialize the ethernet device and start listening for clients
-	ETHERNE.begin(mymac, ip, gw, subnet);
 
-#endif
 	if (result) {
 		String outstr = "Conn. ";
 		outstr+=	WiFi.SSID();
 		message(outstr);
 		incoming_server.begin();
 
-
+//		incoming_server.setNoDelay(true);
 
 		// save the values
 		IP2Byte(ETHERNE.localIP(), myip);
@@ -573,7 +603,9 @@ bool EtherCardW5100::WiFiconnect()
 	//	IPAddress gw = Byte2IP(gw_ip);
 		//IPAddress subnet = Byte2IP(mask);
 		DEBUG_PRINTLN("Wait WIFI...");
+		delay(1000);
 		WiFi.mode(WIFI_STA);
+		delay(1000);
 	//	while (millis() < 60000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 								   //		byte netmask[4] = { 255,255,255,0 };
@@ -602,7 +634,9 @@ bool EtherCardW5100::WiFiconnect( const uint8_t* my_ip, const uint8_t* gw_ip, co
 	IPAddress subnet = Byte2IP ( mask );
 	*/
 		DEBUG_PRINTLN("Wait WIFI...");
+		delay(1000);
 		WiFi.mode(WIFI_STA);
+		delay(1000);
 		//while (millis() < 10000) delay(2);
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 		byte netmask[4] = { 255,255,255,0 };
@@ -737,6 +771,7 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
 #endif
 		// start listening for clients
     incoming_server.begin();
+//	incoming_server.setNoDelay(true);
  //   udp_client.begin ( NTP_CLIENT_PORT );
 
     // save the values
@@ -829,6 +864,7 @@ uint16_t EtherCardW5100::packetLoop ( uint16_t plen )
         if ( outgoing_client_state == TCP_ESTABLISHED )
 		{
 			DEBUG_PRINT('>');
+#ifdef MOD1
             if ( outgoing_client.available() )
             {
                 DEBUG_PRINT ( F ( "Browse URL: client received: " ) );
@@ -851,6 +887,7 @@ uint16_t EtherCardW5100::packetLoop ( uint16_t plen )
                 if ( len > TCP_OFFSET )
                 {
                     ( *client_browser_cb ) ( 0, TCP_OFFSET, len );
+			
                 }
                 // if the server has disconnected, stop the client
                 if ( !outgoing_client.connected() )
@@ -860,12 +897,14 @@ uint16_t EtherCardW5100::packetLoop ( uint16_t plen )
                     outgoing_client_state = TCP_CLOSED;
                 }
             }
-        }
+#endif
+		}
 
         // Check for renewal of DHCP lease
-        if ( using_dhcp )
+      
 #ifndef ESP8266
-            ETHERNE.maintain();  
+		if (using_dhcp)
+		     ETHERNE.maintain();  
 #endif
         return 0;
     }
@@ -1216,40 +1255,36 @@ uint16_t EtherCardW5100::packetReceive()
 {
     // listen for incoming clients
     // ** remember this client object is different from the W5100client used for tcp requests **
-    incoming_client = incoming_server.available();
-    if ( incoming_client )
-    {
-		DEBUG_PRINTLN(incoming_client);
+    incoming_client =incoming_server.available();
+	delay(100);
+//	incoming_server.setNoDelay(true);
+	if (incoming_client) {
+		DEBUG_PRINTLN("incoming_client-----------------start");
 
-        // set all bytes in the buffer to 0 - add a
-        // byte to simulate space for the TCP header
-        memset ( buffer, 0, ETHER_BUFFER_SIZE );
-        memset ( buffer, ' ', TCP_OFFSET );
-        uint16_t i = TCP_OFFSET; // add a space for TCP offset
+		// set all bytes in the buffer to 0 - add a
+		// byte to simulate space for the TCP header
+		memset(buffer, 0, ETHER_BUFFER_SIZE);
+		memset(buffer, ' ', TCP_OFFSET);
+		uint16_t i = TCP_OFFSET; // add a space for TCP offset
 
-        DEBUG_PRINT ( F ( "Server request: " ) );
+		DEBUG_PRINT(F("Server request: "));
 
-        while ( incoming_client.connected() && ( i < ETHER_BUFFER_SIZE ) )
-        {
-            if ( incoming_client.available() )
-                buffer[i] = incoming_client.read();
+		while (incoming_client.connected() && (i < ETHER_BUFFER_SIZE)) {
+			if (incoming_client.available())
+				buffer[i] = incoming_client.read();
 
-            // print readable ascii characters
-            if ( buffer[i] >= 0x08 && buffer[i] <= 0x0D )
-            {
-                DEBUG_PRINT ( F ( " " ) );		// substitute a space so less rows in serial output
-            }
-            else if ( buffer[i] > 0x1F )
-            {
-                DEBUG_PRINT ( ( char ) buffer[i] );
-            }
+			// print readable ascii characters
+			if (buffer[i] >= 0x08 && buffer[i] <= 0x0D) {
+				DEBUG_PRINT(F(" "));		// substitute a space so less rows in serial output
+			} else if (buffer[i] > 0x1F) {
+				DEBUG_PRINT((char)buffer[i]);
+			}
 
-            i++;
-        }
-        DEBUG_PRINTLN ( F ( "" ) );
-        return i;
-    }
-    else
+			i++;
+		}
+		DEBUG_PRINTLN(F(""));
+		return i;
+	} else
         return 0;
 }
 
@@ -1268,9 +1303,12 @@ void EtherCardW5100::httpServerReply ( word dlen )
     buffer[bfill.position() + TCP_OFFSET] = '\0';
     incoming_client.print ( ( char* ) bfill.buffer() );
 
-    // close the connection:
-    delay ( 1 ); // give the web browser time to receive the data
-    incoming_client.stop();
+    //???? close the connection:
+//    delay ( 20 ); // give the web browser time to receive the data
+//    incoming_client.stop();
+	DEBUG_PRINTLN("Client packet sent----------------------------");
+//	incoming_server.setNoDelay(false);
+ 
 }
 
 /// <summary>
@@ -1288,13 +1326,15 @@ void EtherCardW5100::httpServerReply_with_flags ( uint16_t dlen, uint8_t flags )
     // Same as above - ignore dlen & just add a null termination and print it out to the client
     buffer[bfill.position() + TCP_OFFSET] = '\0';
     incoming_client.print ( ( char* ) bfill.buffer() );
-    delay ( 1 ); // give the web browser time to receive the data
+    delay ( 20 ); // give the web browser time to receive the data
 
     if ( flags&TCP_FLAGS_FIN_V != 0 ) // final packet in the stream
     {
         // close the connection:
         incoming_client.stop();
-    }
+		DEBUG_PRINTLN("Client STOP----------------------------");
+//		incoming_server.setNoDelay(false);
+	}
 
     /* // Original Code from tcpip.cpp
     for(byte i=0;i<=dup;i++)
@@ -1383,6 +1423,7 @@ void EtherCardW5100::browseUrl ( const char *urlbuf, const char *urlbuf_varpart,
 /// <param name="callback">callback Pointer to callback function to handle response</param>
 void EtherCardW5100::browseUrl ( const char *urlbuf, const char *urlbuf_varpart, const char *hoststr, const char *additionalheaderline, void ( *callback ) ( uint8_t, uint16_t, uint16_t ) )
 {
+	
     client_urlbuf = urlbuf;
     client_urlbuf_var = urlbuf_varpart;
     client_hoststr = hoststr;
@@ -1418,9 +1459,17 @@ void EtherCardW5100::browseUrl ( const char *urlbuf, const char *urlbuf_varpart,
     DEBUG_PRINTLN ( F ( "" ) );
 
     // close any connection before send a new request, to free the socket
-    outgoing_client.stop();
+#ifdef MOD1
+	outgoing_client.stopAll();
+
+	// outgoing client local definition
+#else
+	WiFiClient outgoing_client;
+#endif
+
 	delay(1000);
-    // send the request
+    
+	// send the request
     if ( outgoing_client.connect (hoststr, hisport ) )
 		//-------------modified *hoststr now=weather.opensprinkler.com was "*"
     {
@@ -1433,11 +1482,43 @@ void EtherCardW5100::browseUrl ( const char *urlbuf, const char *urlbuf_varpart,
         DEBUG_PRINT ( hisport );
         DEBUG_PRINTLN ( F ( "(OK)" ) );
         outgoing_client_state = TCP_ESTABLISHED;
+#ifndef MOD1
+		byte w = 0; ////_wait to receive from server___________________________________
+			while (!outgoing_client.available() && w++ < 255) delay(40);
+			if (w < 255) {
+				DEBUG_PRINT(F("Browse URL: client received: "));
+
+				// set all bytes in the buffer to 0 - add a
+				// byte to simulate space for the TCP header
+				memset(buffer, 0, ETHER_BUFFER_SIZE);
+				memset(buffer, ' ', TCP_OFFSET);
+				len = TCP_OFFSET;
+
+				while (outgoing_client.available() && (len < ETHER_BUFFER_SIZE)) {
+					buffer[len] = outgoing_client.read();
+					DEBUG_PRINT(char(buffer[len] & 0xFF));
+					len++;
+				}
+				DEBUG_PRINTLN(F(""));
+
+				// send data to the callback
+				if (len > TCP_OFFSET) {
+					(*client_browser_cb) (0, TCP_OFFSET, len);
+
+				}
+			}
+				outgoing_client_state = TCP_CLOSED;
+				outgoing_client.stop();
+//release incoming server if lost......................................
+			
+#endif
+
     }
     else
     {
         DEBUG_PRINTLN ( F ( "Browse URL: failed (could not connect)" ) );
         outgoing_client_state = TCP_CLOSED;
+		outgoing_client.stop();
     }
 }
 
@@ -1579,7 +1660,7 @@ bool EtherCardW5100::dnsLookup ( const char* name, bool fromRam )
     int result = dns_client.getHostByName ( name, serverIP );
 #else
 	
-	dns_client.begin ( ETHERNE.gatewayIP());
+	//dns_client.begin ( ETHERNE.gatewayIP());
 	int result = ETHERNE.hostByName(name, serverIP);
 #endif
 

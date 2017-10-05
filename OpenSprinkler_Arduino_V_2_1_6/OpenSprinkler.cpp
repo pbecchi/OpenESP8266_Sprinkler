@@ -620,7 +620,7 @@ byte OpenSprinkler::start_network( )
         status.has_hwmac = 1;
     }
 #endif
-
+#ifndef ESP8266
     if ( !ether.begin ( ETHER_BUFFER_SIZE, ( uint8_t* ) tmp_buffer, PIN_ETHER_CS ) )
     {
         DEBUG_PRINTLN ( F ( "Ethernet initialisation failed - check wiring" ) );
@@ -635,6 +635,7 @@ byte OpenSprinkler::start_network( )
     ether.hisport = ( unsigned int ) ( options[OPTION_HTTPPORT_1]<<8 ) + ( unsigned int ) options[OPTION_HTTPPORT_0];
     DEBUG_PRINT ( F ( "Using http port " ) );
     DEBUG_PRINTLN ( ether.hisport );
+#endif
 
     if ( options[OPTION_USE_DHCP] )
     {
@@ -1050,7 +1051,8 @@ void OpenSprinkler::begin()
 	DEBUG_PRINTLN("Start SPIFFS....");
 	if (SPIFFS.begin()) {
 		Dir dir = SPIFFS.openDir("/");
-		while (dir.next()) { DEBUG_PRINT(dir.fileName()); DEBUG_PRINT("  "); DEBUG_PRINTLN(dir.fileSize()); tot += dir.fileSize(); }
+		while (dir.next()) { DEBUG_PRINT(dir.fileName()); DEBUG_PRINT("  ");
+		DEBUG_PRINTLN(dir.fileSize()); tot += dir.fileSize(); }
 		status.has_sd = 1;
 		DEBUG_PRINT("Tot.bytes="); DEBUG_PRINTLN(tot);
 		lcd.setCursor(0, YFACTOR);
@@ -2087,6 +2089,10 @@ void OpenSprinkler::options_setup()
 
         // 6. write options
         options_save(); // write default option values
+
+		//7. FORMAT SPIFFS
+		SPIFFS.format();
+
 		DEBUG_PRINTLN("done");
         //======== END OF NVM RESET CODE ========
 
@@ -2472,9 +2478,9 @@ void OpenSprinkler::lcd_print_station(byte line, char c)
 
 #ifndef LCD_SSD1306
 	lcd.setCursor(15, 1);
-	lcd.write(status.network_fails>2 ? 1 : 0); // if network failure detection is more than 2, display disconnect icon
+	lcd.write(status.network_fails>=1 ? 1 : 0); // if network failure detection is more than 2, display disconnect icon
 #else
-	lcd.drawBitmap(18*XFACTOR, 0, antenna5x9_bmp, 5, 9, WHITE);
+	lcd.drawBitmap(18*XFACTOR, 0, antenna5x9_bmp, 5, 9, status.network_fails>=1 ? BLACK :  WHITE);
 #endif
     
 #ifdef LCD_SSD1306
