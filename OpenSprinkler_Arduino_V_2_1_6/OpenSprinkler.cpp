@@ -20,6 +20,7 @@
  * along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+
 #include "Defines.h"
 #include "OpenSprinkler.h"
 #include "Gpio.h"
@@ -76,9 +77,18 @@ byte OpenSprinkler::engage_booster;
 #endif
 
 ulong OpenSprinkler::sensor_lasttime;
+//___________________________________________________________________________________________________________
+#ifdef SG21
+//@tcsaba: additional variables
+ulong OpenSprinkler::s1sensor_lasttime;
+ulong OpenSprinkler::s2sensor_lasttime;
+uint16_t OpenSprinkler::current_offset;
+#else
 ulong OpenSprinkler::flowcount_log_start;
 ulong OpenSprinkler::flowcount_rt;
 ulong OpenSprinkler::flowcount_time_ms;
+#endif
+//______________________________________________________________________________________________________________________
 ulong OpenSprinkler::raindelay_start_time;
 byte OpenSprinkler::button_timeout;
 ulong OpenSprinkler::checkwt_lasttime;
@@ -210,6 +220,45 @@ char op_json_names[] =
 "fpr0\0"
 "fpr1\0"
 "re\0\0\0"
+#ifdef OS217
+"dns1\0"
+"dns2\0"
+"dns3\0"
+"dns4\0"
+"sar\0\0"
+"ife\0\0"
+#endif
+//___________________________________________________________________________________________________________
+#ifdef SG21
+"ufs\0\0"  // @tcsaba: new options see at Tables_SG_21_xxx file
+"ufl\0\0"
+"ufa\0\0"
+"ufr\0\0"
+"ufg\0\0"
+"ufm\0\0"
+"us1\0\0"
+"ud1\0\0"
+"us2\0\0"
+"ud2\0\0"
+"csi\0\0"
+"csa\0\0"
+"ucr\0\0"
+"sca\0\0"
+"scc\0\0"
+"fad\0\0"
+"hws\0\0"
+"fws\0\0"
+"cma\0\0"
+"cfd\0\0"
+"cff\0\0"
+"urt\0\0"
+"fms\0\0"
+"lns\0\0"
+"lng\0\0"
+
+#endif
+//___________________________________________________________________________________________________________________
+
 "reset"
 #ifdef BATTERY
 "DsleD"
@@ -275,6 +324,46 @@ char op_prompts[] =
     "Pulse rate:     "
     "----------------"
     "As remote ext.? "
+#ifdef OS217
+	"DNS server.ip1: "
+	"DNS server.ip2: "
+	"DNS server.ip3: "
+	"DNS server.ip4: "
+	"Special Refresh?"
+	"IFTTT Enable: "
+#endif
+//___________________________________________________________________________________________________________
+#ifdef SG21
+
+	"FlowSensor:     "   //@tcsaba: new options
+	"UnitGallon?     "
+	"FlowAlarmType   "
+	"FlowRange%      "
+	"FreeFlow gal    "
+	"FreeFow min     "
+	"SoilSensor1:    "
+	"Open Enable(NO)?"
+	"SoilSensor2:    "
+	"Open Enable(NO)?"
+	"Current Sensor? "
+	"Current Alarm?  "
+	"CurrAlarmRange %"
+	"StartCalibration"
+	"SendLogDays     "
+	"FatalDisableStat"
+	"SGHW version:   "
+	"SGFW version:   "
+	"Client mode?    "
+	"CloudRefresh (s)"
+	"Fast Refresh (s)"
+	"StatusReportType"
+	"FlashMemoryType?"
+	"LCD size 20x4?  "
+	"Language HUN?   "	// 1: hun / 0: english
+#endif
+//__________________________________________________________________________________________________________
+
+
     "Factory reset?  "
 #ifdef BATTERY
     "deep sleep dur. "					
@@ -314,10 +403,10 @@ char op_max[] =
     0,
     MAX_EXT_BOARDS,
     1,
-    247,
+  255,
     MAX_NUM_STATIONS,
-    60,
-    120,
+  255,
+  255,
     255,
     1,
     250,
@@ -341,6 +430,46 @@ char op_max[] =
     255,
     255,
     1,
+#ifdef OS21
+	255,
+	255,
+	255,
+	255,
+	1,
+	255,
+#endif
+//___________________________________________________________________________________________________________
+#ifdef SG21
+
+	//@tcsaba: new options
+	2,		//Flow Sensor enable
+	1,
+	2,
+	100,	//Flow Alarm range
+	255,
+	255,
+	2,		//Soil_1 enable
+	1,
+	2,		//Soil_2 enable
+	1,
+	2,		//Current Sensor enable
+	2,		//cURRENT aLARM	
+	100,	//current range
+	1,		//cal request
+	255,	//send logfiles
+	2,		//Fatal Flow
+	255,
+	255,
+	1,
+	255,
+	255,
+	2,
+	3,
+	1,
+	1,
+#endif
+//_____________________________________________________________________________________________
+
     1
 #ifdef BATTERY
 	, 255,  //min deep sleep duration						D_SLEEP_DURATION
@@ -406,6 +535,45 @@ byte OpenSprinkler::options[] =
     100,// this and next byte define flow pulse rate (100x)
     0,
     0,  // set as remote extension
+#ifdef OS217
+	8,  // this and the next three bytes define the custom dns server ip
+	8,
+	8,
+	8,
+	0,  // special station auto refresh
+	0,  // ifttt enable bits
+#endif
+//___________________________________________________________________________________________________________
+#ifdef SG21
+
+	1,			// 1: Flow Sensor connected
+	0,			// LCD Flow display unit: 0: liter, 1: gallon
+	2,			// Flow Alarm 0:no, 1:Station, 2: Freeflow enabled
+	25,			// Flow Operating range +  from alarm reference (%)
+	25,			// Max fleeflow quantity in gallon
+	10,			// Max freeflow running time in minutes
+	1,			//SG version soil sensor1 Option
+	0,			//Digital soil sensor type NC/NO
+	1,			//SG version soil sensor2 Option
+	0,			//Digital soil sensor type NC/NO
+	1,			//Current sensor in operation
+	1,			//Current alarm active
+	25,			//current operating range +  from alarm reference
+	0,			//Calibration Start request: 1=Yes, 0 = No
+	0,			//Number of Logfiles to send to Cloud: 0:only today, number of days incl today
+	0,			//Fatal flow		
+	OS_SGHW_VERSION,	//Smart Garden hardware Version
+	OS_SGFW_VERSION,	//Smart Garden Firmware Version
+	0,			//1: Client mode activated
+	60,			//Default cloud refresh time sec
+	10,			//Fast refresh time for manual operation sec
+	0,			//StatusReport 0:No, 1:General, 2:Detailed
+	1,			//0:NoFlash, 1: UseSD, 2:Flash128Mb
+	0,			//LCD display 0:16x2; 1:20x4
+	0,			//Language selection for LCD display 0:en, 1:hun
+#endif
+//________________________________________________________________________________________________
+
     0	   // reset
 
 		   //
@@ -821,8 +989,10 @@ void OpenSprinkler::lcd_start()
 #endif
 }
 #endif
-
+//__________________________________________________
+#ifndef SG21
 extern void flow_isr();
+#endif
 /** Initialize pins, controller variables, LCD */
 void OpenSprinkler::begin()
 {
@@ -887,18 +1057,38 @@ void OpenSprinkler::begin()
     digitalWrite ( PIN_SR_OE, LOW );
 #endif
 #endif // OPENSPRINKLER_ARDUINO_DISCRETE
+
 #ifdef PIN_RAINSENSOR
     // Rain sensor port set up
     pinMode ( PIN_RAINSENSOR, INPUT );
+//___________________________________________________________________________________________________________
+#ifdef SG21
+	pinMode(PIN_FLOWSENSOR, INPUT);
+	pinMode(PIN_SOILSENSOR_1, INPUT);
+	pinMode(PIN_SOILSENSOR_2, INPUT);
+	digitalWrite(PIN_RAINSENSOR, HIGH);
+	digitalWrite(PIN_FLOWSENSOR, HIGH);
+	digitalWrite(PIN_SOILSENSOR_1, HIGH);
+	digitalWrite(PIN_SOILSENSOR_2, HIGH);
 
-    // Set up sensors
-#if defined(ARDUINO)
-	digitalWrite ( PIN_RAINSENSOR, HIGH ); // enabled internal pullup on rain sensor
-    attachInterrupt ( PIN_FLOWSENSOR_INT, flow_isr, FALLING );
+	//AREF set to external 2,5V reference
+	//The auto expansion board detection will not work with the 2,5V external reference 
+	
+/////t	analogReference(INTERNAL2V56);
 #else
-    // OSPI and OSBO use external pullups
-    attachInterrupt ( PIN_FLOWSENSOR, "falling", flow_isr );
+
+		// Set up sensors
+#if defined(ARDUINO)
+	digitalWrite(PIN_RAINSENSOR, HIGH); // enabled internal pullup on rain sensor
+	attachInterrupt(PIN_FLOWSENSOR_INT, flow_isr, FALLING);
+#else
+	// OSPI and OSBO use external pullups
+	attachInterrupt(PIN_FLOWSENSOR, "falling", flow_isr);
 #endif
+
+#endif
+//__________________________________________________________________________________________________________
+
 #endif
     // Default controller status variables
     // Static variables are assigned 0 by default
@@ -959,8 +1149,16 @@ void OpenSprinkler::begin()
     // detect if current sensing pin is present
     PINMODE ( PIN_CURR_DIGITAL, INPUT );
     digitalWrite ( PIN_CURR_DIGITAL, HIGH ); // enable internal pullup
-    status.has_curr_sense = digitalRead ( PIN_CURR_DIGITAL ) ? 0 : 1;
-    digitalWrite ( PIN_CURR_DIGITAL, LOW );
+ 
+//___________________________________________________________________________________________________________
+#ifdef SG21
+		//@tcsaba: current enable is read from the OPTIONS table
+		status.has_curr_sense = options[OPTION_CURRENT]; //(digitalRead(PIN_CURR_DIGITAL) ? 0 : 1);
+#else
+		status.has_curr_sense = digitalRead(PIN_CURR_DIGITAL) ? 0 : 1;
+#endif
+//_______________________________________________________________________________________________________
+		digitalWrite ( PIN_CURR_DIGITAL, LOW );
 #endif
 
     lcd_start();
@@ -1574,11 +1772,46 @@ void OpenSprinkler::drawdiag(byte y[], byte n) {
 void OpenSprinkler::rainsensor_status()
 {
     // options[OPTION_RS_TYPE]: 0 if normally closed, 1 if normally open
-    if ( options[OPTION_SENSOR_TYPE]!=SENSOR_TYPE_RAIN ) return;
-	
+//___________________________________________________________________________________________________________
+#ifdef SG21
+		if (options[OPTION_RSENSOR_TYPE] != SENSOR_TYPE_RAIN) return;
+#else
+		if (options[OPTION_SENSOR_TYPE] != SENSOR_TYPE_RAIN) return;
+#endif
+//_____________________________________________________________________________________________________________
+
      status.rain_sensed = (digitalRead(PIN_RAINSENSOR) == options[OPTION_RAINSENSOR_TYPE] ? 0 : 1 );
 }
+//___________________________________________________________________________________________________________
+#ifdef SG21
 
+/** Read soil sensor status */
+void OpenSprinkler::soilsensor_status() {
+
+	if (options[OPTION_SSENSOR_1] != SENSOR_TYPE_NONE) {
+		status.dry_soil_1 = (digitalRead(PIN_SOILSENSOR_1) == options[OPTION_SOILSENSOR1_TYPE] ? 0 : 1);
+	}
+
+	if (options[OPTION_SSENSOR_2] != SENSOR_TYPE_NONE) {
+		status.dry_soil_2 = (digitalRead(PIN_SOILSENSOR_2) == options[OPTION_SOILSENSOR2_TYPE] ? 0 : 1);
+	}
+}
+#endif
+//____________________________________________________________________________________________________
+
+#ifdef OS217
+bool OpenSprinkler::programswitch_status(ulong curr_time) {
+  if(options[OPTION_RSENSOR_TYPE]!=SENSOR_TYPE_PSWITCH) return false;
+  static ulong keydown_time = 0;
+  byte val = digitalRead(PIN_RAINSENSOR);
+  if(!val && !keydown_time) keydown_time = curr_time;
+  else if(val && keydown_time && (curr_time > keydown_time)) {
+    keydown_time = 0;
+    return true;
+  }
+  return false;
+}
+#endif
 /** Read current sensing value
  * OpenSprinkler has a 0.2 ohm current sensing resistor.
  * Therefore the conversion from analog reading to milli-amp is:
@@ -1598,8 +1831,17 @@ uint16_t OpenSprinkler::read_current()
         }
         else
         {
-            return ( uint16_t ) ( analogRead ( PIN_CURR_SENSE ) * 11.39 );
-        }
+//___________________________________________________________________________________________________________
+#ifdef SG21
+				uint16_t v = analogRead(PIN_CURR_SENSE);
+			if (current_offset >= v) v = 0;
+			else v = current_offset;
+			return (uint16_t)(v * 1.42); //11.39
+#else
+				return (uint16_t)(analogRead(PIN_CURR_SENSE) * 11.39);
+#endif
+//____________________________________________________________________________________________________________________
+}
     }
     else
     {
@@ -1690,6 +1932,20 @@ static ulong hex2ulong ( byte *code, byte len )
 }
 
 /** Parse RF code into on/off/timeing sections */
+#ifdef OS217
+uint16_t OpenSprinkler::parse_rfstation_code(RFStationData *data, ulong* on, ulong *off) {
+	ulong v;
+	v = hex2ulong(data->on, sizeof(data->on));
+	if (!v) return 0;
+	if (on) *on = v;
+	v = hex2ulong(data->off, sizeof(data->off));
+	if (!v) return 0;
+	if (off) *off = v;
+	v = hex2ulong(data->timing, sizeof(data->timing));
+	if (!v) return 0;
+	return v;
+}
+#else
 uint16_t OpenSprinkler::parse_rfstation_code ( byte *code, ulong* on, ulong *off )
 {
     ulong v;
@@ -1703,7 +1959,7 @@ uint16_t OpenSprinkler::parse_rfstation_code ( byte *code, ulong* on, ulong *off
     if ( !v ) return 0;
     return v;
 }
-
+#endif
 /** Get station name from NVM */
 void OpenSprinkler::get_station_name ( byte sid, char tmp[] )
 {
@@ -1776,19 +2032,36 @@ byte OpenSprinkler::weekday_today()
 }
 
 /** Switch special station */
-void OpenSprinkler::switch_special_station ( byte sid, byte value )
-{
+void OpenSprinkler::switch_special_station ( byte sid, byte value ){
     // check station special bit
-    if ( station_attrib_bits_read ( ADDR_NVM_STNSPE+ ( sid>>3 ) ) & ( 1<< ( sid&0x07 ) ) )
-    {
+    if ( station_attrib_bits_read ( ADDR_NVM_STNSPE+ ( sid>>3 ) ) & ( 1<< ( sid&0x07 ) ) ){
         // read station special data from sd card
         int stepsize=sizeof ( StationSpecialData );
         read_from_file ( stns_filename, tmp_buffer, stepsize, sid*stepsize );
         StationSpecialData *stn = ( StationSpecialData * ) tmp_buffer;
         // check station type
-        if ( stn->type==STN_TYPE_RF )
-        {
+        if ( stn->type==STN_TYPE_RF ){
             // transmit RF signal
+
+#ifdef OS217
+			switch_rfstation((RFStationData *)stn->data, value);
+		}else if (stn->type == STN_TYPE_REMOTE) {
+			// request remote station
+			switch_remotestation((RemoteStationData *)stn->data, value);
+		}
+#if !defined(ARDUINO) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
+		// GPIO and HTTP stations are only available for OS23 or OSPi
+		else if (stn->type == STN_TYPE_GPIO) {
+			// set GPIO pin
+			switch_gpiostation((GPIOStationData *)stn->data, value);
+		} else if (stn->type == STN_TYPE_HTTP) {
+			// send GET command
+			switch_httpstation((HTTPStationData *)stn->data, value);
+	}
+#endif    
+	}
+}
+#else
 #ifdef PORT_RF
             switch_rfstation ( stn->data, value );
 #endif
@@ -1801,7 +2074,7 @@ void OpenSprinkler::switch_special_station ( byte sid, byte value )
         }
     }
 }
-
+#endif
 /** Set station bit
  * This function sets/resets the corresponding station bit variable
  * You have to call apply_all_station_bits next to apply the bits
@@ -1851,15 +2124,16 @@ void OpenSprinkler::clear_all_station_bits()
 int rf_gpio_fd = -1;
 #endif
 
-#ifdef PORT_RF
 /** Transmit one RF signal bit */
 void transmit_rfbit ( ulong lenH, ulong lenL )
 {
-#if defined(ARDUINO)
+#if defined(ESP32)||defined(ESP8266)
+  //////todo
+#elif defined(ARDUINO)
     PORT_RF |= ( 1<<PINX_RF );
     delayMicroseconds ( lenH );
     PORT_RF &=~ ( 1<<PINX_RF );
-    delayMicroseconds ( lenL );
+    delayMicroseconds ( lenL ); 
 #else
     gpio_write ( rf_gpio_fd, 1 );
     delayMicrosecondsHard ( lenH );
@@ -1894,16 +2168,21 @@ void send_rfsignal ( ulong code, ulong len )
     }
 }
 
-
 /** Switch RF station
  * This function takes a RF code,
  * parses it into signals and timing,
  * and sends it out through RF transmitter.
  */
-void OpenSprinkler::switch_rfstation ( byte *code, bool turnon )
+#ifdef OS217
+void OpenSprinkler::switch_rfstation(RFStationData *data, bool turnon) {
+	ulong on, off;
+	uint16_t length = parse_rfstation_code(data, &on, &off);
+#else
+	void OpenSprinkler::switch_rfstation ( byte *code, bool turnon )
 {
     ulong on, off;
     uint16_t length = parse_rfstation_code ( code, &on, &off );
+#endif
 #if defined(ARDUINO)
     send_rfsignal ( turnon ? on : off, length );
 #else
@@ -1915,11 +2194,30 @@ void OpenSprinkler::switch_rfstation ( byte *code, bool turnon )
 #endif
 
 }
-#endif
+
 /** Callback function for remote station calls */
 static void switchremote_callback ( byte status, uint16_t off, uint16_t len )
 {
     /* do nothing */
+}
+#ifdef OS217
+void OpenSprinkler::switch_gpiostation(GPIOStationData *data, bool turnon) {
+	byte gpio = (data->pin[0] - '0') * 10 + (data->pin[1] - '0');
+	byte activeState = data->active - '0';
+
+	pinMode(gpio, OUTPUT);
+	if (turnon)
+		digitalWrite(gpio, activeState);
+	else
+		digitalWrite(gpio, 1 - activeState);
+}
+
+/** Callback function for browseUrl calls */
+void httpget_callback(byte status, uint16_t off, uint16_t len) {
+#if defined(SERIAL_DEBUG)
+	EtherCardW5100::buffer[off + ETHER_BUFFER_SIZE - 1] = 0;
+	DEBUG_PRINTLN((const char*)EtherCardW5100::buffer + off);
+#endif
 }
 
 /** Switch remote station
@@ -1929,6 +2227,149 @@ static void switchremote_callback ( byte status, uint16_t off, uint16_t len )
  * The remote controller is assumed to have the same
  * password as the main controller
  */
+void OpenSprinkler::switch_remotestation(RemoteStationData *data, bool turnon) {
+#if defined(ARDUINO)
+	// construct string
+	ulong ip = hex2ulong(data->ip, sizeof(data->ip));
+	ether.hisip[0] = ip >> 24;
+	ether.hisip[1] = (ip >> 16) & 0xff;
+	ether.hisip[2] = (ip >> 8) & 0xff;
+	ether.hisip[3] = ip & 0xff;
+
+	uint16_t _port = ether.hisport; // save current port number
+	ether.hisport = hex2ulong(data->port, sizeof(data->port));
+
+	char *p = tmp_buffer + sizeof(RemoteStationData) + 1;
+	BufferFiller bf = (byte*)p;
+	// MAX_NUM_STATIONS is the refresh cycle
+	uint16_t timer = options[OPTION_SPE_AUTO_REFRESH] ? 2 * MAX_NUM_STATIONS : 65535;
+	bf.emit_p(PSTR("?pw=$E&sid=$D&en=$D&t=$D"),
+		ADDR_NVM_PASSWORD,
+		(int)hex2ulong(data->sid, sizeof(data->sid)),
+		turnon, timer);
+	ether.browseUrl(PSTR("/cm"), p, PSTR("*"), httpget_callback);
+	for (int l = 0; l<100; l++)  ether.packetLoop(ether.packetReceive());
+	ether.hisport = _port;
+#else
+	EthernetClient client;
+
+	uint8_t hisip[4];
+	uint16_t hisport;
+	ulong ip = hex2ulong(data->ip, sizeof(data->ip));
+	hisip[0] = ip >> 24;
+	hisip[1] = (ip >> 16) & 0xff;
+	hisip[2] = (ip >> 8) & 0xff;
+	hisip[3] = ip & 0xff;
+	hisport = hex2ulong(data->port, sizeof(data->port));
+
+	if (!client.connect(hisip, hisport)) {
+		client.stop();
+		return;
+	}
+
+	char *p = tmp_buffer + sizeof(RemoteStationData) + 1;
+	BufferFiller bf = p;
+	// MAX_NUM_STATIONS is the refresh cycle
+	uint16_t timer = options[OPTION_SPE_AUTO_REFRESH] ? 2 * MAX_NUM_STATIONS : 65535;
+	bf.emit_p(PSTR("GET /cm?pw=$E&sid=$D&en=$D&t=$D"),
+		ADDR_NVM_PASSWORD,
+		(int)hex2ulong(data->sid, sizeof(data->sid)),
+		turnon, timer);
+	bf.emit_p(PSTR(" HTTP/1.0\r\nHOST: *\r\n\r\n"));
+
+	client.write((uint8_t *)p, strlen(p));
+
+	bzero(ether_buffer, ETHER_BUFFER_SIZE);
+
+	time_t timeout = now() + 5; // 5 seconds timeout
+	while (now() < timeout) {
+		int len = client.read((uint8_t *)ether_buffer, ETHER_BUFFER_SIZE);
+		if (len <= 0) {
+			if (!client.connected())
+				break;
+			else
+				continue;
+		}
+		httpget_callback(0, 0, ETHER_BUFFER_SIZE);
+	}
+	client.stop();
+#endif
+}
+
+/** Switch http station
+* This function takes an http station code,
+* parses it into a server name and two HTTP GET requests.
+*/
+void OpenSprinkler::switch_httpstation(HTTPStationData *data, bool turnon) {
+
+	static HTTPStationData copy;
+	// make a copy of the HTTP station data and work with it
+	memcpy((char*)&copy, (char*)data, sizeof(HTTPStationData));
+	char * server = strtok((char *)copy.data, ",");
+	char * port = strtok(NULL, ",");
+	char * on_cmd = strtok(NULL, ",");
+	char * off_cmd = strtok(NULL, ",");
+	char * cmd = turnon ? on_cmd : off_cmd;
+
+#if defined(ARDUINO)
+
+	if (!ether.dnsLookup(server, true)) {
+		char *ip0 = strtok(server, ".");
+		char *ip1 = strtok(NULL, ".");
+		char *ip2 = strtok(NULL, ".");
+		char *ip3 = strtok(NULL, ".");
+
+		ether.hisip[0] = ip0 ? atoi(ip0) : 0;
+		ether.hisip[1] = ip1 ? atoi(ip1) : 0;
+		ether.hisip[2] = ip2 ? atoi(ip2) : 0;
+		ether.hisip[3] = ip3 ? atoi(ip3) : 0;
+	}
+
+	uint16_t _port = ether.hisport;
+	ether.hisport = atoi(port);
+	ether.browseUrl(PSTR("/"), cmd, server, httpget_callback);
+	for (int l = 0; l<100; l++)  ether.packetLoop(ether.packetReceive());
+	ether.hisport = _port;
+
+#else
+
+	EthernetClient client;
+	struct hostent *host;
+
+	host = gethostbyname(server);
+	if (!host) {
+		DEBUG_PRINT("can't resolve http station - ");
+		DEBUG_PRINTLN(server);
+		return;
+	}
+
+	if (!client.connect((uint8_t*)host->h_addr, atoi(port))) {
+		client.stop();
+		return;
+	}
+
+	char getBuffer[255];
+	sprintf(getBuffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\n\r\n", cmd, host->h_name);
+	client.write((uint8_t *)getBuffer, strlen(getBuffer));
+
+	bzero(ether_buffer, ETHER_BUFFER_SIZE);
+
+	time_t timeout = now() + 5; // 5 seconds timeout
+	while (now() < timeout) {
+		int len = client.read((uint8_t *)ether_buffer, ETHER_BUFFER_SIZE);
+		if (len <= 0) {
+			if (!client.connected())
+				break;
+			else
+				continue;
+		}
+		httpget_callback(0, 0, ETHER_BUFFER_SIZE);
+	}
+
+	client.stop();
+#endif
+}
+#else
 void OpenSprinkler::switch_remotestation ( byte *code, bool turnon )
 {
 #if defined(ARDUINO)
@@ -2001,10 +2442,10 @@ void OpenSprinkler::switch_remotestation ( byte *code, bool turnon )
     client.stop();
 #endif
 }
+#endif
 
 /** Setup function for options */
-void OpenSprinkler::options_setup()
-{
+void OpenSprinkler::options_setup(){
 
     // add 0.25 second delay to allow nvm to stablize
     delay ( 250 );
@@ -2017,8 +2458,7 @@ void OpenSprinkler::options_setup()
 	DEBUG_PRINTLN((int)curr_ver);
     // check reset condition: either firmware version has changed, or reset flag is up
     // if so, trigger a factory reset
-    if ( curr_ver != OS_FW_VERSION || nvm_read_byte ( ( byte* ) ( ADDR_NVM_OPTIONS+OPTION_RESET ) ) ==0xAA )
-    {
+    if ( curr_ver != OS_FW_VERSION || nvm_read_byte ( ( byte* ) ( ADDR_NVM_OPTIONS+OPTION_RESET ) ) ==0xAA ){
 #if defined(ARDUINO)
         lcd_print_line_clear_pgm ( PSTR ( "Resetting..." ), 0 );
         lcd_print_line_clear_pgm ( PSTR ( "Please Wait..." ), 1 );
@@ -2031,12 +2471,8 @@ void OpenSprinkler::options_setup()
         int i, sn;
         // 0. wipe out nvm
         for ( i=0; i<TMP_BUFFER_SIZE; i++ ) tmp_buffer[i]=0;
-        for ( i=0; i<NVM_SIZE; i+=TMP_BUFFER_SIZE )
-        {
-			DEBUG_PRINT(i); 
-			DEBUG_PRINT(' ');
-			delay(100);
-            int nbytes = ( ( NVM_SIZE-i ) >TMP_BUFFER_SIZE ) ?TMP_BUFFER_SIZE: ( NVM_SIZE-i );
+        for ( i=0; i<NVM_SIZE; i+=TMP_BUFFER_SIZE ){
+			int nbytes = ( ( NVM_SIZE-i ) >TMP_BUFFER_SIZE ) ?TMP_BUFFER_SIZE: ( NVM_SIZE-i );
             nvm_write_block ( tmp_buffer, ( void* ) i, nbytes );
         }
 		DEBUG_PRINTLN("wiped");
@@ -2055,13 +2491,13 @@ void OpenSprinkler::options_setup()
         // 3. reset station names and special attributes, default Sxx
         tmp_buffer[0]='S';
         tmp_buffer[3]=0;
-        for ( i=ADDR_NVM_STN_NAMES, sn=1; i<ADDR_NVM_MAS_OP; i+=STATION_NAME_SIZE, sn++ )
-        {
+        for ( i=ADDR_NVM_STN_NAMES, sn=1; i<ADDR_NVM_MAS_OP; i+=STATION_NAME_SIZE, sn++ ){
             tmp_buffer[1]='0'+ ( sn/10 );
             tmp_buffer[2]='0'+ ( sn%10 );
             nvm_write_block ( tmp_buffer, ( void* ) i, strlen ( tmp_buffer )+1 );
         }
 
+    remove_file(stns_filename);
         tmp_buffer[0]=STN_TYPE_STANDARD;
         tmp_buffer[1]='0';
         tmp_buffer[2]=0;
@@ -2079,8 +2515,15 @@ void OpenSprinkler::options_setup()
         {
             tmp_buffer[i]=0xff;
         }
-        nvm_write_block ( tmp_buffer, ( void* ) ADDR_NVM_MAS_OP, MAX_EXT_BOARDS+1 );
-        nvm_write_block ( tmp_buffer, ( void* ) ADDR_NVM_STNSEQ, MAX_EXT_BOARDS+1 );
+//		_______________________________________________________________________________________________________________
+#ifdef SG21
+		nvm_write_block(tmp_buffer, (void*)ADDR_NVM_MAS_OP, MAX_EXT_BOARDS + 1);//Master1 is set
+		nvm_write_block(tmp_buffer, (void*)ADDR_NVM_STNSEQ, MAX_EXT_BOARDS + 1);//Sequential is set
+#else
+		nvm_write_block(tmp_buffer, (void*)ADDR_NVM_MAS_OP, MAX_EXT_BOARDS + 1);
+		nvm_write_block(tmp_buffer, (void*)ADDR_NVM_STNSEQ, MAX_EXT_BOARDS + 1);
+#endif
+//		_______________________________________________________________________________________________________________
 
         // 5. delete sd file
         remove_file ( wtopts_filename );
@@ -2191,25 +2634,20 @@ void OpenSprinkler::options_setup()
 }
 
 /** Load non-volatile controller status data from internal NVM */
-void OpenSprinkler::nvdata_load()
-{
+void OpenSprinkler::nvdata_load(){
     nvm_read_block ( &nvdata, ( void* ) ADDR_NVM_NVCONDATA, sizeof ( NVConData ) );
     old_status = status;
 }
 
 /** Save non-volatile controller status data to internal NVM */
-void OpenSprinkler::nvdata_save()
-{
+void OpenSprinkler::nvdata_save(){
     nvm_write_block ( &nvdata, ( void* ) ADDR_NVM_NVCONDATA, sizeof ( NVConData ) );
-
 }
 
 /** Load options from internal NVM */
-void OpenSprinkler::options_load()
-{
+void OpenSprinkler::options_load(){
     nvm_read_block ( tmp_buffer, ( void* ) ADDR_NVM_OPTIONS, NUM_OPTIONS );
-    for ( int i=0; i<NUM_OPTIONS; i++ )
-    {
+    for ( int i=0; i<NUM_OPTIONS; i++ ) {
         options[i] = tmp_buffer[i];
     }
     nboards = options[OPTION_EXT_BOARDS]+1;
@@ -2219,11 +2657,9 @@ void OpenSprinkler::options_load()
 }
 
 /** Save options to internal NVM */
-void OpenSprinkler::options_save()
-{
+void OpenSprinkler::options_save(){
     // save options in reverse order so version number is written the last
-	for (int i = 0; i<NUM_OPTIONS ; i++)
-    {
+  for (int i=NUM_OPTIONS-1; i>=0; i--) {
         tmp_buffer[i] = options[i];
     }
 	DEBUG_PRINT("OptionsWrite OS:"); DEBUG_PRINTLN((int)options[0]);
@@ -2239,31 +2675,27 @@ void OpenSprinkler::options_save()
 // ==============================
 
 /** Enable controller operation */
-void OpenSprinkler::enable()
-{
+void OpenSprinkler::enable(){
     status.enabled = 1;
     options[OPTION_DEVICE_ENABLE] = 1;
     options_save();
 }
 
 /** Disable controller operation */
-void OpenSprinkler::disable()
-{
+void OpenSprinkler::disable(){
     status.enabled = 0;
     options[OPTION_DEVICE_ENABLE] = 0;
     options_save();
 }
 
 /** Start rain delay */
-void OpenSprinkler::raindelay_start()
-{
+void OpenSprinkler::raindelay_start(){
     status.rain_delayed = 1;
     nvdata_save();
 }
 
 /** Stop rain delay */
-void OpenSprinkler::raindelay_stop()
-{
+void OpenSprinkler::raindelay_stop(){
     status.rain_delayed = 0;
     nvdata.rd_stop_time = 0;
     nvdata_save();
@@ -2279,11 +2711,9 @@ void OpenSprinkler::lcd_clear() {
 }
 #if defined(ARDUINO)    // AVR LCD and button functions
 /** print a program memory string */
-void OpenSprinkler::lcd_print_pgm ( PGM_P /*PROGMEM*/ str )
-{
+void OpenSprinkler::lcd_print_pgm ( PGM_P /*PROGMEM*/ str ){
     uint8_t c;
-    while ( ( c=pgm_read_byte ( str++ ) ) != '\0' )
-    {
+    while ( ( c=pgm_read_byte ( str++ ) ) != '\0' ){
         lcd.print ( ( char ) c );
     }
 #ifdef LCD_SSD1306
@@ -2292,13 +2722,11 @@ void OpenSprinkler::lcd_print_pgm ( PGM_P /*PROGMEM*/ str )
 }
 
 /** print a program memory string to a given line with clearing */
-void OpenSprinkler::lcd_print_line_clear_pgm ( PGM_P /*PROGMEM*/ str, byte line )
-{
+void OpenSprinkler::lcd_print_line_clear_pgm ( PGM_P /*PROGMEM*/ str, byte line ){
     lcd.setCursor ( 0, line*YFACTOR );
     uint8_t c;
     int8_t cnt = 0;
-    while ( ( c=pgm_read_byte ( str++ ) ) != '\0' )
-    {
+    while ( ( c=pgm_read_byte ( str++ ) ) != '\0' ){
         lcd.print ( ( char ) c );
         cnt++;
     }
@@ -2342,12 +2770,10 @@ void OpenSprinkler::lcd_print_time ( time_t t )
 }
 
 /** print ip address */
-void OpenSprinkler::lcd_print_ip ( const byte *ip, byte endian )
-{
+void OpenSprinkler::lcd_print_ip ( const byte *ip, byte endian ){
 
     lcd_clear();
-
-    lcd.setCursor ( 0, 0 );
+	lcd.setCursor ( 0, 0 );
     for ( byte i=0; i<4; i++ )
     {
         lcd.print ( endian ? ( int ) ip[3-i] : ( int ) ip[i] );
@@ -2360,11 +2786,9 @@ void OpenSprinkler::lcd_print_ip ( const byte *ip, byte endian )
 }
 
 /** print mac address */
-void OpenSprinkler::lcd_print_mac ( const byte *mac )
-{
+void OpenSprinkler::lcd_print_mac ( const byte *mac ){
     lcd.setCursor ( 0, 0 );
-    for ( byte i=0; i<6; i++ )
-    {
+    for ( byte i=0; i<6; i++ ){
         if ( i )  lcd_print_pgm ( PSTR ( "-" ) );
         lcd.print ( ( mac[i]>>4 ), HEX );
         lcd.print ( ( mac[i]&0x0F ), HEX );
@@ -2378,49 +2802,37 @@ void OpenSprinkler::lcd_print_mac ( const byte *mac )
 }
 
 /** print station bits */
-void OpenSprinkler::lcd_print_station(byte line, char c)
-{
+void OpenSprinkler::lcd_print_station(byte line, char c){
 #ifdef LCD_SSD1306
 	lcd.setTextSize(2);
 #endif
 	lcd.setCursor(0, line*YFACTOR);
-	if (status.display_board == 0)
-	{
+	if (status.display_board == 0){
 		lcd_print_pgm(PSTR("MC")); // Master controller is display as 'MC'
 	}
-	else
-	{
+	else {
 		lcd_print_pgm(PSTR("E"));
 		lcd.print((int)status.display_board);
 		lcd_print_pgm(PSTR("")); // extension boards are displayed as E1, E2...
 	}
 
-	if (!status.enabled)
-	{
+	if (!status.enabled){
 		lcd_print_line_clear_pgm(PSTR("-Disabled!-"), 1);
-	}
-	else
-	{
+	} else {
 		byte xchar = 2;
 		byte bitvalue = station_bits[status.display_board];
-		for (byte s = 0; s < 8; s++)
-		{
+		for (byte s = 0; s < 8; s++){
 			byte sid = (byte)status.display_board << 3;
 			sid += (s + 1);
-			if (sid == options[OPTION_MASTER_STATION])
-			{
+			if (sid == options[OPTION_MASTER_STATION]){
 #ifndef LCD_SSD1306x
 				lcd.print((bitvalue & 1) ? (char)c : 'M'); // print master station
 #else
 				lcd.drawBitmap(2 * XFACTOR*xchar++, YFACTOR, (bitvalue & 1) ? valveOpen10x16_bmp : valveClosed10x16_bmp, 10, 16, WHITE);
 #endif
-			}
-			else if (sid == options[OPTION_MASTER_STATION_2])
-			{
+			}else if (sid == options[OPTION_MASTER_STATION_2]){
 				lcd.print((bitvalue & 1) ? (char)c : 'N'); // print master2 station
-			}
-			else
-			{
+			}else{
 // ------------if station is disabled -------------------------------------------
 				if(station_attrib_bits_read ( ADDR_NVM_STNDISABLE ) & ( 1<<s ) )lcd.print((bitvalue & 1) ? (char)c : '-'); // print master station
 				else
@@ -2879,12 +3291,13 @@ void OpenSprinkler::lcd_set_brightness ( byte value )
 		LCD_BACKLIGHT_OFF();
 #else
 #if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
+#ifndef LCDI2C
     if ( lcd.type() ==LCD_I2C )
     {
         if ( value ) lcd.backlight();
         else lcd.noBacklight();
     }
-
+#endif
 #endif
 #ifndef LCDI2C
     if ( lcd.type() ==LCD_STD )

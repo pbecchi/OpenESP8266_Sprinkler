@@ -18,10 +18,7 @@
 #define ICACHE_FLASH
 #define F_CPU 80000000L
 #define LWIP_OPEN_SRC
-#define DEBUG_ESP_PORT Serial
-#define DEBUG_ESP_OTA
-#define DEBUG_ESP_UPDATER
-#define ARDUINO 10801
+#define ARDUINO 10804
 #define ARDUINO_ESP8266_ESP01
 #define ARDUINO_ARCH_ESP8266
 #define ESP8266
@@ -94,7 +91,7 @@ typedef long __PTRDIFF_TYPE__;
 #include "Esp.h"
 
 
-#include <arduino.h>
+#include <Arduino.h>
 #include <common.h> 
 #include <pins_arduino.h> 
 

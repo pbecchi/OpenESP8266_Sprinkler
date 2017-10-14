@@ -109,11 +109,31 @@ struct StationSpecialData {
 };
 
 /** Remote station data structure */
+struct RFStationData {
+  byte on[6];
+  byte off[6];
+  byte timing[4];
+};
 // this must fit in STATION_SPECIAL_DATA_SIZE
 struct RemoteStationData {
+#ifdef OS217
+  byte ip[8];
+  byte port[4];
+  byte sid[2];
+};
+
+struct GPIOStationData {
+  byte pin[2];
+  byte active;
+};
+
+struct HTTPStationData {
+	byte data[STATION_SPECIAL_DATA_SIZE];
+#else
   byte ip[4];
   uint16_t port;
   byte sid;
+#endif
 };
 
 /** Volatile controller status bits */
@@ -121,6 +141,12 @@ struct ConStatus {
   byte enabled:1;           // operation enable (when set, controller operation is enabled)
   byte rain_delayed:1;      // rain delay bit (when set, rain delay is applied)
   byte rain_sensed:1;       // rain sensor bit (when set, it indicates that rain is detected)
+#ifdef SG21
+    byte dry_soil_1 : 1;		// soil sensor 1 bit (when set, the soil needs irrigation)
+	byte dry_soil_2 : 1;		// soil sensor 2 bit (when set, the soil needs irrigation)
+	byte netw_adapter_fail : 1; // HIGH when network adapter can't started
+	byte internet_fail : 1;     // HIGH when no internet connection (IP:8.8.8.8 have no ping response)	
+#endif
   byte program_busy:1;      // HIGH means a program is being executed currently
   byte has_curr_sense:1;    // HIGH means the controller has a current sensing pin
   byte has_sd:1;            // HIGH means a microSD card is detected
@@ -134,113 +160,6 @@ struct ConStatus {
   byte mas2:8;              // master2 station index
 };
 
-// ===== OPENSPRINKLER_ARDUINO =====
-// Moved from opensprinkler.cpp to here
-//CHANGED
-#ifdef PUFFA //OPENSPRINKLER_ARDUINO
-
-// Option json names (stored in progmem)
-// IMPORTANT: each json name is strictly 5 characters with 0 fillings if less
-prog_char op_json_names[] /*PROGMEM*/ =
-"fwv\0\0"
-"tz\0\0\0"
-"ntp\0\0"
-"dhcp\0"
-"ip1\0\0"
-"ip2\0\0"
-"ip3\0\0"
-"ip4\0\0"
-"gw1\0\0"
-"gw2\0\0"
-"gw3\0\0"
-"gw4\0\0"
-"hp0\0\0"
-"hp1\0\0"
-"hwv\0\0"
-"ext\0\0"
-"seq\0\0"
-"sdt\0\0"
-"mas\0\0"
-"mton\0"
-"mtof\0"
-"urs\0\0"
-"rso\0\0"
-"wl\0\0\0"
-"den\0\0"
-"ipas\0"
-"devid"
-"con\0\0"
-"lit\0\0"
-"dim\0\0"
-"bst\0\0"
-"uwt\0\0"
-"ntp1\0"
-"ntp2\0"
-"ntp3\0"
-"ntp4\0"
-"lg\0\0\0"
-"mas2\0"
-"mton2"
-"mtof2"
-"fwm\0\0"
-"fpr0\0"
-"fpr1\0"
-"re\0\0\0"
-"reset";
-
-const char wtopts_filename[] /*PROGMEM*/ = WEATHER_OPTS_FILENAME;
-const char stns_filename[]  /*PROGMEM*/ = STATION_ATTR_FILENAME;
-
-/** Option maximum values (stored in progmem) */
-prog_char op_max[] /*PROGMEM*/ = {
-	0,
-	108,
-	1,
-	1,
-	255,
-	255,
-	255,
-	255,
-	255,
-	255,
-	255,
-	255,
-	255,
-	255,
-	0,
-	MAX_EXT_BOARDS,
-	1,
-	247,
-	MAX_NUM_STATIONS,
-	60,
-	120,
-	255,
-	1,
-	250,
-	1,
-	1,
-	255,
-	255,
-	255,
-	255,
-	250,
-	255,
-	255,
-	255,
-	255,
-	255,
-	1,
-	MAX_NUM_STATIONS,
-	60,
-	120,
-	0,
-	255,
-	255,
-	1,
-	1
-};
-
-#endif // ===== OPENSPRINKLER_ARDUINO =====
 
 class OpenSprinkler {
 public:
@@ -248,18 +167,13 @@ public:
   // data members
 #if defined(ARDUINO)
 
-#ifdef LCDI2C
-
 
 #ifdef LCD_SSD1306
-	static Adafruit_SSD1306 lcd;
-	
+	static Adafruit_SSD1306 lcd;	
+#elif defined(LCDI2C)
+    static	LiquidCrystal_I2C lcd;
 #else
-
-static	LiquidCrystal_I2C lcd;
-#endif
-#else
-static	LiquidCristal lcd;
+    static	LiquidCristal lcd;
 #endif
 
 #else
@@ -287,6 +201,12 @@ static	LiquidCristal lcd;
 #endif // OPENSPRINKLER_ARDUINO_DISCRETE
 
   // variables for time keeping
+#ifdef SG21
+	static ulong s1sensor_lasttime;  // @tcsaba: time when the last soilsensor1 reading is recorded
+	static ulong s2sensor_lasttime;  // @tcsaba: time when the last soilsensor2 reading is recorded
+	static byte  weather_update_flag;
+	static uint16_t current_offset;  // @tcsaba: current offset value when no station on
+#endif
   static ulong sensor_lasttime;  // time when the last sensor reading is recorded
   static ulong flowcount_time_ms;// time stamp when new flow sensor click is received (in milliseconds)
   static ulong flowcount_rt;     // flow count (for computing real-time flow rate)
@@ -309,10 +229,18 @@ static	LiquidCristal lcd;
   static time_t now_tz();
   // -- station names and attributes
   static void get_station_name(byte sid, char buf[]); // get station name
-  static void set_station_name(byte sid, char buf[]); // set station name
+  static void set_station_name(byte sid, char buf[]); //set station name
+#ifdef OS217
+  static uint16_t parse_rfstation_code(RFStationData *data, ulong *on, ulong *off); // parse rf code into on/off/time sections
+  static void switch_rfstation(RFStationData *data, bool turnon);  // switch rf station
+  static void switch_remotestation(RemoteStationData *data, bool turnon); // switch remote station
+  static void switch_gpiostation(GPIOStationData *data, bool turnon); // switch gpio station
+  static void switch_httpstation(HTTPStationData *data, bool turnon); // switch http station
+#else
   static uint16_t parse_rfstation_code(byte *code, ulong *on, ulong *off); // parse rf code into on/off/time sections
   static void switch_rfstation(byte *code, bool turnon);  // switch rf station
   static void switch_remotestation(byte *code, bool turnon); // switch remote station
+#endif  
   static void station_attrib_bits_save(int addr, byte bits[]); // save station attribute bits to nvm
   static void station_attrib_bits_load(int addr, byte bits[]); // load station attribute bits from nvm
   static byte station_attrib_bits_read(int addr); // read one station attribte byte from nvm
@@ -333,6 +261,12 @@ static	LiquidCristal lcd;
   static void raindelay_start();  // start raindelay
   static void raindelay_stop();   // stop rain delay
   static void rainsensor_status();// update rainsensor status
+#ifdef OS217
+  static bool programswitch_status(ulong); // get program switch status
+#endif
+#ifdef SG21
+  static void soilsensor_status();// @tcsaba: update soilsensor status
+#endif
 #if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
   static uint16_t read_current(); // read current sensing value
 #endif

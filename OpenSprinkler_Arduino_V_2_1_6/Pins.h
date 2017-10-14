@@ -1,3 +1,6 @@
+#define OS217
+#define SG21
+
 #pragma once
 /*------------------------------------------------------------------------------------------------------
 The file details each pin used for your HW configuration. 

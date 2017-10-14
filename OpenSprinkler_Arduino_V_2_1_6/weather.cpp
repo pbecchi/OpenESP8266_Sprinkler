@@ -45,7 +45,11 @@ extern const char wtopts_filename[];
 extern OpenSprinkler os; // OpenSprinkler object
 extern char tmp_buffer[];
 byte findKeyVal ( const char *str,char *strbuf, uint8_t maxlen,const char *key,bool key_in_pgm=false,uint8_t *keyfound=NULL );
+#ifdef SG21
+void write_log(byte type, ulong curr_time,ulong u=0);
+#else
 void write_log ( byte type, ulong curr_time );
+#endif
 
 // The weather function calls getweather.py on remote server to retrieve weather data
 // the default script is WEATHER_SCRIPT_HOST/weather?.py

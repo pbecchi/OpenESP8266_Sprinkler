@@ -62,7 +62,7 @@ Original Opensprinkler code commences below here
 #include <Arduino.h>
 #include "Config.h"
 #include "Defines.h"
-
+#include "SensorGroup.h"
 #include "OpenSprinkler.h"
 
 #ifdef OPENSPRINKLER_ARDUINO

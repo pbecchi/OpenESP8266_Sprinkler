@@ -28,12 +28,32 @@
 #include <Arduino.h>
 #include "Config.h"
 #include "libsel.h"
+#include "Pins.h"
 /** Firmware version, hardware version, and maximal values */
 #define OS_FW_VERSION			216		// Firmware version: 216 means 2.1.6
 										// if this number is different from the one stored in non-volatile memory
 										// a device reset will be automatically triggered
 
 #define OS_FW_MINOR				1		// Firmware minor version
+//_________________________________________________________________________________________________________________
+#ifdef SG21
+///////t missing definitions
+#define __AVR_ATmega1284__
+#define PINMODE pinMode
+#define STN_TYPE_GPIO 0
+#define STN_TYPE_HTTP 1
+#define PIN_BOOST  16
+#define PIN_BOOST_EN  16
+/////////////////////////////////
+#define OS_SGHW_VERSION		20	// SB2 sensor attachment: ACS712 current, inputs: 2 soil, 1 flow, 1 rain + program switch
+#define OS_SGFW_VERSION 	21	// SG Firmware version: originated from v217 Nov. 07, 2016
+#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
+#define SRDATA_PIN23_D7		//uncomment if SR_DATA relocated to MCUpin23 (LCD D7), comment when it is connected to MCUpin 21 (LCD D5)
+#define DEBUG_JTAG_ICE		//must use pin23 and should be uncommented for JTAG debugging, see more at line 390	
+#define SERIAL_DEBUG		//uncomment for debug prints see also at line 449
+#endif 
+#endif
+//_____________________________________________________________________________________________________________________
 
 /** Hardware version base numbers */
 #define OS_HW_VERSION_BASE		0x00
@@ -51,7 +71,13 @@
 #define STATION_ATTR_FILENAME "stns.dat"      // station attributes data file
 #define STATION_SPECIAL_DATA_SIZE  23
 
-#define FLOWCOUNT_RT_WINDOW		30    // flow count window (for computing real-time flow rate), 30 seconds
+//________________________________________________________________________________________________________________________
+#ifdef SG21
+#define FLOWCOUNT_RT_WINDOW   15    // flow count window (for computing real-time flow rate), 30 seconds
+#else
+#define FLOWCOUNT_RT_WINDOW   30    // flow count window (for computing real-time flow rate), 30 seconds
+#endif
+//__________________________________________________________________________________________________________________________
 
 /** Station type macro defines */
 #define STN_TYPE_STANDARD		0x00
@@ -61,12 +87,26 @@
 
 /** Sensor type macro defines */
 #define SENSOR_TYPE_NONE		0x00
-#define SENSOR_TYPE_RAIN		0x01
+#ifdef OS217
+#define SENSOR_TYPE_PSWITCH 0xF0
+#endif
+//________________________________________________________________________________________________________________________
+#ifdef SG21
+#define SENSOR_TYPE_RAIN   0x02  // cheat UI to sense flow sensor till UI upgrade
+#define SENSOR_TYPE_FLOW    0x01  // flow sensor
+// soil sensor inputs
+#define SENSOR_TYPE_SOILDIG		0x01  // soil sensor digital
+#define SENSOR_TYPE_SOILAN1		0x02  // soil sensor analogue Vegetronix fitted
+#define SENSOR_TYPE_SOILAN2		0x02  // soil sensor analogue Other linear
+#else
+#define SENSOR_TYPE_RAIN    0x01  
+#endif
+//_______________________________________________________________________________________________________________
 #define SENSOR_TYPE_FLOW		0x02
 #define SENSOR_TYPE_OTHER		0xFF
 
 
-#undef OS_HW_VERSION
+//#undef OS_HW_VERSION
 
 /** Hardware defines */
 #if defined(ARDUINO)
@@ -82,7 +122,7 @@
 #define OS_HW_VERSION (OS_HW_VERSION_BASE+22)
 #endif
 #endif
-#include "Pins.h"
+
 
 
 /** Non-volatile memory (NVM) defines */
@@ -105,14 +145,26 @@
 	  */
 
 	#if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)//|| defined(BATTERY) // for 4KB NVM
+//__________________________________________________________________________________
+#ifdef SG21
+//*****
+//due to the space needed for sensor data in nvm space the max no of stations are 48
+//and the max number of programs are 16
+//****
+#define MAX_EXT_BOARDS    5  // maximum number of exp. boards (each expands 8 stations)
+#define MAX_PROGRAMDATA     2100  // program data
+#define MAX_CLOUDURL        48    // Cloud Server url
+#else
+#define MAX_EXT_BOARDS    6  // maximum number of exp. boards (each expands 8 stations)
+#define MAX_PROGRAMDATA     2433  // program data
+#endif
+//_______________________________________________________
 
-		#define MAX_EXT_BOARDS    6  // maximum number of exp. boards (each expands 8 stations)
 		#define MAX_NUM_STATIONS  ((1+MAX_EXT_BOARDS)*8)  // maximum number of stations
 
 		#define NVM_SIZE            4096  // For AVR, nvm data is stored in EEPROM, ATmega1284 has 4K EEPROM
 		#define STATION_NAME_SIZE   24    // maximum number of characters in each station name
 
-		#define MAX_PROGRAMDATA     2438  // program data
 		#define MAX_NVCONDATA       12    // non-volatile controller data
 		#define MAX_USER_PASSWORD   36    // user password
 		#define MAX_LOCATION        48    // location string
@@ -170,6 +222,10 @@
 #define ADDR_NVM_LOCATION      (ADDR_NVM_PASSWORD+MAX_USER_PASSWORD)
 #define ADDR_NVM_JAVASCRIPTURL (ADDR_NVM_LOCATION+MAX_LOCATION)
 #define ADDR_NVM_WEATHERURL    (ADDR_NVM_JAVASCRIPTURL+MAX_JAVASCRIPTURL)
+//_________________________________________________________________________________________________
+#ifdef SG21
+#define ADDR_NVM_CLOUDURL      (ADDR_NVM_JAVASCRIPTURL+MAX_CLOUDURL)
+#endif
 #define ADDR_NVM_WEATHER_KEY   (ADDR_NVM_WEATHERURL+MAX_WEATHERURL)
 #define ADDR_NVM_STN_NAMES     (ADDR_NVM_WEATHER_KEY+MAX_WEATHER_KEY)
 #define ADDR_NVM_MAS_OP        (ADDR_NVM_STN_NAMES+MAX_NUM_STATIONS*STATION_NAME_SIZE) // master op bits
@@ -178,7 +234,22 @@
 #define ADDR_NVM_STNDISABLE    (ADDR_NVM_MAS_OP_2+(MAX_EXT_BOARDS+1))// station disable bits
 #define ADDR_NVM_STNSEQ        (ADDR_NVM_STNDISABLE+(MAX_EXT_BOARDS+1))// station sequential bits
 #define ADDR_NVM_STNSPE        (ADDR_NVM_STNSEQ+(MAX_EXT_BOARDS+1)) // station special bits (i.e. non-standard stations)
+//_________________________________________________________________________________________________
+#ifdef SG21
+// soil sensors data
+#define ADDR_NVM_SSENSOR_1     (ADDR_NVM_STNSPE+(MAX_EXT_BOARDS+1))		// station attach soil_sensor_1 bits
+#define ADDR_NVM_SSENSOR_2     (ADDR_NVM_SSENSOR_1+(MAX_EXT_BOARDS+1))	// station attach soil_sensor_2 bits
+// flow 
+#define ADDR_NVM_ST_EXCLUDE_AL (ADDR_NVM_SSENSOR_2+(MAX_EXT_BOARDS+1)) // station exclude of alarm handling
+#define ADDR_NVM_ALARM_FATAL   (ADDR_NVM_ST_EXCLUDE_AL+(MAX_EXT_BOARDS+1)) // station disable in case of fatal alarm
+#define ADDR_NVM_FLOW_REFS     (ADDR_NVM_ALARM_FATAL+(MAX_EXT_BOARDS+1)) // Station flow reference 2byte LSB: 0,125 gallon/minute
+#define ADDR_NVM_CURR_REFS     (ADDR_NVM_FLOW_REFS+(MAX_NUM_STATIONS)*2) // station current reference 1 byte LSB: 4mA
+#define ADDR_NVM_IMPULSES	   (ADDR_NVM_CURR_REFS+(MAX_NUM_STATIONS))  // 0:last_prog_impulses, 2:day_impulses, 4:last_day_impulses each 2 bytes
+#define ADDR_NVM_OPTIONS       (ADDR_NVM_IMPULSES+6)  // options
+#else
 #define ADDR_NVM_OPTIONS       (ADDR_NVM_STNSPE+(MAX_EXT_BOARDS+1))  // options
+#endif
+//__________________________________________________________________________________________
 
 /** Default password, location string, weather key, script urls */
 #define DEFAULT_PASSWORD          "opendoor"
@@ -215,7 +286,7 @@ typedef enum
     OPTION_MASTER_STATION,
     OPTION_MASTER_ON_ADJ,
     OPTION_MASTER_OFF_ADJ,
-    OPTION_SENSOR_TYPE,
+	OPTION_SENSOR_TYPE,
     OPTION_RAINSENSOR_TYPE,
     OPTION_WATER_PERCENTAGE,
     OPTION_DEVICE_ENABLE,
@@ -238,7 +309,46 @@ typedef enum
     OPTION_PULSE_RATE_0,
     OPTION_PULSE_RATE_1,
     OPTION_REMOTE_EXT_MODE,
-    OPTION_RESET,
+#ifdef OS217
+	OPTION_DNS_IP1,
+	OPTION_DNS_IP2,
+	OPTION_DNS_IP3,
+	OPTION_DNS_IP4,
+	OPTION_SPE_AUTO_REFRESH,
+	OPTION_IFTTT_ENABLE,
+#endif
+//	_________________________________________________________________________________________________
+#ifdef SG21
+	//new options in SGxx version see Tables_SG_20_vxx file for details
+	OPTION_FSENSOR_TYPE,
+	OPTION_FLOWUNIT_GAL,
+	OPTION_FLOW_ALARM,
+	OPTION_FLOW_ALARM_RANGE,
+	OPTION_FREEFLOW_QUANTITY,
+	OPTION_FREEFLOW_TIME,
+	OPTION_SSENSOR_1,
+	OPTION_SOILSENSOR1_TYPE,
+	OPTION_SSENSOR_2,
+	OPTION_SOILSENSOR2_TYPE,
+	OPTION_CURRENT,
+	OPTION_CURR_ALARM,
+	OPTION_CURR_RANGE,
+	OPTION_CAL_REQUEST,
+	OPTION_SEND_LOGFILES,
+	OPTION_FATAL_ALARM,
+	OPTION_SGHW_VERSION,
+	OPTION_SGFW_VERSION,
+	OPTION_CLIENT_MODE,
+	OPTION_CLOUDREFRESH_DEF,
+	OPTION_CLOUDREFRESH_FAST,
+	OPTION_STATUS_REPORT,
+	OPTION_FLASH_MEMORY,
+	OPTION_LCD_SIZE,
+	OPTION_LANGUAGE_LCD,
+
+#endif
+//	_________________________________________________________________________________________
+	OPTION_RESET,
 #ifdef BATTERY
 	D_SLEEP_DURATION,
 	D_SLEEP_START_TIME,
@@ -250,6 +360,19 @@ typedef enum
 #endif
     NUM_OPTIONS	// total number of options
 } OS_OPTION_t;
+#define OPTION_RSENSOR_TYPE OPTION_SENSOR_TYPE
+//_________________________________________________________________________________________________
+#ifdef SG21 
+/** Cloud Message Type */
+
+#define SEND_CLOUD_OPTIONS		0
+#define SEND_CLOUD_SETTINGS		1
+#define SEND_CLOUD_PROGRAMS		2
+#define SEND_CLOUD_STATIONS		3
+#define SEND_CLOUD_STATUS_SPEC	4
+#define SEND_CLOUD_LOG			5
+#endif
+//_________________________________________________________________________________________________
 
 /** Log Data Type */
 #define LOGDATA_STATION    0x00
@@ -257,6 +380,48 @@ typedef enum
 #define LOGDATA_RAINDELAY  0x02
 #define LOGDATA_WATERLEVEL 0x03
 #define LOGDATA_FLOWSENSE  0x04
+//_________________________________________________________________________________________________
+#ifdef SG21
+//Smart
+#define LOGDATA_PROGFLOW				0x04  //was LOGDATA_FLOWSENSE
+#define LOGDATA_RAINSENSE2				0x05
+#define LOGDATA_RAINDELAY2				0x06
+#define LOGDATA_PROGFLOW2				0x07
+#define LOGDATA_DAYFLOW					0x08
+#define LOGDATA_CALIBRATED				0x09  // a zone has been calibrated
+
+#define LOGDATA_FREEFLOW_END			0x0A  // freeflow ended
+
+// soil log options
+#define LOGDATA_SOIL1					0x30
+#define LOGDATA_SOIL2					0x31
+#define LOGDATA_SOIL1_PROG_CANCEL		0x32
+#define LOGDATA_SOIL2_PROG_CANCEL		0x33
+#define LOGDATA_SOIL1_STATION_CANCEL	0x34
+#define LOGDATA_SOIL2_STATION_CANCEL	0x35
+
+//flow and rain station cancel log options
+#define LOGDATA_FATAL_STATION_CANCEL	0x36
+#define LOGDATA_RAIN_STATION_CANCEL		0x37
+
+// alert log data types
+#define LOGDATA_ALARM_FLOW_STOPPED		0x10
+#define LOGDATA_ALARM_FF_QUANTITY		0x11
+#define LOGDATA_ALARM_FF_TIME			0x12
+#define LOGDATA_ALARM_LEAKAGE_START		0x13
+#define LOGDATA_ALARM_LEAKAGE_END		0x14
+//flow alarms
+#define LOGDATA_ALARM_FLOW_HIGH			0x15
+#define LOGDATA_ALARM_FLOW_LOW			0x16
+#define LOGDATA_ALARM_FATAL_FLOW		0x17
+//station current alarms
+#define LOGDATA_ALARM_CURRENT_HIGH		0x18
+#define LOGDATA_ALARM_CURRENT_LOW		0x19
+
+//Admin log
+#define LOGDATA_FAILED_STATE			0x20
+#endif
+//_______________________________________________________________________________________________
 
 #ifdef GETOUT //da eliminare
 #ifdef OPENSPRINKLER_ARDUINO_DISCRETE
@@ -582,6 +747,22 @@ typedef unsigned short  uint16_t;
 typedef bool boolean;
 
 #endif  // end of Hardawre defines
+//_________________________________________________________________________________________________
+#ifdef SG21
+#define PIN_RAINSENSOR    2    // rain sensor/programswitch input is connected to pin D3/INT2
+#define PIN_FLOWSENSOR     11    // flow sensor (INT1)
+#define PIN_CURR_SENSE     6    // current sensing pin (A6)
+#define PIN_CURR_DIGITAL  25    // digital pin index for A6
+#define PIN_SOILSENSOR_1	24	  // digital SoilSensor 1 (A7)
+#define PIN_SOILSENSOR_2	26	  // digital SoilSensor 2 (A5)
+#else
+#define PIN_RAINSENSOR    11    // rain sensor is connected to pin D3
+#define PIN_FLOWSENSOR    11    // flow sensor (currently shared with rain sensor, change if using a different pin)
+#define PIN_CURR_SENSE     7    // current sensing pin (A7)
+#define PIN_CURR_DIGITAL  24    // digital pin index for A7
+#endif
+//__________________________________________________________________________________________________
+
 
 #define TMP_BUFFER_SIZE     128  // scratch buffer size
 

@@ -23,7 +23,11 @@
 
 #include "OpenSprinkler.h"
 #include "OpenSprinklerProgram.h"
-
+//_________________________
+#ifdef SG21
+  #include "SensorGroup.h"
+#endif
+//__________________________
 // External variables defined in main ion file
 #if defined(ARDUINO)
 #ifdef ESP8266
@@ -66,7 +70,10 @@ extern ProgramData pd;
 	extern char op_json_names[];
 	extern char op_max[];
 #endif
-
+#ifdef SG21
+//extern EtherCard ether;
+extern SensorGroup sensors;	//SensorGroup object
+#endif
 void write_log ( byte type, ulong curr_time );
 void schedule_all_stations ( ulong curr_time );
 void turn_off_station ( byte sid, ulong curr_time );
@@ -446,7 +453,13 @@ void server_json_stations_main()
     server_json_stations_attrib ( PSTR ( "ignore_rain" ), ADDR_NVM_IGNRAIN );
     server_json_stations_attrib ( PSTR ( "masop2" ), ADDR_NVM_MAS_OP_2 );
     server_json_stations_attrib ( PSTR ( "stn_dis" ), ADDR_NVM_STNDISABLE );
-    server_json_stations_attrib ( PSTR ( "stn_seq" ), ADDR_NVM_STNSEQ );
+  server_json_stations_attrib ( PSTR ( "stn_seq" ), ADDR_NVM_STNSEQ );
+  //_________________________
+#ifdef SG21
+  server_json_stations_attrib(PSTR("stn_as1"), ADDR_NVM_SSENSOR_1);  // attach soil sensor1 status on station
+  server_json_stations_attrib(PSTR("stn_as2"), ADDR_NVM_SSENSOR_2);  // attach soil sensor2 status on station
+#endif
+  //__________________________
 #if defined(ARDUINO)  // only output stn_spe if it's supported
     if ( os.status.has_sd )
     {
@@ -561,6 +574,15 @@ byte server_change_stations ( char *p )
     server_change_stations_attrib ( p, 'n', ADDR_NVM_MAS_OP_2 ); // master2
     server_change_stations_attrib ( p, 'd', ADDR_NVM_STNDISABLE ); // disable
     server_change_stations_attrib ( p, 'q', ADDR_NVM_STNSEQ ); // sequential
+															   //_________________________
+#ifdef SG21
+
+  char tbuf3[2] = {5,0};   //soil sensor 1 attached to s0, s2, bx0101010101, bx1010101010
+    nvm_write_block(tbuf3, (void *)ADDR_NVM_SSENSOR_1, strlen(tbuf3));
+  char tbuf4[2] = {6,0};  //soil sensor 2 attached to s1, s3, bx1010101010, bx0101010101
+    nvm_write_block(tbuf4, (void *)ADDR_NVM_SSENSOR_2, strlen(tbuf4));
+#endif
+															   //__________________________
 #if defined(ARDUINO)  // only parse station special bits if it's supported
     if ( os.status.has_sd )
     {
@@ -608,7 +630,38 @@ uint16_t parse_listdata ( char **p )
     *p = pv+1;
     return ( uint16_t ) atol ( tmp_buffer );
 }
+#ifdef OS217
+void manual_start_program(byte, byte);
+/** Manual start program
+ * Command: /mp?pw=xxx&pid=xxx&uwt=xxx
+ *
+ * pw:  password
+ * pid: program index (0 refers to the first program)
+ * uwt: use weather (i.e. watering percentage)
+ */
+byte server_manual_program(char *p) {
+  if (!findKeyVal(p, tmp_buffer, TMP_BUFFER_SIZE, PSTR("pid"), true))
+    return HTML_DATA_MISSING;
 
+  int pid=atoi(tmp_buffer);
+  if (pid < 0 || pid >= pd.nprograms) {
+    return HTML_DATA_OUTOFBOUND;
+  }
+
+  byte uwt = 0;
+  if (findKeyVal(p, tmp_buffer, TMP_BUFFER_SIZE, PSTR("uwt"), true)) {
+    if(tmp_buffer[0]=='1') uwt = 1;
+  }
+
+  // reset all stations and prepare to run one-time program
+  reset_all_stations_immediate();
+
+  manual_start_program(pid+1, uwt);
+
+  return HTML_SUCCESS;
+
+}
+#endif
 /**
  * Change run-once program
  * Command: /cr?pw=xxx&t=[x,x,x...]
@@ -835,13 +888,19 @@ void server_json_options_main()
             continue;
 #endif
         int32_t v=os.options[oid];
+#ifdef OS217
+    if (oid==OPTION_MASTER_OFF_ADJ || oid==OPTION_MASTER_OFF_ADJ_2 ||
+        oid==OPTION_MASTER_ON_ADJ  || oid==OPTION_MASTER_ON_ADJ_2 ||
+        oid==OPTION_STATION_DELAY_TIME) {
+#else
         if ( oid==OPTION_MASTER_OFF_ADJ || oid==OPTION_MASTER_OFF_ADJ_2 )
         {
             v-=60;
         }
         if ( oid==OPTION_STATION_DELAY_TIME )
         {
-            v=water_time_decode_signed ( v );
+#endif 
+			v=water_time_decode_signed ( v );
         }
 #if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
         if ( oid==OPTION_BOOST_TIME )
@@ -975,10 +1034,16 @@ void server_json_controller_main()
         bfill.emit_p ( PSTR ( "\"curr\":$D," ), os.read_current() );
     }
 #endif
-    if ( os.options[OPTION_SENSOR_TYPE]==SENSOR_TYPE_FLOW )
+#ifdef SG21
+	if (os.options[OPTION_FSENSOR_TYPE] == SENSOR_TYPE_FLOW) {
+		bfill.emit_p(PSTR("\"flcrt\":$L,\"flwrt\":$D,"), sensors.window_impulses, FLOWCOUNT_RT_WINDOW);
+	}
+#else
+	if ( os.options[OPTION_SENSOR_TYPE]==SENSOR_TYPE_FLOW )
     {
         bfill.emit_p ( PSTR ( "\"flcrt\":$L,\"flwrt\":$D," ), os.flowcount_rt, FLOWCOUNT_RT_WINDOW );
     }
+#endif
 #ifdef BATTERY
 	bfill.emit_p(PSTR("\"batmV\":$D,\"batmA\":$D,\"batCh\":$D,"),
 		os.BatteryVoltage(), os.BatteryAmps(),os.BatteryCharge());
@@ -1691,6 +1756,9 @@ URLHandler urls[] =
     server_delete_program,  // dp
     server_change_program,  // cp
     server_change_runonce,  // cr
+#ifdef OS217
+  server_manual_program,  // mp  
+#endif
     server_moveup_program,  // up
     server_json_programs,   // jp
     server_change_options,  // co
