@@ -1,0 +1,55 @@
+diff --git a/OpenSprinkler.h b/OpenSprinkler.h
+index 6c224c2..6a5b4e9 100644
+--- a/OpenSprinkler.h
++++ b/OpenSprinkler.h
+@@ -83,22 +83,16 @@ struct HTTPStationData {
+ struct ConStatus {
+   byte enabled:1;           // operation enable (when set, controller operation is enabled)
+   byte rain_delayed:1;      // rain delay bit (when set, rain delay is applied)
+-  byte rain_sensed:1;       // rain sensor bit (when set, it indicates that rain is detected) 
+-  // @tcsaba:soil sensor inputs status flags
+-	byte dry_soil_1 : 1;		// soil sensor 1 bit (when set, the soil needs irrigation)
+-	byte dry_soil_2 : 1;		// soil sensor 2 bit (when set, the soil needs irrigation)
++  byte rain_sensed:1;       // rain sensor bit (when set, it indicates that rain is detected)
+   byte program_busy:1;      // HIGH means a program is being executed currently
+   byte has_curr_sense:1;    // HIGH means the controller has a current sensing pin
+   byte has_sd:1;            // HIGH means a microSD card is detected
+   byte safe_reboot:1;       // HIGH means a safe reboot has been marked
+   byte has_hwmac:1;         // has hardware MAC chip
+   byte req_ntpsync:1;       // request ntpsync
+-  byte req_network:1;       // request check network 
++  byte req_network:1;       // request check network
+   byte display_board:3;     // the board that is being displayed onto the lcd
+   byte network_fails:3;     // number of network fails
+-  //@tcsaba:additional levels for internet connection checking and fault detection
+-	byte netw_adapter_fail : 1; // HIGH when network adapter can't started
+-	byte internet_fail : 1;     // HIGH when no internet connection (IP:8.8.8.8 have no ping response)	
+   byte mas:8;               // master station index
+   byte mas2:8;              // master2 station index
+ };
+@@ -144,8 +138,6 @@ public:
+                                   // first byte-> master controller, second byte-> ext. board 1, and so on
+ 
+   // variables for time keeping
+-	static ulong s1sensor_lasttime;  // @tcsaba: time when the last soilsensor1 reading is recorded
+-	static ulong s2sensor_lasttime;  // @tcsaba: time when the last soilsensor2 reading is recorded
+   static ulong sensor_lasttime;  // time when the last sensor reading is recorded
+   static ulong flowcount_time_ms;// time stamp when new flow sensor click is received (in milliseconds)
+   static ulong flowcount_rt;     // flow count (for computing real-time flow rate)
+@@ -155,7 +147,6 @@ public:
+   static ulong checkwt_lasttime;      // time when weather was checked
+   static ulong checkwt_success_lasttime; // time when weather check was successful
+   static byte  weather_update_flag; 
+-	static uint16_t current_offset;  // @tcsaba: current offset value when no station on
+   // member functions
+   // -- setup
+   static void update_dev();   // update software for Linux instances
+@@ -194,8 +185,6 @@ public:
+   static void raindelay_start();  // start raindelay
+   static void raindelay_stop();   // stop rain delay
+   static void rainsensor_status();// update rainsensor status
+-  
+-	static void soilsensor_status();// @tcsaba: update soilsensor status
+   static bool programswitch_status(ulong); // get program switch status
+ #if defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__)
+   static uint16_t read_current(); // read current sensing value
