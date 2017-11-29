@@ -58,42 +58,48 @@ Original Opensprinkler code commences below here
 * <http://www.gnu.org/licenses/>.
 */
 
-#include <EEPROM.h>
+
 #include <Arduino.h>
 #include "Config.h"
 #include "Defines.h"
-
-#include "OpenSprinkler.h"
+#include <EEPROM.h>
+//MOD_RTC
+#include <Time.h>
+#ifdef DS1307RTC==I2CRTC
+#include "i2crtc.h"
+#else
+#include <DS1307RTC.h>
+#endif
 
 #ifdef OPENSPRINKLER_ARDUINO
 
 	#include <Wire.h>
-#ifdef ESP8266
-
-//#include "SPIFFSdFat.h"
-//#include "PCF8574\PCF8574.h"
+//PCF expander library///////////////////////////////
+#if defined(ESP8266) 
 #include "PCF8574Mio.h"
-#include <ESP8266mDNS.h>
+#endif
+// FILE STORAGE LIBRARIES////////////////////////////
 #ifndef SDFAT
+#ifdef ESP8266
 #include <FS.h>
+ #elif defined(ESP32)
+  #include <SPIFFS.h>
 #else 
 #include <SD.h>
 #include <SdFat.h>
 #endif
 #endif
-	#include <Time.h>
-#ifndef DS1307RTC
-	#include <DS1307RTC.h>
-#else
-	#include "RTClib-master\RTClib.h"
+////// LCD LIBRARIES/////////////////////////////////////
+#if defined (LCDI2C)
+#if !defined(LCD_SSD1306) 
+    #include <LiquidCrystal_I2C.h>
 #endif
 
-#ifdef LCDI2C
-    #include <LiquidCrystal_I2C.h>
 #else
 	#include <LiquidCrystal.h>
 #endif
 
+////// ETHERNET LIBRARIES//////////////////////////////////
 	#ifdef OPENSPRINKLER_ARDUINO_W5100
 #ifndef ESP8266
 
@@ -102,23 +108,29 @@ Original Opensprinkler code commences below here
 #include <EthernetUdp.h>
 
 #else
+/////////OTA UPLOAD LIBRARIES/////////////////////////////
+#ifdef OTA_UPLOAD
+#include <ESP8266mDNS.h>
+ #include <ArduinoOTA.h>
+#endif
+#ifndef ESP32
 #include <ESP8266WiFi.h>
+ #include <WiFiClientSecure.h>
+#include <DNSServer.h>
+#include <WiFiManager-master\WiFiManager.h> 
+// #include <Arduino-Ping-master/ESP8266Ping.h>
+#else
+ #include <WiFi.h>
+#endif
 #include <WiFiUdp.h>
 #include <WiFiServer.h>
-#include <WiFiClientSecure.h>
 #include <WiFiClient.h>
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-#include <WiFiManager.h> 
-#ifdef OTA_UPLOAD
-#include <ArduinoOTA.h>
-#endif
 
 #endif
 //		#include <ICMPPing.h>
 		#include "EtherCardW5100.h"
 	#else
-		//#include <EtherCard.h>
+		#include <EtherCard.h>
 	#endif
 
 	#ifdef OPENSPRINKLER_ARDUINO_AUTOREBOOT
@@ -135,14 +147,20 @@ Original Opensprinkler code commences below here
 #include <avr/wdt.h>
 #endif
 #endif
-byte DB = 0xFF;     ////________________debug print everywhere_________________
-#ifdef ESP8266
-extern DS1307RTC RTC;
+#if defined(ESP8266)
+#ifdef DS1307RTC==I2CRTC
+ I2CRTC RTC=I2CRTC();					//MOD_RTC
+#else
+ DS1307RTC RTC;
 #endif
+#endif
+#include "OpenSprinkler.h"
+//extern PCF8574 PCF[10];
 
-extern PCF8574 PCF[10];
-
-extern OpenSprinkler os;
+//extern OpenSprinkler os;
+//CLUP
+byte DB = 0xFF;     ////________________debug print everywhere_________________
+int nDB = 0;        ////-----------------for GPIO debugging-------------------
 
 void do_setup();
 void do_loop();

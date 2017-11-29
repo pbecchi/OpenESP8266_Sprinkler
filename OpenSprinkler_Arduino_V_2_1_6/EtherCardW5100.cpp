@@ -254,6 +254,7 @@ ICMPEchoReply EtherCardW5100::ping_result;
 ETHERNES EtherCardW5100::incoming_server ( hisport );
 //ETHERNES EtherCardW5100::incoming_server(80);
 ETHERNEC EtherCardW5100::incoming_client;
+
 #ifdef MOD1
 ETHERNEC EtherCardW5100::outgoing_client;
 #endif
@@ -641,7 +642,7 @@ bool EtherCardW5100::WiFiconnect( const uint8_t* my_ip, const uint8_t* gw_ip, co
 		WiFi.begin(SSID, PASSWORD);// , my_ip, dns_ip, gw_ip);
 		byte netmask[4] = { 255,255,255,0 };
 
-		 WiFi.config(my_ip, gw_ip, netmask);
+		 WiFi.config(my_ip, gw_ip, netmask,dns_ip);
 		DEBUG_PRINT("\nConnecting to "); DEBUG_PRINTLN(SSID);
 		uint8_t i = 0;
 		while (WiFi.status() != WL_CONNECTED && i++ <=201) { yield(); delay(400); DEBUG_PRINT('.'); }
@@ -777,7 +778,7 @@ bool EtherCardW5100::dhcpSetup ( const char *hname, bool fromRam )
     // save the values
     IP2Byte ( ETHERNE.localIP(), myip );
     IP2Byte (ETHERNE.gatewayIP(), gwip );
-    IP2Byte (ETHERNE.gatewayIP(), dnsip );
+    IP2Byte (ETHERNE.dnsIP(), dnsip );
     IP2Byte (ETHERNE.subnetMask(), netmask );
 
     // print debug values
@@ -1468,9 +1469,17 @@ void EtherCardW5100::browseUrl ( const char *urlbuf, const char *urlbuf_varpart,
 #endif
 
 	delay(1000);
-    
+	bool connected = false;
+	DEBUG_PRINT("hoststring=");
+#if defined  (ESP32)||defined(ESP8266)
+	if (hoststr == "*") {
+		DEBUG_PRINTLN(IPAddress(hisip[0], hisip[1], hisip[2], hisip[3]));
+		connected = outgoing_client.connect(IPAddress(hisip[0], hisip[1], hisip[2], hisip[3]), hisport);
+	} else
+		connected = outgoing_client.connect(hoststr, hisport);
+#endif
 	// send the request
-    if ( outgoing_client.connect (hoststr, hisport ) )
+    if ( connected )
 		//-------------modified *hoststr now=weather.opensprinkler.com was "*"
     {
         // send the HTTP GET request:

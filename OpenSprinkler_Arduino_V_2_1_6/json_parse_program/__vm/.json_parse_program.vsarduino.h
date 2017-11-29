@@ -1,21 +1,25 @@
 /* 
 	Editor: http://www.visualmicro.com
-	        visual micro and the arduino ide ignore this code during compilation. this code is automatically maintained by visualmicro, manual changes to this file will be overwritten
-	        the contents of the Visual Micro sketch sub folder can be deleted prior to publishing a project
-	        all non-arduino files created by visual micro and all visual studio project or solution files can be freely deleted and are not required to compile a sketch (do not delete your own code!).
-	        note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xml file. Both files are required to continue a previous debug session without needing to compile and upload again
+			visual micro and the arduino ide ignore this code during compilation. this code is automatically maintained by visualmicro, manual changes to this file will be overwritten
+			the contents of the Visual Micro sketch sub folder can be deleted prior to publishing a project
+			all non-arduino files created by visual micro and all visual studio project or solution files can be freely deleted and are not required to compile a sketch (do not delete your own code!).
+			note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xml file. Both files are required to continue a previous debug session without needing to compile and upload again
 	
 	Hardware: NodeMCU 1.0 (ESP-12E Module), Platform=esp8266, Package=esp8266
 */
+
+#if defined(_VMICRO_INTELLISENSE)
 
 #ifndef _VSARDUINO_H_
 #define _VSARDUINO_H_
 #define __ESP8266_ESp8266__
 #define __ESP8266_ESP8266__
+#define _VMDEBUG 1
 #define __ets__
 #define ICACHE_FLASH
 #define F_CPU 80000000L
-#define ARDUINO 10801
+#define LWIP_OPEN_SRC
+#define ARDUINO 10804
 #define ARDUINO_ESP8266_NODEMCU
 #define ARDUINO_ARCH_ESP8266
 #define ESP8266
@@ -78,12 +82,22 @@ typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
 
+typedef long __INTPTR_TYPE__ ;
+typedef long __UINTPTR_TYPE__ ;
+typedef long __SIZE_TYPE__ 	;
+typedef long __PTRDIFF_TYPE__;
+
+
 #include "new"
 #include "Esp.h"
 
 
-#include <arduino.h>
+#include <Arduino.h>
 #include <pins_arduino.h> 
+
+#include "..\generic\Common.h"
+#include "..\generic\pins_arduino.h"
+
 #undef F
 #define F(string_literal) ((const PROGMEM char *)(string_literal))
 #undef PSTR
@@ -97,4 +111,5 @@ extern "C" void __cxa_pure_virtual() {;}
 #include "EEPROM.ino"
 #include "..\..\..\EE\EElogger_9_1_ESP_2.ino\INTERRUPT.ino"
 #include "..\..\..\EE\EElogger_9_1_ESP_2.ino\Telnet.ino"
+#endif
 #endif

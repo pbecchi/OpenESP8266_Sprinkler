@@ -87,10 +87,10 @@
     <ClInclude Include="..\..\libraries\Adafruit_INA219-master\Adafruit_INA219.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libraries\Arduino-Ping-master\ESP8266Ping.h">
+    <ClInclude Include="i2crtc.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="i2crtc.h">
+    <ClInclude Include="ESP8266Ping.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
@@ -140,13 +140,10 @@
     <ClCompile Include="RTClib-master\RTClib.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libraries\Adafruit_INA219-master\Adafruit_INA219.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libraries\Arduino-Ping-master\ESP8266Ping.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
     <ClCompile Include="i2crtc.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="ESP8266Ping.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

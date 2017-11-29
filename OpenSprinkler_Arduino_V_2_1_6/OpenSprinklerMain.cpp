@@ -155,7 +155,7 @@ void ui_state_machine()
                 else if ( digitalRead ( PIN_BUTTON_2 ) ==0 ) // if B2 is pressed while holding B1, display gateway IP
                 {
                     os.lcd_print_ip ( ether.gwip, 0 );
-                    os.lcd.setCursor ( 0, 1 );
+                    os.lcd.setCursor ( 0, YFACTOR );
                     os.lcd_print_pgm ( PSTR ( "(gwip)" ) );
                     ui_state = UI_STATE_DISP_IP;
                 }
@@ -187,7 +187,7 @@ void ui_state_machine()
                 if ( digitalRead ( PIN_BUTTON_1 ) ==0 ) // if B1 is pressed while holding B2, display external IP
                 {
                     os.lcd_print_ip ( ( byte* ) ( &os.nvdata.external_ip ), 1 );
-                    os.lcd.setCursor ( 0, 1 );
+                    os.lcd.setCursor ( 0, YFACTOR );
                     os.lcd_print_pgm ( PSTR ( "(eip)" ) );
                     ui_state = UI_STATE_DISP_IP;
                 }
@@ -195,7 +195,7 @@ void ui_state_machine()
                 {
                     os.lcd_clear();
                     os.lcd_print_time ( os.checkwt_success_lasttime );
-                    os.lcd.setCursor ( 0, 1 );
+                    os.lcd.setCursor ( 0, YFACTOR );
                     os.lcd_print_pgm ( PSTR ( "(lswc)" ) );
                     ui_state = UI_STATE_DISP_IP;
                 }
@@ -263,7 +263,7 @@ void ui_state_machine()
                     ProgramStruct prog;
                     pd.read ( ui_state_runprog-1, &prog );
                     os.lcd_print_line_clear_pgm ( PSTR ( " " ), 1 );
-                    os.lcd.setCursor ( 0, 1 );
+                    os.lcd.setCursor ( 0, YFACTOR );
                     os.lcd.print ( ( int ) ui_state_runprog );
                     os.lcd_print_pgm ( PSTR ( ". " ) );
                     os.lcd.print ( prog.name );
@@ -277,6 +277,16 @@ void ui_state_machine()
         break;
     }
 }
+
+void write_log(byte type, ulong curr_time);
+void schedule_all_stations(ulong curr_time);
+void turn_off_station(byte sid, ulong curr_time);
+void process_dynamic_events(ulong curr_time);
+void check_network();
+void check_weather();
+void perform_ntp_sync();
+void delete_log(char *name);
+void handle_web_request(char *p);
 
 // ======================
 // Setup Function
@@ -310,8 +320,16 @@ void do_setup()
 #endif
 
     DEBUG_PRINTLN ( "Started..." );
-    os.begin();          // OpenSprinkler init
+#ifdef BATTERY
+
+	int volts = os.BatteryVoltage();
+
+	os.Sleep(volts);
+	//delay(100);
+#endif
+	os.begin();          // OpenSprinkler init
 	DEBUG_PRINTLN("OptSetup...");
+
     os.options_setup();  // Setup options
 	DEBUG_PRINTLN("init...");
     pd.init();            // ProgramData init
@@ -348,9 +366,12 @@ void do_setup()
     else
     {
         os.status.network_fails = 1;
+
     }
+	os.status.req_ntpsync = 1;
+	perform_ntp_sync();
     os.status.req_network = 0;
-    os.status.req_ntpsync = 1;
+ 
 
     os.apply_all_station_bits(); // reset station bits
 	os.button_timeout = LCD_BACKLIGHT_TIMEOUT;
@@ -400,16 +421,6 @@ void do_setup()
     os.status.req_network = 0;
 }
 #endif
-
-void write_log ( byte type, ulong curr_time );
-void schedule_all_stations ( ulong curr_time );
-void turn_off_station ( byte sid, ulong curr_time );
-void process_dynamic_events ( ulong curr_time );
-void check_network();
-void check_weather();
-void perform_ntp_sync();
-void delete_log ( char *name );
-void handle_web_request ( char *p );
 
 /** Main Loop */
 #define LOGDATA_BATTERY 5

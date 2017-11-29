@@ -24,7 +24,7 @@ class TimeSpan;
 
 #define SECONDS_FROM_1970_TO_2000 946684800
 
-#include <Time/TimeLib.h>
+#include <TimeLib.h>
 
 // Simple general-purpose date/time class (no TZ / DST / leap second handling!)
 class DateTime {

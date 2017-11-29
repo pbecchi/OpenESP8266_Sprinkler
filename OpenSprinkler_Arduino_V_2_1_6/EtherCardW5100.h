@@ -51,11 +51,11 @@ Refer to the README file for more information
 #define ETHERNEC WiFiClient
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-#include <WiFiServer.h>
-#include <WiFiClientSecure.h>
-#include <WiFiClient.h>
+//#include <WiFiServer.h>
+//#include <WiFiClientSecure.h>
+//#include <WiFiClient.h>
 #include <Dns.h>
-#include <Arduino-Ping-master\ESP8266ping.h>
+#include "ESP8266Ping.h"
 
 #include "Config.h"
 #include "Defines.h"
@@ -63,7 +63,7 @@ Refer to the README file for more information
 
 #ifdef WIFIMANAGER
 #include <ESP8266WebServer.h>
-#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
+#include <WiFiManager-master\WiFiManager.h>
 
 #endif
 //=================================================================================

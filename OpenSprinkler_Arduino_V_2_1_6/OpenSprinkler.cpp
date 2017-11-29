@@ -1433,7 +1433,7 @@ void OpenSprinkler::Sleep(int volts) {
 	else { if (SLEEP_START + SLEEP_DURATION > 24) if (hour() < SLEEP_START + SLEEP_DURATION - 24)sleepFlag = true; }
 //////
 	if (volts>=100)
-		if (volts < DEEP_SLEEP_VOLTS&&sleepFlag)
+		if ((volts < DEEP_SLEEP_VOLTS&&sleepFlag )|| volts<DEEP_SLEEP_VOLTS-2)
 		{
 			lcd.clearDisplay();
 			lcd.setCursor(0, BOTTOM);

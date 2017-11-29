@@ -33,7 +33,7 @@ uint8_t I2CRTC::addr = 0;
 
 I2CRTC::I2CRTC()
 {
-  Wire.begin();
+ // Wire.begin();
 }
 
 bool I2CRTC::detect()
@@ -154,5 +154,5 @@ uint8_t I2CRTC::bcd2dec(uint8_t num)
   return ((num/16 * 10) + (num % 16));
 }
 
-I2CRTC RTC = I2CRTC(); // create an instance for the user
+// I2CRTC RTC = I2CRTC(); // create an instance for the user
 

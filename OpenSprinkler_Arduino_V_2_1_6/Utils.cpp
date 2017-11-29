@@ -187,7 +187,7 @@ bool read_from_file(const char *name, char *data, int maxsize, int pos) {
   
 #endif
 
-  data[maxsize-1]=0;
+  data[ret]=0;
   DEBUG_PRINTLN(data);
   file.close();
   return true;

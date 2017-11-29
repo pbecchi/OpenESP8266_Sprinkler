@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -21,32 +21,32 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{533A58EF-90B8-4BF8-AB24-E116E5D1CA18}</ProjectGuid>
     <RootNamespace>json_parse_program</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -74,9 +74,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266\libb64;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266\spiffs;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\cores\esp8266\umm_malloc;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\variants\nodemcu;d:\Users\pbecc\OneDrive\Arduino\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\json_parse_program;d:\users\pbecc\onedrive\Arduino\libraries\Adafruit_ILI9341esp;d:\users\pbecc\onedrive\Arduino\libraries\Adafruit_ILI9341esp\utility;d:\users\pbecc\onedrive\Arduino\libraries\Adafruit-GFX-Library;d:\users\pbecc\onedrive\Arduino\libraries\Adafruit-GFX-Library\utility;d:\users\pbecc\onedrive\Arduino\libraries\ArduinoJson\src;d:\users\pbecc\onedrive\Arduino\libraries\ArduinoJson\src\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ArduinoOTA;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ArduinoOTA\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\EEPROM;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\EEPROM\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266mDNS;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266mDNS\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\ESP8266WiFi\src\utility;d:\users\pbecc\onedrive\Arduino\libraries\RTClib-master;d:\users\pbecc\onedrive\Arduino\libraries\RTClib-master\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\SPI;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\SPI\utility;d:\users\pbecc\onedrive\Arduino\libraries\SSIDPASSWORD;d:\users\pbecc\onedrive\Arduino\libraries\SSIDPASSWORD\utility;d:\users\pbecc\onedrive\Arduino\libraries\Time;d:\users\pbecc\onedrive\Arduino\libraries\Time\utility;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\Wire;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries\Wire\utility;d:\users\pbecc\onedrive\Arduino\libraries\XPT2046-master;d:\users\pbecc\onedrive\Arduino\libraries\XPT2046-master\utility;d:\Program Files\Arduino\libraries;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\libraries;D:\Program Files\VisualStudio\Common7\IDE\Extensions\hmsrml5a.chd\Micro Platforms\default\debuggers;d:\users\pbecc\onedrive\Arduino\libraries;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1/tools/sdk/lwip/include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2\xtensa-lx106-elf;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\lib\gcc\xtensa-lx106-elf\4.8.2\include;d:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.2.0-rc1\tools\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>d:\Users\pbecc\OneDrive\Arduino\OpenSprinkler\OpenSprinkler_Arduino_V_2_1_6\json_parse_program\__vm\.json_parse_program.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <PreprocessorDefinitions>__ESP8266_ESp8266__;__ESP8266_ESP8266__;__ets__;ICACHE_FLASH;F_CPU=80000000L;ARDUINO=10608;ARDUINO_ESP8266_NODEMCU;ARDUINO_ARCH_ESP8266;ESP8266;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\json_parse_program;d:\Users\pbecc\OneDrive\Arduino\libraries\Adafruit_ILI9341esp;d:\Users\pbecc\OneDrive\Arduino\libraries\Adafruit-GFX-Library;d:\Users\pbecc\OneDrive\Arduino\libraries\ArduinoJson\src;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ArduinoOTA;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\EEPROM;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266mDNS;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src;d:\Users\pbecc\OneDrive\Arduino\libraries\NPTtimeSync;d:\Users\pbecc\OneDrive\Arduino\libraries\RTClib-master;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\SPI;d:\Users\pbecc\OneDrive\Arduino\libraries\SSIDPASSWORD;d:\Users\pbecc\OneDrive\Arduino\libraries\thingspeak-arduino-master\src;d:\Users\pbecc\OneDrive\Arduino\libraries\Time;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\Wire;d:\Users\pbecc\OneDrive\Arduino\libraries\XPT2046-master;d:\Program Files\Arduino\libraries;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries;d:\Users\pbecc\OneDrive\Arduino\libraries;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266\libb64;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266\spiffs;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266\umm_malloc;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\variants\nodemcu;$(ProjectDir)..\..\..\EE\EElogger_9_1_ESP_2.ino;$(ProjectDir)..\..\OpenSprinkler_Arduino_V_2_1_6;$(ProjectDir)..\..\..\TimeNTP_ESP8266WiFi\TimeNTP_ESP8266WiFi.ino;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\tools\sdk\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\tools\sdk\lwip\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2\xtensa-lx106-elf;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\lib\gcc\xtensa-lx106-elf\4.8.2\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\tools\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.json_parse_program.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <PreprocessorDefinitions>__ESP8266_ESp8266__;__ESP8266_ESP8266__;_VMDEBUG=1;__ets__;ICACHE_FLASH;F_CPU=80000000L;LWIP_OPEN_SRC;ARDUINO=10804;ARDUINO_ESP8266_NODEMCU;ARDUINO_ARCH_ESP8266;ESP8266;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

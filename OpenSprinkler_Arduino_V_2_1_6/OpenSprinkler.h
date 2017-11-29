@@ -45,7 +45,8 @@ extern "C" {
 	#include <Wire.h>
 	#include <Time.h>
 #ifdef BATTERY
-#include <Adafruit_INA219-master\Adafruit_INA219.h>
+//#include <Adafruit_INA219-master\Adafruit_INA219.h>
+#include <Adafruit_INA219.h>
 #endif
 #ifdef LCDI2C
 #ifdef LCD_SSD1306
