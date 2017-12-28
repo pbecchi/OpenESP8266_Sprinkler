@@ -1,6 +1,6 @@
 C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\ESP8266Ping.cpp.o: \
- C:\Users\pbecc\onedrive\Arduino\libraries\Arduino-Ping-master\ESP8266Ping.cpp \
- C:\Users\pbecc\onedrive\Arduino\libraries\Arduino-Ping-master\ESP8266Ping.h \
+ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\ESP8266Ping.cpp \
+ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\ESP8266Ping.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/Arduino.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/stdlib_noniso.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/binary.h \

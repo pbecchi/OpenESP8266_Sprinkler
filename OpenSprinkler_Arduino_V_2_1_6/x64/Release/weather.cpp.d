@@ -52,12 +52,14 @@ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/Stream.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\Time/Time.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\Time/TimeLib.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries\LiquidCrystal/LiquidCrystal_I2C.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Adafruit_INA219-master/Adafruit_INA219.h \
+ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\lib\Adafruit_SSD1306.h \
+ C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\SPI/SPI.h \
+ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\lib\Adafruit_GFX.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/Print.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries\LiquidCrystal/I2CIO.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries\LiquidCrystal/LCD.h \
+ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\lib\gfxfont.h \
  d:\Users\pbecc\OneDrive\Arduino\libraries\DS1307RTC/DS1307RTC.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries/Time/TimeLib.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries\Time/TimeLib.h \
  C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\Bitmaps.h \
  C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\EtherCardW5100.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src/ESP8266WiFi.h \
@@ -82,16 +84,13 @@ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src/WiFiUdp.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\cores\esp8266/Udp.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src/include/slist.h \
- C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src/WiFiServer.h \
- C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src/WiFiClientSecure.h \
- C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WiFi\src/WiFiClient.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\Ethernet\src/Dns.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\Ethernet\src/EthernetUdp.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries/Arduino-Ping-master\ESP8266ping.h \
+ C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\ESP8266Ping.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1/tools/sdk/include/ping.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WebServer\src/ESP8266WebServer.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\ESP8266WebServer\src/detail/RequestHandler.h \
- d:\Users\pbecc\OneDrive\Arduino\libraries\WiFiManager-master/WiFiManager.h \
+ d:\Users\pbecc\OneDrive\Arduino\libraries/WiFiManager-master\WiFiManager.h \
  C:\Users\pbecc\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0-rc1\libraries\DNSServer\src/DNSServer.h \
  C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\Utils.h \
  C:\Users\pbecc\AppData\Local\Temp\VMBuilds\OpenSprinkler_ESP8266_V_2_1_6\esp8266_generic\Release\OpenSprinklerServer.h
